@@ -293,3 +293,4 @@ class JEVVerify:
             if len(clean) >= 2:
                 break
         return clean if clean else ["SCP-1.1"]
+

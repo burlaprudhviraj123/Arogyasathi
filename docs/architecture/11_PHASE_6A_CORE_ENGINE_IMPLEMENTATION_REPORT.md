@@ -139,3 +139,4 @@ The pipeline was executed against the official test set (`questions_test.csv` â€
 - [x] **Any deviations and their justification:** Grounded extractive synthesis used to prevent number distortion.
 - [x] **What remains before Android integration:** Android Room database setup, UI layout in Jetpack Compose, on-device audio recording for voice stretch goal.
 - [x] **Measured performance results:** Peak RAM `102.86 MB`, Median Latency `0.452 ms`.
+

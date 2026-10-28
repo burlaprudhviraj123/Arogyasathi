@@ -58,3 +58,4 @@ def test_evaluator_dev_run(tmp_path):
     assert score_data["refusal_accuracy"] == 1.0
     assert score_data["visit_list_score"] == 1.0
     assert score_data["primary_score"] >= 0.85
+

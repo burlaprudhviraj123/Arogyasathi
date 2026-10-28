@@ -46,3 +46,4 @@ def test_laya_synthesizer_constraints():
     assert len(ans) <= 400
     assert "CHD-1.2" in ans
     assert len(ans) > 20
+

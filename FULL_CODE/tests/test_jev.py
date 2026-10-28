@@ -90,3 +90,4 @@ def test_jev_verify_citations():
     # Invalid citations filtered
     sanitized2 = verifier.validate_citations(["INVALID-9.9", "ANC-1.1"])
     assert sanitized2 == ["ANC-1.1"]
+

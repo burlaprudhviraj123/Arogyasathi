@@ -108,6 +108,14 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
 
 ---
 
-## Pending Deliverables
+## Mandatory Engineering Rules
 
-All phases pending. Currently in Phase 0.
+The 8 core project rules have been encoded into `GEMINI.md` and `AGENTS.md` and govern all agent and developer actions:
+1. 🧠 **Context must never be lost:** Maintain living manifest, read docs before changes, preserve JEV & Laya.
+2. 🔬 **Research before implementation:** Audit every reference, produce standalone research docs, support decisions with evidence.
+3. 🚦 **Strict, phase-gated workflow:** Phase 0 through Phase 7 sequential sign-offs without jumping ahead.
+4. ⚡ **Performance is an engineering requirement:** Measured RAM, latency, APK size; no fabricated benchmarks.
+5. 🎯 **Build what the problem requires:** Deterministic danger gate, valid leaf citations, safe refusal, actual offline edge execution.
+6. 📱 **UI must be minimal and purposeful:** 3-Key design, low-literacy ergonomics, no decorative fluff.
+7. 📄 **Documentation is part of the deliverable:** Living manifest, architecture specs, traceability matrices.
+8. 🛑 **No lazy completion claims:** Inspect first, test thoroughly, report actual evaluator metrics, stop at phase gate.
