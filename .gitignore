@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+models/
+H5_Frontline_Health_Worker_Companion/models/
+*.tmp
