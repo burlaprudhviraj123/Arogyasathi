@@ -57,27 +57,47 @@ python3 H5_Frontline_Health_Worker_Companion/evaluate.py \
   --out score.json
 ```
 
+### D. Native Android App (Build, Test & Install)
+```bash
+cd android_app
+
+# Run Android unit tests
+./gradlew test
+
+# Build debug APK
+./gradlew assembleDebug
+
+# Install on connected device / emulator
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
 ---
 
 ## 4. Repository Structure
 
 ```text
 Arogyasathi/
+├── android_app/                          # Native offline Android application (Kotlin + Compose)
+│   ├── app/src/main/kotlin/org/arogyasathi/app/
+│   │   ├── core/Models.kt                # Domain models
+│   │   ├── jev/JEV.kt                    # JEV danger & scope gate in Kotlin
+│   │   ├── laya/Laya.kt                  # Laya BM25 retrieval & synthesis in Kotlin
+│   │   ├── visit/VisitEngine.kt          # Chandrapuri Block scheduler in Kotlin
+│   │   ├── data/LocalRepository.kt       # Offline protocol leaf sections & registry
+│   │   └── ui/MainScreen.kt              # 3-Key UI (108/102 Emergency Dispatch, Q&A, Visits)
+│   └── app/build/outputs/apk/debug/      # app-debug.apk (11.5 MB)
 ├── docs/                                 # Complete documentation suite
 │   ├── PROJECT_MANIFEST.md               # Living single source of truth
-│   ├── architecture/
-│   │   ├── 00_PROBLEM_AND_CONSTRAINTS.md
-│   │   ├── 01_INITIAL_ARCHITECTURE_AUDIT.md
-│   │   ├── 02_DATASET_AND_FIELD_SPECIFICATION.md
-│   │   ├── 07_COMPARATIVE_ANALYSIS.md
-│   │   ├── 08_FINAL_SYSTEM_ARCHITECTURE.md
-│   │   ├── 09_ANDROID_OFFLINE_APP_ARCHITECTURE.md
-│   │   ├── 10_TESTABLE_REQUIREMENTS_AND_VERIFICATION_PLAN.md
-│   │   └── 11_PHASE_6A_CORE_ENGINE_IMPLEMENTATION_REPORT.md
+│   ├── architecture/                     # System & Android architectures + reports
 │   └── research/                         # 6 audited reference sources
 ├── FULL_CODE/                            # Production Python core engine
-│   ├── arogyasathi/
-│   │   ├── __init__.py
+│   ├── arogyasathi/                      # Python JEV, Laya, VisitEngine, Protocols
+│   └── tests/                            # 9 comprehensive tests
+├── submission/                           # Final evaluated test submission
+│   ├── H5_answers.jsonl
+│   ├── H5_visit_list.csv
+│   └── H5_footprint.json
+└── README.md
 │   │   ├── jev.py                        # JEV governance kernel
 │   │   ├── laya.py                       # Laya retrieval & synthesis
 │   │   ├── protocols.py                  # Protocol leaf parser

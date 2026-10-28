@@ -8,3 +8,6 @@ models/
 H5_Frontline_Health_Worker_Companion/models/
 *.tmp
 
+.vscode/
+H5_Frontline_Health_Worker_Companion/submission_dev/
+H5_Frontline_Health_Worker_Companion/score.json

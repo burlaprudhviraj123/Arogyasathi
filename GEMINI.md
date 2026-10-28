@@ -71,3 +71,4 @@ Before reporting a task as complete, the AI must:
 - Report what passed, what failed, and what remains unverified.
 - Provide evidence for performance claims.
 - Stop at the agreed phase gate and wait for your review.
+

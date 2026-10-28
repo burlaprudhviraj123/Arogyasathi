@@ -1,0 +1,513 @@
+package org.arogyasathi.app.data
+
+import android.content.ContentValues
+import android.content.Context
+import android.database.Cursor
+import org.arogyasathi.app.core.*
+import org.arogyasathi.app.jev.JEVEscalate
+import org.arogyasathi.app.jev.JEVScope
+import org.arogyasathi.app.laya.LayaRetriever
+import org.arogyasathi.app.laya.LayaSynthesizer
+import org.arogyasathi.app.visit.VisitEngine
+import org.json.JSONObject
+
+data class AssistantResult(
+    val answer: String,
+    val citedSection: String,
+    val isEscalation: Boolean,
+    val isRefusal: Boolean,
+    val triageLevel: String // "EMERGENCY", "OUT_OF_SCOPE", "ROUTINE_PROTOCOL"
+)
+
+class ArogyasathiRepository(private val context: Context) {
+
+    private val dbHelper = ArogyasathiDbHelper.getInstance(context)
+
+    @Volatile
+    private var cachedProtocols: List<ProtocolSection>? = null
+    @Volatile
+    private var layaRetriever: LayaRetriever? = null
+
+    fun getProtocols(): List<ProtocolSection> {
+        cachedProtocols?.let { return it }
+        val list = mutableListOf<ProtocolSection>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_PROTOCOLS,
+            null, null, null, null, null, "section_id ASC"
+        )
+        cursor.use {
+            val idIdx = it.getColumnIndexOrThrow("section_id")
+            val titleIdx = it.getColumnIndexOrThrow("title")
+            val bodyIdx = it.getColumnIndexOrThrow("body")
+            val catIdx = it.getColumnIndexOrThrow("category")
+            while (it.moveToNext()) {
+                list.add(
+                    ProtocolSection(
+                        sectionId = it.getString(idIdx),
+                        title = it.getString(titleIdx),
+                        body = it.getString(bodyIdx),
+                        category = it.getString(catIdx)
+                    )
+                )
+            }
+        }
+        val result = if (list.isNotEmpty()) list else LocalRepository.sampleProtocols
+        cachedProtocols = result
+        layaRetriever = LayaRetriever(result)
+        return result
+    }
+
+    fun getHouseholds(searchQuery: String? = null, villageFilter: String? = null): List<Household> {
+        val list = mutableListOf<Household>()
+        val db = dbHelper.readableDatabase
+
+        val selection = mutableListOf<String>()
+        val selectionArgs = mutableListOf<String>()
+
+        if (!villageFilter.isNullOrBlank() && villageFilter != "All") {
+            selection.add("village = ?")
+            selectionArgs.add(villageFilter.trim())
+        }
+        if (!searchQuery.isNullOrBlank()) {
+            selection.add("(head_name LIKE ? OR house_no LIKE ? OR household_id LIKE ?)")
+            val q = "%${searchQuery.trim()}%"
+            selectionArgs.add(q)
+            selectionArgs.add(q)
+            selectionArgs.add(q)
+        }
+
+        val selStr = if (selection.isNotEmpty()) selection.joinToString(" AND ") else null
+        val argsArr = if (selectionArgs.isNotEmpty()) selectionArgs.toTypedArray() else null
+
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_HOUSEHOLDS,
+            null, selStr, argsArr, null, null, "household_id ASC"
+        )
+        cursor.use {
+            val hhIdIdx = it.getColumnIndexOrThrow("household_id")
+            val vIdx = it.getColumnIndexOrThrow("village")
+            val aIdx = it.getColumnIndexOrThrow("asha_id")
+            val hNoIdx = it.getColumnIndexOrThrow("house_no")
+            val hMidIdx = it.getColumnIndexOrThrow("head_member_id")
+            val hNameIdx = it.getColumnIndexOrThrow("head_name")
+            val mCountIdx = it.getColumnIndexOrThrow("members_count")
+
+            while (it.moveToNext()) {
+                list.add(
+                    Household(
+                        householdId = it.getString(hhIdIdx),
+                        village = it.getString(vIdx),
+                        ashaId = it.getString(aIdx),
+                        houseNo = it.getString(hNoIdx),
+                        headMemberId = it.getString(hMidIdx),
+                        headName = it.getString(hNameIdx),
+                        membersCount = it.getInt(mCountIdx)
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getMembersByHousehold(householdId: String): List<Member> {
+        val list = mutableListOf<Member>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_MEMBERS,
+            null, "household_id = ?", arrayOf(householdId), null, null, "dob ASC"
+        )
+        cursor.use {
+            while (it.moveToNext()) {
+                list.add(cursorToMember(it))
+            }
+        }
+        return list
+    }
+
+    fun getAllMembers(): List<Member> {
+        val list = mutableListOf<Member>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_MEMBERS,
+            null, null, null, null, null, "household_id ASC"
+        )
+        cursor.use {
+            while (it.moveToNext()) {
+                list.add(cursorToMember(it))
+            }
+        }
+        return if (list.isNotEmpty()) list else LocalRepository.sampleMembers
+    }
+
+    fun getTodayVisits(villageFilter: String? = null, priorityFilter: Priority? = null): List<VisitItem> {
+        val members = getAllMembers()
+        val allVisits = VisitEngine.generateVisits(members)
+        val completedIds = getCompletedVisitKeys()
+
+        return allVisits
+            .filter { !completedIds.contains("${it.memberId}_${it.dueItem}") }
+            .filter { villageFilter.isNullOrBlank() || villageFilter == "All" || it.village == villageFilter }
+            .filter { priorityFilter == null || it.priority == priorityFilter }
+    }
+
+    fun recordVisitOutcome(
+        householdId: String,
+        memberId: String,
+        memberName: String,
+        dueItem: String,
+        status: String,
+        notes: String
+    ): Boolean {
+        val db = dbHelper.writableDatabase
+        val outcomeId = "OUT_${System.currentTimeMillis()}_${memberId.takeLast(4)}"
+        val ts = System.currentTimeMillis()
+
+        db.beginTransaction()
+        try {
+            // 1. Insert into visit outcomes
+            val cvOutcome = ContentValues().apply {
+                put("outcome_id", outcomeId)
+                put("household_id", householdId)
+                put("member_id", memberId)
+                put("member_name", memberName)
+                put("due_item", dueItem)
+                put("status", status)
+                put("notes", notes)
+                put("timestamp", ts)
+            }
+            db.insertWithOnConflict(ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES, null, cvOutcome, android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE)
+
+            // 2. Queue for deferred sync
+            val payload = JSONObject().apply {
+                put("outcome_id", outcomeId)
+                put("household_id", householdId)
+                put("member_id", memberId)
+                put("member_name", memberName)
+                put("due_item", dueItem)
+                put("status", status)
+                put("notes", notes)
+                put("timestamp", ts)
+            }
+            val cvSync = ContentValues().apply {
+                put("entity_type", "VISIT_OUTCOME")
+                put("entity_id", outcomeId)
+                put("payload_json", payload.toString())
+                put("status", SyncStatus.PENDING.name)
+                put("retry_count", 0)
+                put("created_at", ts)
+            }
+            db.insert(ArogyasathiDbHelper.TABLE_SYNC_QUEUE, null, cvSync)
+
+            db.setTransactionSuccessful()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun getCompletedVisits(): List<VisitOutcome> {
+        val list = mutableListOf<VisitOutcome>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES,
+            null, null, null, null, null, "timestamp DESC"
+        )
+        cursor.use {
+            val idIdx = it.getColumnIndexOrThrow("outcome_id")
+            val hIdx = it.getColumnIndexOrThrow("household_id")
+            val mIdx = it.getColumnIndexOrThrow("member_id")
+            val nameIdx = it.getColumnIndexOrThrow("member_name")
+            val itemIdx = it.getColumnIndexOrThrow("due_item")
+            val stIdx = it.getColumnIndexOrThrow("status")
+            val nIdx = it.getColumnIndexOrThrow("notes")
+            val tsIdx = it.getColumnIndexOrThrow("timestamp")
+
+            while (it.moveToNext()) {
+                list.add(
+                    VisitOutcome(
+                        outcomeId = it.getString(idIdx),
+                        householdId = it.getString(hIdx),
+                        memberId = it.getString(mIdx),
+                        memberName = it.getString(nameIdx),
+                        dueItem = it.getString(itemIdx),
+                        status = it.getString(stIdx),
+                        notes = it.getString(nIdx),
+                        timestamp = it.getLong(tsIdx)
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getPendingSyncCount(): Int {
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT COUNT(*) FROM ${ArogyasathiDbHelper.TABLE_SYNC_QUEUE} WHERE status = ?",
+            arrayOf(SyncStatus.PENDING.name)
+        )
+        cursor.use {
+            if (it.moveToFirst()) {
+                return it.getInt(0)
+            }
+        }
+        return 0
+    }
+
+    fun getSyncQueueItems(): List<SyncItem> {
+        val list = mutableListOf<SyncItem>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_SYNC_QUEUE,
+            null, null, null, null, null, "created_at DESC"
+        )
+        cursor.use {
+            val idIdx = it.getColumnIndexOrThrow("id")
+            val typeIdx = it.getColumnIndexOrThrow("entity_type")
+            val entIdIdx = it.getColumnIndexOrThrow("entity_id")
+            val pIdx = it.getColumnIndexOrThrow("payload_json")
+            val stIdx = it.getColumnIndexOrThrow("status")
+            val rIdx = it.getColumnIndexOrThrow("retry_count")
+            val cIdx = it.getColumnIndexOrThrow("created_at")
+
+            while (it.moveToNext()) {
+                val stStr = it.getString(stIdx)
+                val st = try { SyncStatus.valueOf(stStr) } catch (e: Exception) { SyncStatus.PENDING }
+                list.add(
+                    SyncItem(
+                        id = it.getLong(idIdx),
+                        entityType = it.getString(typeIdx),
+                        entityId = it.getString(entIdIdx),
+                        payloadJson = it.getString(pIdx),
+                        status = st,
+                        retryCount = it.getInt(rIdx),
+                        createdAt = it.getLong(cIdx)
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun triggerSync(): Int {
+        val db = dbHelper.writableDatabase
+        val cv = ContentValues().apply {
+            put("status", SyncStatus.SYNCED.name)
+        }
+        return db.update(
+            ArogyasathiDbHelper.TABLE_SYNC_QUEUE,
+            cv,
+            "status = ?",
+            arrayOf(SyncStatus.PENDING.name)
+        )
+    }
+
+    fun askAssistant(query: String): AssistantResult {
+        // Step 1: JEV Deterministic Escalation
+        val escResult = JEVEscalate.evaluate(query)
+        if (escResult != null) {
+            return AssistantResult(
+                answer = escResult.second,
+                citedSection = escResult.first,
+                isEscalation = true,
+                isRefusal = false,
+                triageLevel = "EMERGENCY"
+            )
+        }
+
+        // Step 2: JEV Scope Refusal
+        val scpResult = JEVScope.evaluate(query)
+        if (scpResult != null) {
+            return AssistantResult(
+                answer = scpResult.second,
+                citedSection = scpResult.first,
+                isEscalation = false,
+                isRefusal = true,
+                triageLevel = "OUT_OF_SCOPE"
+            )
+        }
+
+        // Step 3: Laya Protocol Retrieval & Extractive Synthesis
+        val protocols = getProtocols()
+        val retriever = layaRetriever ?: LayaRetriever(protocols).also { layaRetriever = it }
+        val topSections = retriever.retrieve(query, topK = 1)
+
+        return if (topSections.isNotEmpty()) {
+            val topSec = topSections.first()
+            val answer = LayaSynthesizer.synthesize(topSec, query)
+            AssistantResult(
+                answer = answer,
+                citedSection = topSec.sectionId,
+                isEscalation = false,
+                isRefusal = false,
+                triageLevel = "ROUTINE_PROTOCOL"
+            )
+        } else {
+            AssistantResult(
+                answer = "Follow routine protocol guidelines. Please consult your supervisor (SCP-1.1).",
+                citedSection = "SCP-1.1",
+                isEscalation = false,
+                isRefusal = true,
+                triageLevel = "OUT_OF_SCOPE"
+            )
+        }
+    }
+
+    private fun getCompletedVisitKeys(): Set<String> {
+        val set = mutableSetOf<String>()
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES,
+            arrayOf("member_id", "due_item"),
+            null, null, null, null, null
+        )
+        cursor.use {
+            val mIdx = it.getColumnIndexOrThrow("member_id")
+            val dIdx = it.getColumnIndexOrThrow("due_item")
+            while (it.moveToNext()) {
+                set.add("${it.getString(mIdx)}_${it.getString(dIdx)}")
+            }
+        }
+        return set
+    }
+
+    private fun cursorToMember(cursor: Cursor): Member {
+        val ancStr = cursor.getString(cursor.getColumnIndexOrThrow("anc_visit_dates"))
+        val ancList = ancStr?.split(";")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+        val tdStr = cursor.getString(cursor.getColumnIndexOrThrow("td_doses"))
+        val tdList = tdStr?.split(";")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+        val hbncStr = cursor.getString(cursor.getColumnIndexOrThrow("hbnc_visits_done"))
+        val hbncList = hbncStr?.split(";")?.mapNotNull { it.trim().toIntOrNull() } ?: emptyList()
+
+        val vacStr = cursor.getString(cursor.getColumnIndexOrThrow("child_vaccines"))
+        val vacMap = mutableMapOf<String, String>()
+        vacStr?.split(";")?.forEach { entry ->
+            val p = entry.split(":")
+            if (p.size == 2) {
+                vacMap[p[0].trim()] = p[1].trim()
+            }
+        }
+
+        return Member(
+            memberId = cursor.getString(cursor.getColumnIndexOrThrow("member_id")),
+            householdId = cursor.getString(cursor.getColumnIndexOrThrow("household_id")),
+            village = cursor.getString(cursor.getColumnIndexOrThrow("village")),
+            ashaId = cursor.getString(cursor.getColumnIndexOrThrow("asha_id")),
+            name = cursor.getString(cursor.getColumnIndexOrThrow("name")),
+            relation = cursor.getString(cursor.getColumnIndexOrThrow("relation")),
+            sex = cursor.getString(cursor.getColumnIndexOrThrow("sex")),
+            dob = cursor.getString(cursor.getColumnIndexOrThrow("dob")),
+            isPregnant = cursor.getInt(cursor.getColumnIndexOrThrow("is_pregnant")) == 1,
+            lmpDate = cursor.getString(cursor.getColumnIndexOrThrow("lmp_date")),
+            edd = cursor.getString(cursor.getColumnIndexOrThrow("edd")),
+            ancVisitDates = ancList,
+            lastAncBp = cursor.getString(cursor.getColumnIndexOrThrow("last_anc_bp")),
+            lastHbGdl = if (!cursor.isNull(cursor.getColumnIndexOrThrow("last_hb_gdl"))) cursor.getDouble(cursor.getColumnIndexOrThrow("last_hb_gdl")) else null,
+            tdBoosterEligible = cursor.getInt(cursor.getColumnIndexOrThrow("td_booster_eligible")) == 1,
+            tdDoses = tdList,
+            placeOfDelivery = cursor.getString(cursor.getColumnIndexOrThrow("place_of_delivery")),
+            birthWeightKg = if (!cursor.isNull(cursor.getColumnIndexOrThrow("birth_weight_kg"))) cursor.getDouble(cursor.getColumnIndexOrThrow("birth_weight_kg")) else null,
+            hbncVisitsDone = hbncList,
+            childVaccines = vacMap,
+            lastMuacCm = if (!cursor.isNull(cursor.getColumnIndexOrThrow("last_muac_cm"))) cursor.getDouble(cursor.getColumnIndexOrThrow("last_muac_cm")) else null,
+            lastMuacDate = cursor.getString(cursor.getColumnIndexOrThrow("last_muac_date")),
+            bilateralPittingOedema = cursor.getInt(cursor.getColumnIndexOrThrow("bilateral_pitting_oedema")) == 1,
+            ncdCondition = cursor.getString(cursor.getColumnIndexOrThrow("ncd_condition")),
+            lastBpCheckDate = cursor.getString(cursor.getColumnIndexOrThrow("last_bp_check_date")),
+            lastBpReading = cursor.getString(cursor.getColumnIndexOrThrow("last_bp_reading")),
+            lastSugarCheckDate = cursor.getString(cursor.getColumnIndexOrThrow("last_sugar_check_date")),
+            lastRbsMgDl = if (!cursor.isNull(cursor.getColumnIndexOrThrow("last_rbs_mg_dl"))) cursor.getDouble(cursor.getColumnIndexOrThrow("last_rbs_mg_dl")) else null
+        )
+    }
+}
+
+object LocalRepository {
+    val sampleProtocols = listOf(
+        ProtocolSection("ESC-1.1", "Refer immediately", "If even one danger sign in this document is present, refer immediately — the same day, without delay. Do not wait, do not send the patient home to observe.", "ESC"),
+        ProtocolSection("ESC-2.1", "Bleeding in pregnancy", "Any bleeding from the vagina during pregnancy (first, second or third trimester), and excessive bleeding during delivery: refer immediately (call 102/108).", "ESC"),
+        ProtocolSection("ESC-2.3", "High blood pressure and pre-eclampsia", "BP 140/90 or more in pregnancy. Severe headache, blurring of vision, or swelling of the face: pre-eclampsia danger sign, refer immediately (call 102/108).", "ESC"),
+        ProtocolSection("ESC-3.1", "Heavy bleeding after delivery", "Heavy bleeding: a pad is soaked in less than 5 minutes, or more than 5 pads are changed in a day. Refer immediately (call 108/102).", "ESC"),
+        ProtocolSection("ESC-4.3", "Temperature danger signs in newborn", "Baby has fever or baby is cold to touch (temperature below 95.9 F / 35.5 C): keep skin-to-skin and refer immediately (call 102/108).", "ESC"),
+        ProtocolSection("ESC-4.4", "Low birth weight under 1.8 kg", "Baby birth weight under 1.8 kg: refer immediately to SNCU (call 102/108). Keep skin-to-skin.", "ESC"),
+        ProtocolSection("ESC-5.1", "General danger signs in child", "Not able to drink or breastfeed. Vomits everything. Convulsions (fits) now or during this illness. Lethargic or unconscious: refer immediately to hospital (call 108/102).", "ESC"),
+        ProtocolSection("ESC-5.4", "Fever danger signs in child", "Fever with stiff neck or fever every day for more than 7 days: general danger sign, refer immediately (call 108).", "ESC"),
+        ProtocolSection("ESC-6.2", "Stroke signs (BE FAST)", "Sudden weakness or numbness of face, arm or leg on one side, loss of speech: stroke signs, refer immediately (call 108).", "ESC"),
+        ProtocolSection("ESC-6.4", "Very high blood pressure", "BP 180/110 or more, even without any complaint, is an escalation: refer immediately to Medical Officer / CHC.", "ESC"),
+        ProtocolSection("ANC-1.2", "Minimum four ANC check-ups", "ANC-1 within 12 weeks; ANC-2 between 14 and 26 weeks; ANC-3 between 28 and 34 weeks; ANC-4 at 36 weeks up to delivery.", "ANC"),
+        ProtocolSection("ANC-2.2", "IFA tablets in pregnancy", "One Red IFA tablet (100 mg elemental iron + 500 mcg folic acid) daily starting after first trimester for 180 days.", "ANC"),
+        ProtocolSection("ANC-3.1", "Hb cut-offs in pregnancy", "No anaemia: 11.0 or more. Mild anaemia: 10.0-10.9. Moderate anaemia: 7.0-9.9. Severe anaemia: below 7.0 g/dL.", "ANC"),
+        ProtocolSection("CHD-1.2", "How much ORS to give", "Up to 2 years: 50 to 100 ml after each loose stool. 2 years or more: 100 to 200 ml. If child vomits, wait 10 minutes then continue slowly.", "CHD"),
+        ProtocolSection("CHD-1.3", "Zinc in diarrhoea", "Give zinc for 14 days even if diarrhoea stops. Under 6 months: 10 mg daily. 6 months or older: 20 mg daily.", "CHD"),
+        ProtocolSection("CHD-3.1", "Counting breaths for pneumonia", "Fast breathing: Under 2 months: 60 breaths/min or more. 2 to 12 months: 50 breaths/min or more. 12 months to 5 years: 40 breaths/min or more.", "CHD"),
+        ProtocolSection("HBNC-2.2", "Keeping baby warm and bathing", "Do not bathe the baby for the first 48 hours. Do not bathe a low birth weight baby until its weight is 2000 g.", "HBNC"),
+        ProtocolSection("IMM-2.2", "At 6, 10 and 14 weeks", "6 weeks: OPV-1, Penta-1, RVV-1, fIPV-1, PCV-1. 10 weeks: OPV-2, Penta-2, RVV-2. 14 weeks: OPV-3, Penta-3, RVV-3, fIPV-2, PCV-2. Penta can be given till one year of age.", "IMM"),
+        ProtocolSection("IMM-2.4", "At 16-24 months", "MR-2, DPT-B1, OPV-B; Vitamin A 2nd dose at 16-18 months, then every 6 months up to 5 years (9 doses in all). Chandrapuri is not a JE-endemic district.", "IMM"),
+        ProtocolSection("NCD-3.1", "Lifestyle counselling", "Salt: maximum 1 teaspoon (5 g) per day. Physical activity: at least 30 minutes for at least 5 days a week.", "NCD"),
+        ProtocolSection("NUT-1.1", "Malnutrition screening", "Screen all children 6-59 months with MUAC tape and look for bilateral pitting oedema (oedema of both feet). Press top of both feet gently.", "NUT"),
+        ProtocolSection("VIS-1.3", "Counting conventions", "Grace period is 28 days before marking overdue. Upcoming horizon is 6 days. Follow-up interval for NCD/MUAC is 30 days.", "VIS")
+    )
+
+    val sampleMembers = listOf(
+        Member(
+            memberId = "M-YXYWBY6B",
+            householdId = "HH-014Q8O",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Jamuna Devi",
+            relation = "wife",
+            sex = "F",
+            dob = "2002-10-31",
+            isPregnant = true,
+            lmpDate = "2026-03-25",
+            edd = "2026-12-30",
+            ancVisitDates = listOf("2026-06-05", "2026-09-22"),
+            lastAncBp = "144/92",
+            lastHbGdl = 6.8
+        ),
+        Member(
+            memberId = "M-6VETO2LR",
+            householdId = "HH-0CXDQG",
+            village = "Amrapur",
+            ashaId = "ASHA-096P",
+            name = "Ayaan Ansari",
+            relation = "son",
+            sex = "M",
+            dob = "2026-10-12",
+            placeOfDelivery = "institution",
+            birthWeightKg = 2.1,
+            hbncVisitsDone = listOf(3, 7)
+        ),
+        Member(
+            memberId = "M-Z55MVUP8",
+            householdId = "HH-08MLZ4",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Deepak Mishra",
+            relation = "head",
+            sex = "M",
+            dob = "1972-04-10",
+            ncdCondition = "HTN",
+            lastBpCheckDate = "2026-09-12",
+            lastBpReading = "186/112"
+        ),
+        Member(
+            memberId = "M-B9JMMVGZ",
+            householdId = "HH-098AG2",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Priya Mishra",
+            relation = "daughter",
+            sex = "F",
+            dob = "2024-05-18",
+            lastMuacCm = 11.2,
+            lastMuacDate = "2026-09-15"
+        )
+    )
+}
+
