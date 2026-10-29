@@ -35,7 +35,7 @@ Arogyasathi implements a deterministic clinical governance and retrieval archite
 
 ### A. Run Automated Unit & Integration Tests
 ```bash
-# Run all 9 test suites
+# Run all 16 unit and integration tests across 5 test suites
 PYTHONPATH=FULL_CODE python3 -m pytest FULL_CODE/tests/
 ```
 
