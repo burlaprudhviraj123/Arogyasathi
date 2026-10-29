@@ -810,18 +810,17 @@ fun ChatBubble(
                             }
                         }
 
-                        // Clinical Text (English or Hindi depending on active language mode)
+                        // Clinical Text (Formatted with Patient Badge, Step Cards, & Danger Alerts)
                         val displayText = if (isHindiMode && message.textHindi.isNotBlank()) {
                             message.textHindi
                         } else {
                             message.text
                         }
 
-                        Text(
+                        FormattedClinicalGuidance(
                             text = displayText,
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp,
-                            color = TextPrimary
+                            isEscalation = isEscalation,
+                            isRefusal = isRefusal
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -835,15 +834,27 @@ fun ChatBubble(
                             if (res != null) {
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFFE6F4F1)
+                                    color = Color(0xFFE6F4F1),
+                                    border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.3f))
                                 ) {
-                                    Text(
-                                        text = res.citedSection,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = DarkTeal,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                    )
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_records),
+                                            contentDescription = null,
+                                            tint = PrimaryTeal,
+                                            modifier = Modifier.size(11.dp)
+                                        )
+                                        Text(
+                                            text = "Protocol: ${res.citedSection}",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = DarkTeal
+                                        )
+                                    }
                                 }
                             } else {
                                 Spacer(modifier = Modifier.width(1.dp))
@@ -1189,6 +1200,245 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
             }
         }
     )
+}
+
+@Composable
+fun FormattedClinicalGuidance(
+    text: String,
+    isEscalation: Boolean,
+    isRefusal: Boolean
+) {
+    if (isEscalation) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            val parts = text.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
+            parts.forEachIndexed { idx, p ->
+                if (idx == 0) {
+                    Text(
+                        text = p.trim(),
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = EmergencyRed
+                    )
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = EmergencyRed,
+                            modifier = Modifier
+                                .padding(top = 6.dp)
+                                .size(6.dp)
+                        ) {}
+                        Text(
+                            text = p.trim(),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextPrimary
+                        )
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    if (isRefusal) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = text.trim(),
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextPrimary
+            )
+        }
+        return
+    }
+
+    // Check for numbered points like "1. ", "2. ", "3. ", etc.
+    val hasNumberedSteps = text.contains(Regex("\\b[1-9]\\.\\s+"))
+    if (hasNumberedSteps) {
+        val parts = text.split(Regex("\\s*(?=[1-9]\\.\\s+)")).map { it.trim() }.filter { it.isNotBlank() }
+        val header = if (parts.firstOrNull()?.matches(Regex("^[1-9]\\..*")) == false) parts.first() else null
+        val items = if (header != null) parts.drop(1) else parts
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Patient / Context Header Badge
+            if (header != null) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFE6F4F1),
+                    border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_person),
+                            contentDescription = null,
+                            tint = PrimaryTeal,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = header.removeSuffix(":").trim(),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkTeal
+                        )
+                    }
+                }
+            }
+
+            // Step Items
+            items.forEach { item ->
+                val numMatch = Regex("^([1-9])\\.\\s*(.*)").find(item)
+                val stepNum = numMatch?.groupValues?.getOrNull(1) ?: "•"
+                val rawBody = numMatch?.groupValues?.getOrNull(2) ?: item
+
+                // Check if this step is a Danger Sign alert
+                val isDangerStep = rawBody.contains("Danger sign", ignoreCase = true) ||
+                        rawBody.contains("खतरे के लक्षण") ||
+                        (rawBody.contains("refer", ignoreCase = true) && rawBody.contains("immediately", ignoreCase = true))
+
+                // Split title and content if colon is present (e.g. "ORS: Give 100 to 200 ml...")
+                val colonIdx = rawBody.indexOf(':')
+                val stepTitle = if (colonIdx in 1..25) rawBody.substring(0, colonIdx).trim() else null
+                val stepContent = if (stepTitle != null) rawBody.substring(colonIdx + 1).trim() else rawBody
+
+                if (isDangerStep) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFFEF2F2),
+                        border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.35f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = EmergencyRed,
+                                modifier = Modifier.size(18.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = "!",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (stepTitle != null) {
+                                    Text(
+                                        text = stepTitle,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EmergencyRed
+                                    )
+                                }
+                                Text(
+                                    text = stepContent,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = TextPrimary
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFF8FAFC),
+                        border = BorderStroke(0.5.dp, BorderSubtle),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = PrimaryTeal,
+                                modifier = Modifier.size(18.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = stepNum,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (stepTitle != null) {
+                                    Text(
+                                        text = stepTitle,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = DarkTeal
+                                    )
+                                }
+                                Text(
+                                    text = stepContent,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp,
+                                    color = TextPrimary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        // Break sentences into comfortable reading paragraphs if multiple exist
+        val sentences = text.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
+        if (sentences.size > 1 && !text.contains('\n')) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                sentences.forEach { s ->
+                    Text(
+                        text = s.trim(),
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        color = TextPrimary
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = text.trim(),
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+                color = TextPrimary
+            )
+        }
+    }
 }
 
 private fun dialEmergency(context: Context, number: String) {
