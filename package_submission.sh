@@ -39,6 +39,7 @@ cp docs/presentation/01_HACKATHON_PITCH_AND_ARCHITECTURE_WALKTHROUGH.md "$BUNDLE
 cp docs/presentation/02_JUDGES_SLIDE_DECK.md "$BUNDLE_DIR/JUDGES_SLIDE_DECK.md"
 cp docs/presentation/03_DEMO_VIDEO_SCRIPT_AND_RECORDING_GUIDE.md "$BUNDLE_DIR/DEMO_VIDEO_SCRIPT.md"
 cp web_demo.html "$BUNDLE_DIR/"
+cp slides.html "$BUNDLE_DIR/"
 
 # 5. Create ZIP archive
 ZIP_NAME="Arogyasathi_Track_H5_Submission.zip"

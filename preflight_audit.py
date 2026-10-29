@@ -39,9 +39,9 @@ def audit():
         print(f"[✓] Extracted {len(extracted_files)} files cleanly to sandbox.")
 
         # 1. Verify Root Documents
-        for doc in ["README.md", "PROJECT_MANIFEST.md", "PITCH_AND_ARCHITECTURE.md", "JUDGES_SLIDE_DECK.md", "web_demo.html"]:
+        for doc in ["README.md", "PROJECT_MANIFEST.md", "PITCH_AND_ARCHITECTURE.md", "JUDGES_SLIDE_DECK.md", "DEMO_VIDEO_SCRIPT.md", "web_demo.html", "slides.html"]:
             assert (tmp / doc).exists(), f"Missing required document in zip root: {doc}"
-        print("[✓] All 5 key documents verified in archive root.")
+        print("[✓] All 7 key documents verified in archive root.")
 
         # 2. Verify APK Package
         apk_path = tmp / "Arogyasathi-v1.0-offline.apk"
