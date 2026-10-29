@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
@@ -40,6 +41,12 @@ fun FloatingGlassBottomBar(
         NavigationTabItem("Records", "📁", 3)
     )
 
+    val isDark = isSystemInDarkTheme()
+    val glassBg = if (isDark) DarkGlassBackground else GlassBackground
+    val glassBrd = if (isDark) DarkGlassBorder else GlassBorder
+    val activeContainer = if (isDark) Color(0xFF133E3A) else Color(0xFFE6F4F1)
+    val activeTint = if (isDark) Color(0xFF14B8A6) else PrimaryTeal
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -52,8 +59,8 @@ fun FloatingGlassBottomBar(
                 .height(64.dp)
                 .shadow(12.dp, shape = RoundedCornerShape(32.dp))
                 .clip(RoundedCornerShape(32.dp))
-                .border(1.dp, GlassBorder, RoundedCornerShape(32.dp)),
-            color = GlassBackground
+                .border(1.dp, glassBrd, RoundedCornerShape(32.dp)),
+            color = glassBg
         ) {
             Row(
                 modifier = Modifier
@@ -65,7 +72,7 @@ fun FloatingGlassBottomBar(
                 items.forEach { item ->
                     val isSelected = selectedIndex == item.index
                     val animBg by animateColorAsState(
-                        targetValue = if (isSelected) Color(0xFFE6F4F1) else Color.Transparent,
+                        targetValue = if (isSelected) activeContainer else Color.Transparent,
                         label = "tabBg"
                     )
 
@@ -90,7 +97,7 @@ fun FloatingGlassBottomBar(
                                     text = item.title,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = PrimaryTeal
+                                    color = activeTint
                                 )
                             }
                         }
