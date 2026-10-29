@@ -1,9 +1,13 @@
 package org.arogyasathi.app.ui
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -70,6 +74,19 @@ fun AssistantScreen(
         }
     }
 
+    // Speech-to-Text Voice Input Launcher (Native Offline/Online Recognizer)
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { res ->
+        if (res.resultCode == Activity.RESULT_OK) {
+            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                queryText = spoken
+                submitQuery(spoken)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -122,11 +139,29 @@ fun AssistantScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Clinical Query Input Field
+        // Clinical Query Input Field with Hindi/English Speech Recognition
         OutlinedTextField(
             value = queryText,
             onValueChange = { queryText = it },
             placeholder = { Text("Ask clinical protocol question (Hindi, Hinglish, English)...") },
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        try {
+                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN")
+                                putExtra(RecognizerIntent.EXTRA_PROMPT, "बोलें — Ask clinical question (Hindi/English)")
+                            }
+                            speechLauncher.launch(intent)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                ) {
+                    Text("🎙️", fontSize = 18.sp)
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
