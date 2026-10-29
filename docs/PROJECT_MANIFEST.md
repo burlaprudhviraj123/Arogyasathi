@@ -109,7 +109,7 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Persistent SQLite Layer (`ArogyasathiDbHelper.kt`) with idempotent first-launch seeding of 500 households, 2,234 beneficiaries, and 107 protocols in < 200 ms
   - Durable Sync Queue & Outbox mechanism for deferred offline-to-online synchronization
   - Complete Kotlin ports of JEV (deterministic danger escalation & scope refusal), Laya (BM25 multilingual retrieval & synthesis <= 400 chars), and VisitEngine (all 09_VIS Chandrapuri Block rules)
-  - On-Device Verified on Android Emulator: APK Size `12 MB`, Cold Start `1.558s`, Peak PSS RAM `90.0 MB` (Java Heap `9.69 MB`, Native Heap `17.09 MB`)
+  - On-Device Verified on Android Emulator (API 35 ARM64): APK Size `12.0 MB`, Cold Start `1.424s`, Peak PSS RAM `107.3 MB` (Java Heap `21.7 MB`, Native Heap `13.3 MB`, SQLite Cache `576 KB`), 58.1% RAM Headroom on 256 MB Budget
   - Automated Unit Tests: 14/14 tests passing in 0.05s via `./gradlew test` with 0 failures, 0 errors
 
 ---
