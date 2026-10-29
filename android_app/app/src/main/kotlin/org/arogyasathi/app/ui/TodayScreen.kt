@@ -13,12 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.arogyasathi.app.R
 import org.arogyasathi.app.core.Priority
 import org.arogyasathi.app.core.VisitItem
 import org.arogyasathi.app.core.VisitStatus
@@ -193,8 +195,15 @@ fun TodayScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_check_circle),
+                        contentDescription = null,
+                        tint = RoutineGreen,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "🎉 All prioritized visits complete!",
+                        text = "All prioritized visits complete",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = RoutineGreen

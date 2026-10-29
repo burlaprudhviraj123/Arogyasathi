@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,10 +27,11 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
+import org.arogyasathi.app.R
 
 data class NavigationTabItem(
     val title: String,
-    val icon: String,
+    val iconRes: Int,
     val index: Int
 )
 
@@ -39,10 +42,10 @@ fun FloatingGlassBottomBar(
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        NavigationTabItem("Today", "📅", 0),
-        NavigationTabItem("Families", "👥", 1),
-        NavigationTabItem("Assistant", "🩺", 2),
-        NavigationTabItem("Records", "📁", 3)
+        NavigationTabItem("Today", R.drawable.ic_today, 0),
+        NavigationTabItem("Families", R.drawable.ic_families, 1),
+        NavigationTabItem("Assistant", R.drawable.ic_assistant, 2),
+        NavigationTabItem("Records", R.drawable.ic_records, 3)
     )
 
     val isDark = isSystemInDarkTheme()
@@ -97,9 +100,11 @@ fun FloatingGlassBottomBar(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(
-                                text = item.icon,
-                                fontSize = 16.sp
+                            Icon(
+                                painter = painterResource(id = item.iconRes),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = if (isSelected) activeTint else TextSecondary
                             )
                             if (isSelected) {
                                 Text(

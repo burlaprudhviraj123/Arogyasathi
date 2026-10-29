@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import org.arogyasathi.app.R
 import org.arogyasathi.app.data.ArogyasathiRepository
 import org.arogyasathi.app.data.AssistantResult
 import java.util.Locale
@@ -66,7 +68,7 @@ fun AssistantScreen(
         mutableStateListOf(
             ChatMessage(
                 sender = MessageSender.ASSISTANT,
-                text = "Namaste Didi! 🙏 I am Arogyasathi (आरोग्यसाथी), your offline clinical protocol chatbot companion.\n\nAsk me any maternal, newborn, child health, or NCD question in Hindi, English, or Hinglish — or tap an emergency topic below."
+                text = "Namaste Didi! I am Arogyasathi (आरोग्यसाथी), your offline clinical protocol chatbot companion.\n\nAsk me any maternal, newborn, child health, or NCD question in Hindi, English, or Hinglish — or tap an emergency topic below."
             )
         )
     }
@@ -170,7 +172,12 @@ fun AssistantScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("🚨", fontSize = 16.sp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_emergency),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
@@ -291,9 +298,14 @@ fun AssistantScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .background(Color(0xFFE6F4F1), CircleShape)
-                        .semantics { contentDescription = "Voice input in Hindi or English (बोलकर पूछें)" }
+                        .semantics { contentDescription = "Voice input in Hindi or English" }
                 ) {
-                    Text("🎙️", fontSize = 18.sp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_mic),
+                        contentDescription = "Voice input",
+                        tint = PrimaryTeal,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
 
                 // Text Input Field
@@ -324,7 +336,12 @@ fun AssistantScreen(
                         )
                         .semantics { contentDescription = "Send message to Arogyasathi chatbot" }
                 ) {
-                    Text("🚀", fontSize = 16.sp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_send),
+                        contentDescription = "Send",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }
@@ -353,7 +370,12 @@ fun ChatBubble(
                 color = PrimaryTeal
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("🩺", fontSize = 16.sp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_assistant),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -409,13 +431,24 @@ fun ChatBubble(
                                 color = EmergencyRed,
                                 modifier = Modifier.padding(bottom = 6.dp)
                             ) {
-                                Text(
-                                    text = "⚠️ IMMEDIATE DANGER SIGN — REFER NOW",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_emergency),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = "IMMEDIATE DANGER SIGN — REFER NOW",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    )
+                                }
                             }
                         } else if (isRefusal) {
                             Surface(
@@ -423,13 +456,24 @@ fun ChatBubble(
                                 color = HighPriorityOrange,
                                 modifier = Modifier.padding(bottom = 6.dp)
                             ) {
-                                Text(
-                                    text = "🛡️ OUT OF SCOPE — DOCTOR REFERRAL",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_shield),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = "OUT OF SCOPE — DOCTOR REFERRAL",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    )
+                                }
                             }
                         }
 
@@ -475,7 +519,12 @@ fun ChatBubble(
                                     onClick = { onPlayTts(message.text) },
                                     modifier = Modifier.size(30.dp)
                                 ) {
-                                    Text("🔊", fontSize = 14.sp)
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_speaker),
+                                        contentDescription = "Read aloud",
+                                        tint = PrimaryTeal,
+                                        modifier = Modifier.size(16.dp)
+                                    )
                                 }
 
                                 // If Danger Sign: Immediate 108 Call Button

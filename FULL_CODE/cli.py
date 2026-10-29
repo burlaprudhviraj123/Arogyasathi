@@ -23,7 +23,7 @@ DATA_DIR = repo_root / "H5_Frontline_Health_Worker_Companion" / "data"
 
 def print_banner():
     print("=" * 65)
-    print(" 🏥 AROGYASATHI (आरोग्यसाथी) — Interactive Clinical Console")
+    print(" AROGYASATHI (आरोग्यसाथी) — Interactive Clinical Console")
     print(" Frontline Health-Worker Companion | Chandrapuri Block")
     print("=" * 65)
 
@@ -57,11 +57,11 @@ Commands:
 
             print("\n" + "-" * 50)
             if res["escalate"]:
-                print("🚨 [CRITICAL ESCALATION — IMMEDIATE REFERRAL]")
+                print("[CRITICAL ESCALATION — IMMEDIATE REFERRAL]")
             elif res["refused"]:
-                print("🛡️ [OUT-OF-SCOPE REFUSAL — DOCTOR REDIRECT]")
+                print("[OUT-OF-SCOPE REFUSAL — DOCTOR REDIRECT]")
             else:
-                print("📋 [PROTOCOL GROUNDED GUIDANCE]")
+                print("[PROTOCOL GROUNDED GUIDANCE]")
 
             print(f"Answer   : {res['answer_text']}")
             print(f"Citations: {', '.join(res['cited_section_ids'])}")
@@ -143,7 +143,7 @@ def run_demo_mode():
         res = qa_engine.answer("DEMO", q)
         lat = (time.perf_counter() - t0) * 1000
         print(f"• Query    : {q}")
-        print(f"  Result   : 🚨 ESCALATE={res['escalate']} | Refused={res['refused']}")
+        print(f"  Result   : [ESCALATE={res['escalate']} | Refused={res['refused']}]")
         print(f"  Citation : {', '.join(res['cited_section_ids'])}")
         print(f"  Guidance : {res['answer_text']}")
         print(f"  Latency  : {lat:.2f} ms\n")
@@ -160,7 +160,7 @@ def run_demo_mode():
         res = qa_engine.answer("DEMO", q)
         lat = (time.perf_counter() - t0) * 1000
         print(f"• Query    : {q}")
-        print(f"  Result   : 🛡️ REFUSED={res['refused']} | Escalate={res['escalate']}")
+        print(f"  Result   : [REFUSED={res['refused']} | Escalate={res['escalate']}]")
         print(f"  Citation : {', '.join(res['cited_section_ids'])}")
         print(f"  Guidance : {res['answer_text']}")
         print(f"  Latency  : {lat:.2f} ms\n")
@@ -177,7 +177,7 @@ def run_demo_mode():
         res = qa_engine.answer("DEMO", q)
         lat = (time.perf_counter() - t0) * 1000
         print(f"• Query    : {q}")
-        print(f"  Result   : 📋 PROTOCOL GROUNDED (Chars: {len(res['answer_text'])})")
+        print(f"  Result   : [PROTOCOL GROUNDED (Chars: {len(res['answer_text'])})]")
         print(f"  Citation : {', '.join(res['cited_section_ids'])}")
         print(f"  Guidance : {res['answer_text']}")
         print(f"  Latency  : {lat:.2f} ms\n")

@@ -13,10 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.arogyasathi.app.R
 import org.arogyasathi.app.core.ProtocolSection
 import org.arogyasathi.app.core.SyncItem
 import org.arogyasathi.app.core.SyncStatus
@@ -266,12 +268,13 @@ fun SyncOutboxView(
                         modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = if (syncSuccess) "✓" else "ℹ",
-                            fontWeight = FontWeight.Bold,
-                            color = if (syncSuccess) RoutineGreen else HighPriorityOrange,
-                            fontSize = 15.sp,
-                            modifier = Modifier.padding(end = 8.dp)
+                        Icon(
+                            painter = painterResource(id = if (syncSuccess) R.drawable.ic_check_circle else R.drawable.ic_emergency),
+                            contentDescription = null,
+                            tint = if (syncSuccess) RoutineGreen else HighPriorityOrange,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(end = 4.dp)
                         )
                         Text(
                             text = syncBannerMessage,
@@ -280,14 +283,14 @@ fun SyncOutboxView(
                             lineHeight = 16.sp
                         )
                     }
-                    Text(
-                        text = "✕",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextSecondary,
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_close),
+                        contentDescription = "Dismiss",
+                        tint = TextSecondary,
                         modifier = Modifier
+                            .size(18.dp)
                             .clickable { onDismissBanner() }
-                            .padding(start = 8.dp, end = 4.dp)
+                            .padding(2.dp)
                     )
                 }
             }

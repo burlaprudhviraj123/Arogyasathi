@@ -527,7 +527,7 @@ def main():
                 <div style="font-weight: 900; font-size: 14px;">108 EMERGENCY REFERRAL</div>
                 <div style="font-size: 11px; opacity: 0.9;">One-tap rural ambulance dispatch</div>
               </div>
-              <button class="btn-dial" onclick="alert('Calling 108 Emergency Ambulance...')">📞 CALL 108</button>
+              <button class="btn-dial" onclick="alert('Calling 108 Emergency Ambulance...')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>CALL 108</button>
             </div>
 
             <div class="ui-card">
@@ -537,9 +537,9 @@ def main():
                 <button onclick="phoneAskQuestion()" style="background: var(--primary-teal); color: white; border: none; padding: 0 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">Ask</button>
               </div>
               <div style="margin-top: 8px;">
-                <span class="sample-pill" onclick="simulateQuery('bachche ko jhatke aa rahe hai')">Infant Convulsions 🚨</span>
-                <span class="sample-pill" onclick="simulateQuery('pregnancy me bleeding ho rahi hai')">Bleeding in Pregnancy 🚨</span>
-                <span class="sample-pill" onclick="simulateQuery('paracetamol syrup dose 2 year')">Rx Drug Refusal 🛡️</span>
+                <span class="sample-pill" onclick="simulateQuery('bachche ko jhatke aa rahe hai')">Infant Convulsions</span>
+                <span class="sample-pill" onclick="simulateQuery('pregnancy me bleeding ho rahi hai')">Bleeding in Pregnancy</span>
+                <span class="sample-pill" onclick="simulateQuery('paracetamol syrup dose 2 year')">Rx Drug Refusal</span>
               </div>
             </div>
 
@@ -551,7 +551,7 @@ def main():
           <!-- TAB 3: RECORDS -->
           <div id="view-records" class="tab-view">
             <div id="sync-banner" style="display: none; background: #DCFCE7; border: 1px solid #86EFAC; color: #166534; padding: 10px; border-radius: 10px; font-size: 11px; font-weight: 700;">
-              ✓ Successfully synchronized records with Sub-Centre edge gateway!
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Successfully synchronized records with Sub-Centre edge gateway!
             </div>
 
             <div class="ui-card asha-header">
@@ -574,10 +574,10 @@ def main():
 
         <!-- Floating Glass Capsule Navbar -->
         <div class="phone-navbar">
-          <button class="nav-btn active" onclick="switchTab(0)">📅 Today</button>
-          <button class="nav-btn" onclick="switchTab(1)">👥 Families</button>
-          <button class="nav-btn" onclick="switchTab(2)">🩺 Assistant</button>
-          <button class="nav-btn" onclick="switchTab(3)">📁 Records</button>
+          <button class="nav-btn active" onclick="switchTab(0)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Today</button>
+          <button class="nav-btn" onclick="switchTab(1)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Families</button>
+          <button class="nav-btn" onclick="switchTab(2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>Assistant</button>
+          <button class="nav-btn" onclick="switchTab(3)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>Records</button>
         </div>
       </div>
     </div>
@@ -634,10 +634,10 @@ def main():
 
         <div>
           <span style="font-size: 12px; color: #94A3B8; font-weight: 600; margin-right: 6px;">Quick Benchmarks:</span>
-          <span class="sample-pill" onclick="setTesterQuery('navjat shishu thanda pad gaya hai aur dudh nahi pi raha')">Neonatal Hypothermia (ESC-4.3) 🚨</span>
-          <span class="sample-pill" onclick="setTesterQuery('prasav ke baad bahut jyada khun beh raha hai')">Postpartum Hemorrhage (ESC-3.1) 🚨</span>
-          <span class="sample-pill" onclick="setTesterQuery('pet me ladka hai ya ladki check karne ki machine')">PC-PNDT Sex Refusal (SCP-1.2) 🛡️</span>
-          <span class="sample-pill" onclick="setTesterQuery('bachche ko dast me kitna zinc dena hai')">Zinc Diarrhoea Protocol (CHD-3.2) 📋</span>
+          <span class="sample-pill" onclick="setTesterQuery('navjat shishu thanda pad gaya hai aur dudh nahi pi raha')">Neonatal Hypothermia (ESC-4.3)</span>
+          <span class="sample-pill" onclick="setTesterQuery('prasav ke baad bahut jyada khun beh raha hai')">Postpartum Hemorrhage (ESC-3.1)</span>
+          <span class="sample-pill" onclick="setTesterQuery('pet me ladka hai ya ladki check karne ki machine')">PC-PNDT Sex Refusal (SCP-1.2)</span>
+          <span class="sample-pill" onclick="setTesterQuery('bachche ko dast me kitna zinc dena hai')">Zinc Diarrhoea Protocol (CHD-3.2)</span>
         </div>
 
         <div id="tester-result" class="result-box">
@@ -727,7 +727,7 @@ def main():
       document.getElementById('completed-counter').innerText = completedCount;
       document.getElementById('outbox-count-lbl').innerText = `${{pendingSyncCount}} Items In Outbox`;
       btn.disabled = true;
-      btn.innerText = '✓ Completed';
+      btn.innerText = 'Completed';
       btn.style.background = '#10B981';
       alert(`Recorded visit outcome for ${{name}} (${{due}}). Queued to local SQLite outbox for deferred sync.`);
     }}
@@ -909,11 +909,11 @@ def main():
 
       let badge = '';
       if (res.triage === 'DANGER_ESCALATE') {{
-        badge = '<span style="background: #EF4444; color: white; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px;">🚨 CRITICAL DANGER ESCALATION (108 AMBULANCE)</span>';
+        badge = '<span style="background: #EF4444; color: white; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>CRITICAL DANGER ESCALATION (108 AMBULANCE)</span>';
       }} else if (res.triage === 'OUT_OF_SCOPE') {{
-        badge = '<span style="background: #F59E0B; color: black; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px;">🛡️ SAFE PROTOCOL REFUSAL (DOCTOR REDIRECT)</span>';
+        badge = '<span style="background: #F59E0B; color: black; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>SAFE PROTOCOL REFUSAL (DOCTOR REDIRECT)</span>';
       }} else {{
-        badge = '<span style="background: #10B981; color: white; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px;">📋 GROUNDED PROTOCOL GUIDANCE</span>';
+        badge = '<span style="background: #10B981; color: white; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>GROUNDED PROTOCOL GUIDANCE</span>';
       }}
 
       resBox.innerHTML = `
@@ -945,15 +945,16 @@ def main():
       card.style.display = 'block';
 
       let headerColor = res.triage === 'DANGER_ESCALATE' ? '#EF4444' : (res.triage === 'OUT_OF_SCOPE' ? '#F59E0B' : 'var(--primary-teal)');
+      let triageTitle = res.triage === 'DANGER_ESCALATE' ? 'IMMEDIATE ESCALATION' : (res.triage === 'OUT_OF_SCOPE' ? 'SAFE REFUSAL' : 'VERIFIED GUIDANCE');
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 800; font-size: 12px; color: ${{headerColor}};">${{res.triage === 'DANGER_ESCALATE' ? '🚨 IMMEDIATE ESCALATION' : (res.triage === 'OUT_OF_SCOPE' ? '🛡️ SAFE REFUSAL' : '📋 VERIFIED GUIDANCE')}}</span>
+          <span style="font-weight: 800; font-size: 12px; color: ${{headerColor}};">${{triageTitle}}</span>
           <span style="background: #E6F4F1; color: var(--dark-teal); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">${{res.citation}}</span>
         </div>
         <div style="font-size: 12px; font-weight: 700; margin-top: 4px;">${{res.title}}</div>
         <div style="font-size: 11px; color: var(--text-primary); margin-top: 4px; line-height: 1.4;">${{res.text}}</div>
         <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
-          <button onclick="speakText('${{res.text.replace(/'/g, "\\\\\\'")}}')" style="background: #E2E8F0; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">🔊 Listen (TTS)</button>
+          <button onclick="speakText('${{res.text.replace(/'/g, "\\\\\\'")}}')" style="background: #E2E8F0; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>Listen (TTS)</button>
         </div>
       `;
     }}
