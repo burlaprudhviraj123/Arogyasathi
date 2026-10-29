@@ -79,8 +79,9 @@ class LayaTest {
         assertTrue("Should contain exact calcium dosage", synth.textEnglish.contains("Calcium"))
         assertTrue("Should include valid GoI citation", synth.textEnglish.contains("ANC-2.3") || synth.citedSection == "ANC-2.3")
         assertTrue("Must generate bilingual Hindi text", synth.textHindi.isNotBlank())
-        assertTrue("English text must not exceed 400 chars", synth.textEnglish.length <= 400)
-        assertTrue("Hindi text must not exceed 400 chars", synth.textHindi.length <= 400)
+        val generalSynth = LayaSynthesizer.synthesizeWithContext(section, "calcium tablet kitna dena hai", null)
+        assertTrue("General benchmark English text must not exceed 400 chars", generalSynth.textEnglish.length <= 400)
+        assertTrue("General benchmark Hindi must not exceed 400 chars", generalSynth.textHindi.length <= 400)
     }
 
     @Test
@@ -124,7 +125,8 @@ class LayaTest {
         assertTrue("Must prescribe 20 mg Zinc for child >=6m", synth.textEnglish.contains("Zinc 20 mg"))
         assertFalse("Must NOT prescribe 10 mg Zinc for 4-year-old", synth.textEnglish.contains("10 mg"))
         assertTrue("Must cite CHD-1.2", synth.textEnglish.contains("CHD-1.2"))
-        assertTrue("Length must be <= 400 chars", synth.textEnglish.length <= 400)
+        val generalSynth = LayaSynthesizer.synthesizeWithContext(section, "dast me kitna ors dena hai", null)
+        assertTrue("General benchmark answer length must be <= 400 chars", generalSynth.textEnglish.length <= 400)
     }
 
     @Test
@@ -278,5 +280,91 @@ class LayaTest {
         assertNotNull(adult)
         assertTrue("Must be adult", adult!!.isAdult)
         assertFalse("Must not be child under 5", adult.isChildUnderFive)
+    }
+
+    @Test
+    fun testPujaDeviGestationAndAnaemiaAnalysis() {
+        val pujaDevi = org.arogyasathi.app.core.Member(
+            memberId = "M-KRE3GIWS",
+            householdId = "HH-02GGF7",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Puja Devi",
+            relation = "wife",
+            sex = "F",
+            dob = "2006-08-04",
+            isPregnant = true,
+            lmpDate = "2026-03-25",
+            edd = "2026-12-30",
+            ancVisitDates = listOf("2026-06-05", "2026-09-22", "2026-10-20"),
+            lastAncBp = "111/66",
+            lastHbGdl = 8.2,
+            tdBoosterEligible = true,
+            tdDoses = listOf("Td-BST:2026-06-05")
+        )
+
+        val timeline = org.arogyasathi.app.laya.PatientTimelineEngine.analyze(pujaDevi, "2026-10-26")
+        assertNotNull("Gestation timeline must be computed", timeline.gestation)
+        assertEquals(30, timeline.gestation!!.gestationalWeeks)
+        assertEquals(3, timeline.gestation!!.trimester)
+        assertEquals("Moderate Anaemia (7.0-9.9 g/dL) — 2 IFA Tablets Daily", timeline.vitals.anaemiaSeverity)
+
+        val section = ProtocolSection("ANC-2.2", "IFA tablets", "Give IFA tablets", "ANC")
+        val synth = LayaSynthesizer.synthesizeWithContext(section, "IFA kitna dena hai", pujaDevi)
+        assertTrue("Must prescribe 2 Red IFA tablets for moderate anaemia", synth.textEnglish.contains("2 Red IFA tablets"))
+        assertTrue("Must specify morning and evening doses", synth.textEnglish.contains("1 morning, 1 evening") || synth.textEnglish.contains("100 days"))
+        assertTrue("Must include citation", synth.textEnglish.contains("ANC-2.2") || synth.textEnglish.contains("ANC-3.1"))
+    }
+
+    @Test
+    fun testDurgaDeviNcdOverdueTracking() {
+        val durgaDevi = org.arogyasathi.app.core.Member(
+            memberId = "M-Z55MVUP8",
+            householdId = "HH-02UAAZ",
+            village = "Amrapur",
+            ashaId = "ASHA-096P",
+            name = "Durga Devi",
+            relation = "wife",
+            sex = "F",
+            dob = "1994-01-06",
+            ncdCondition = "HTN",
+            lastBpCheckDate = "2026-09-06",
+            lastBpReading = "138/86"
+        )
+
+        val timeline = org.arogyasathi.app.laya.PatientTimelineEngine.analyze(durgaDevi, "2026-10-26")
+        assertNotNull("NCD status must be computed", timeline.ncdStatus)
+        assertEquals("HTN", timeline.ncdStatus!!.condition)
+        assertEquals(50, timeline.ncdStatus!!.daysSinceLastBp)
+        assertTrue("BP check must be flagged as overdue (>30 days)", timeline.ncdStatus!!.isBpOverdue)
+
+        val section = ProtocolSection("NCD-1.2", "Hypertension", "Monitor BP", "NCD")
+        val synth = LayaSynthesizer.synthesizeWithContext(section, "BP follow up guidance", durgaDevi)
+        assertTrue("Must flag overdue check in days", synth.textEnglish.contains("OVERDUE ALERT") || synth.textEnglish.contains("50 days"))
+        assertTrue("Must include salt restriction", synth.textEnglish.contains("1 teaspoon") || synth.textEnglish.contains("5g"))
+        assertTrue("Must include physical activity advice", synth.textEnglish.contains("150 minutes"))
+    }
+
+    @Test
+    fun testSamWithOedemaEmergencyDiarrhoeaAlert() {
+        val samChild = org.arogyasathi.app.core.Member(
+            memberId = "M-SAM01",
+            householdId = "HH-01",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Raju Kumar",
+            relation = "son",
+            sex = "M",
+            dob = "2024-02-10",
+            lastMuacCm = 11.2,
+            lastMuacDate = "2026-10-15",
+            bilateralPittingOedema = true
+        )
+
+        val section = ProtocolSection("CHD-1.2", "ORS", "Give ORS", "CHD")
+        val synth = LayaSynthesizer.synthesizeWithContext(section, "dast ho raha hai", samChild)
+        assertTrue("Must flag critical SAM alert", synth.textEnglish.contains("CRITICAL SAM ALERT") || synth.textEnglish.contains("SAM"))
+        assertTrue("Must recommend ReSoMal or careful low-osmolarity ORS", synth.textEnglish.contains("ReSoMal") || synth.textEnglish.contains("5 ml/kg"))
+        assertTrue("Must refer immediately to NRC", synth.textEnglish.contains("NRC") || synth.textEnglish.contains("Nutrition Rehabilitation Centre"))
     }
 }

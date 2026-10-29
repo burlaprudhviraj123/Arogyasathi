@@ -175,7 +175,16 @@ fun AssistantScreen(
         val trimmed = q.trim()
         if (trimmed.isEmpty()) return
 
-        val p = activePatient
+        // Resolve patient: if query explicitly mentions a registered patient, switch context to that patient
+        val mentionedPatient = repository.resolveMemberFromQuery(trimmed)
+        val p = if (mentionedPatient != null) {
+            if (activePatient != mentionedPatient) {
+                activePatient = mentionedPatient
+            }
+            mentionedPatient
+        } else {
+            activePatient
+        }
 
         // 1. Add user message
         messages.add(

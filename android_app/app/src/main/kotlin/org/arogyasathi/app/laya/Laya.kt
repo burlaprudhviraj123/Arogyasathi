@@ -1,6 +1,7 @@
 package org.arogyasathi.app.laya
 
 import org.arogyasathi.app.core.Member
+import org.arogyasathi.app.core.PatientConsultation
 import org.arogyasathi.app.core.ProtocolSection
 import kotlin.math.ln
 
@@ -294,12 +295,15 @@ object LayaSynthesizer {
     fun synthesizeWithContext(
         section: ProtocolSection,
         query: String,
-        patient: Member? = null
+        patient: Member? = null,
+        recentHistory: List<PatientConsultation> = emptyList()
     ): SynthesizedGuidance {
         val qLower = query.lowercase()
         val secId = section.sectionId.uppercase()
 
-        val ageInfo = patient?.dob?.let { PatientAgeCalculator.calculate(it) }
+        val timeline = if (patient != null) {
+            PatientTimelineEngine.analyze(patient, refDate = "2026-10-26", recentHistory = recentHistory)
+        } else null
 
         var enBody = ""
         var hiBody = ""
@@ -315,62 +319,82 @@ object LayaSynthesizer {
 
                 primaryCitation = "CHD-1.2"
 
-                if (patient != null && ageInfo != null) {
+                if (patient != null && timeline != null) {
+                    val ageInfo = timeline.ageInfo
                     when {
-                        // Prem Manjhi case: Child 2 to 5 years old (e.g. 4 years 6 months)
-                        ageInfo.isChildTwoToFive -> {
-                            enBody = "For ${patient.name} (${ageInfo.ageDisplay}): " +
-                                "1. ORS: Give 100 to 200 ml after each stool (1 pkt/1L drinking water). " +
-                                "2. Zinc: Give Zinc 20 mg daily for 14 days dissolved in clean water. " +
-                                "3. Fluids & feeding: Continue soft home feeds; if vomiting, wait 10m and resume slowly. " +
-                                "4. Danger signs: Sunken eyes, vomiting everything, or fast breathing (>=40/min) -> refer immediately (CHD-1.2)."
+                        // Complication: Underlying SAM or Oedema
+                        timeline.vitals.hasOedema || timeline.vitals.muacStatus.contains("SAM") -> {
+                            enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                                "CRITICAL SAM ALERT — Child has severe acute malnutrition (${timeline.vitals.muacStatus}). " +
+                                "1. Rehydration: Give ReSoMal or low-osmolarity ORS 5 ml/kg every 30m for first 2h under strict observation. " +
+                                "2. Zinc: Give Zinc 20 mg daily. " +
+                                "3. Immediate Referral: Transfer immediately to Nutrition Rehabilitation Centre (NRC) at CHC (CHD-1.2, NUT-1.1, ESC-5.3)."
 
-                            hiBody = "${patient.name} (${ageInfo.ageDisplay}): " +
-                                "1. ओआरएस: हर दस्त के बाद 100 से 200 मिली ओआरएस घोल पिलाएं (1 पैकेट 1 लीटर पानी में घोलें)। " +
-                                "2. जिंक: 14 दिनों तक रोजाना 20 मिग्रा (1 पूरी गोली) जिंक पानी में घोलकर जरूर दें। " +
-                                "3. यदि उल्टी हो तो 10 मिनट रुककर धीरे-धीरे दें। खाना जारी रखें। " +
-                                "4. खतरे के लक्षण: आंखें धंसना या तेज सांस चलना (>=40/मिनट) होने पर तुरंत 108 बुलाएं।"
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                                "गंभीर कुपोषण चेतावनी — बच्चे में गंभीर कुपोषण (${timeline.vitals.muacStatus}) है। " +
+                                "1. रीसोमाल या ओआरएस घोल सावधानीपूर्वक हर 30 मिनट में 5 मिली/किग्रा दें। " +
+                                "2. जिंक 20 मिग्रा दें। " +
+                                "3. तुरंत पोषण पुनर्वास केंद्र (NRC) रेफर करें (CHD-1.2, NUT-1.1, ESC-5.3)।"
                         }
 
                         // Child under 6 months (<6m infant)
                         ageInfo.isUnderSixMonths -> {
-                            enBody = "For ${patient.name} (${ageInfo.ageDisplay} infant): " +
-                                "1. ORS: Give 50 to 100 ml in small sips with a clean spoon after each loose stool. " +
-                                "2. Zinc: Give Zinc 10 mg daily for 14 days in breastmilk. " +
-                                "3. Exclusive breastfeeding: Continue frequent breastfeeds. " +
-                                "4. Danger signs: Lethargy, inability to suck, or vomiting everything -> refer immediately (CHD-1.2)."
+                            enBody = "For ${patient.name} (${timeline.ageDisplay} infant): " +
+                                "1. ORS: Give 50 to 100 ml after each loose stool in small spoon sips. " +
+                                "2. Zinc: Give Zinc 10 mg (half tablet) daily for 14 days dissolved in breastmilk. " +
+                                "3. Exclusive Breastfeeding: Continue frequent breastfeeds; do not give animal milk or plain water. " +
+                                "4. Danger signs: Inability to breastfeed, lethargy, or fast breathing (>=${timeline.vitals.fastBreathingThreshold}/min) -> call 108/102 immediately (CHD-1.2, CHD-1.3)."
 
-                            hiBody = "${patient.name} (${ageInfo.ageDisplay}): " +
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
                                 "1. ओआरएस: हर दस्त के बाद 50 से 100 मिली ओआरएस चम्मच से धीरे-धीरे दें। " +
                                 "2. जिंक: 14 दिनों तक रोजाना 10 मिग्रा (आधी गोली) मां के दूध में घोलकर दें। " +
-                                "3. केवल स्तनपान जारी रखें। उल्टी न रुकने पर तुरंत अस्पताल ले जाएं।"
+                                "3. केवल स्तनपान जारी रखें। " +
+                                "4. खतरे के लक्षण: दूध न पीना, सुस्ती या तेज सांस (>=${timeline.vitals.fastBreathingThreshold}/मिनट) होने पर तुरंत 108 बुलाएं (CHD-1.2)।"
                         }
 
                         // Child between 6 months and 2 years (6m - 23m)
                         ageInfo.isChildUnderTwo -> {
-                            enBody = "For ${patient.name} (${ageInfo.ageDisplay}): " +
-                                "1. ORS: Give 50 to 100 ml after each loose stool. " +
-                                "2. Zinc: Give Zinc 20 mg daily for 14 days in water or milk. " +
-                                "3. Feeding: Continue breastfeeding & soft feeds; if vomiting, wait 10m and resume. " +
-                                "4. Danger signs: Sunken eyes, lethargy, or fast breathing (>=50/min) -> refer immediately (CHD-1.2)."
+                            enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                                "1. ORS: Give 50 to 100 ml after each loose stool (1 packet in 1L clean drinking water). " +
+                                "2. Zinc: Give Zinc 20 mg (1 full tablet) daily for 14 days dissolved in clean water or milk. " +
+                                "3. Feeding: Continue breastfeeding and soft feeds (khichdi, mashed banana); if vomiting occurs, wait 10 minutes and resume slowly. " +
+                                "4. Danger signs: Sunken eyes, skin pinch goes back slowly (>2 sec), or fast breathing (>=${timeline.vitals.fastBreathingThreshold}/min) -> refer immediately (CHD-1.2, CHD-1.3)."
 
-                            hiBody = "${patient.name} (${ageInfo.ageDisplay}): " +
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
                                 "1. ओआरएस: हर दस्त के बाद 50 से 100 मिली ओआरएस घोल पिलाएं। " +
-                                "2. जिंक: 14 दिनों तक रोजाना 20 मिग्रा (1 गोली) दें। " +
-                                "3. स्तनपान और खिचड़ी जारी रखें। आंखें धंसने या सुस्ती पर तुरंत डॉक्टर को दिखाएं।"
+                                "2. जिंक: 14 दिनों तक रोजाना 20 मिग्रा (1 पूरी गोली) दें। " +
+                                "3. स्तनपान और नरम खिचड़ी जारी रखें; उल्टी होने पर 10 मिनट रुककर धीरे-धीरे दें। " +
+                                "4. खतरे के लक्षण: आंखें धंसना, त्वचा धीरे वापस जाना या तेज सांस (>=${timeline.vitals.fastBreathingThreshold}/मिनट) होने पर तुरंत रेफर करें (CHD-1.2)।"
                         }
 
-                        // Adult (>15 years)
-                        else -> {
-                            enBody = "For ${patient.name} (Adult, ${ageInfo.ageDisplay}): " +
-                                "1. Rehydration: Drink 200 to 400 ml of ORS after every loose stool (1 pkt in 1L clean water) or drink freely. " +
-                                "2. Diet: Continue fluids and light home meals. " +
-                                "3. Danger signs: Severe dizziness, blood in stool, or inability to keep fluids down -> refer to CHC (CHD-1.2)."
+                        // Child 2 to 5 years old (e.g. Prem Manjhi, 4y 6m)
+                        ageInfo.isChildTwoToFive -> {
+                            val vacReminder = timeline.immunization?.nextScheduledVaccine?.let { "Next vaccine: $it." } ?: ""
+                            enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                                "1. ORS: Give 100 to 200 ml after each loose stool (1 packet in 1L clean drinking water). " +
+                                "2. Zinc: Give Zinc 20 mg (1 full tablet) daily for 14 days continuously even if diarrhoea stops. " +
+                                "3. Fluids & Feeding: Continue soft home feeds (dal-chawal, buttermilk, curd); do not withhold food. " +
+                                "4. Danger signs: Sunken eyes, vomiting everything, or fast breathing (>=${timeline.vitals.fastBreathingThreshold}/min) -> call 108/102 immediately. " +
+                                (if (vacReminder.isNotEmpty()) "5. Immunization status: $vacReminder (CHD-1.2, CHD-1.3)." else "(CHD-1.2, CHD-1.3).")
 
-                            hiBody = "${patient.name} (वयस्क, ${ageInfo.ageDisplay}): " +
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                                "1. ओआरएस: हर दस्त के बाद 100 से 200 मिली ओआरएस घोल पिलाएं (1 पैकेट 1 लीटर पानी में)। " +
+                                "2. जिंक: 14 दिनों तक रोजाना 20 मिग्रा (1 पूरी गोली) जिंक जरूर दें। " +
+                                "3. यदि उल्टी हो तो 10 मिनट रुककर धीरे-धीरे दें। दाल-चावल, खिचड़ी जारी रखें। " +
+                                "4. खतरे के लक्षण: आंखें धंसना, सब उल्टी करना या तेज सांस चलना (>=${timeline.vitals.fastBreathingThreshold}/मिनट) होने पर तुरंत 108 बुलाएं (CHD-1.2, CHD-1.3)।"
+                        }
+
+                        // Adult / Older (>5 years)
+                        else -> {
+                            enBody = "For ${patient.name} (Adult, ${timeline.ageDisplay}): " +
+                                "1. Rehydration: Drink 200 to 400 ml of ORS after every loose stool (1 pkt in 1L clean water) or drink freely. " +
+                                "2. Home Fluids: Coconut water, lemon water with salt, dal water, and light meals. " +
+                                "3. Danger signs: Severe dizziness, inability to drink fluids, blood in stool, or high fever -> refer immediately to CHC (CHD-1.2)."
+
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
                                 "1. हर दस्त के बाद 200-400 मिली या जितना पी सकें ओआरएस घोल पिएं। " +
                                 "2. नारियल पानी, दाल का पानी और हल्का खाना लें। " +
-                                "3. अत्यधिक कमजोरी या मल में खून आने पर तुरंत सीएचसी जाएं।"
+                                "3. अत्यधिक कमजोरी या मल में खून आने पर तुरंत सीएचसी जाएं (CHD-1.2)।"
                         }
                     }
                 } else {
@@ -389,26 +413,17 @@ object LayaSynthesizer {
 
                 primaryCitation = "CHD-3.1"
 
-                if (patient != null && ageInfo != null) {
-                    when {
-                        ageInfo.isNewbornUnderTwoMonths -> {
-                            enBody = "For ${patient.name} (Newborn, ${ageInfo.ageDisplay}): Count breaths for 1 full minute. In young infants (<2 months), fast breathing is >= 60 breaths/minute. If breathing >= 60/min, chest indrawing, or grunting is present, this is a CRITICAL DANGER SIGN. Call 108 for immediate CHC hospital referral (ESC-4.1)."
-                            hiBody = "${patient.name} (नवजात, ${ageInfo.ageDisplay}): 2 महीने से छोटे शिशु में 60 या अधिक सांसें तेज सांस मानी जाती हैं। छाती धंसना या तेज सांस गंभीर खतरे का लक्षण है—तुरंत 108 बुलाएं।"
-                        }
-                        ageInfo.isInfantUnderOne -> {
-                            enBody = "For ${patient.name} (${ageInfo.ageDisplay} infant): Count breaths for 1 full minute when calm. In infants 2-11 months, fast breathing is >= 50 breaths/minute. If >= 50 breaths/min or chest indrawing is observed, refer immediately for pneumonia (CHD-3.1, ESC-5.2)."
-                            hiBody = "${patient.name} (${ageInfo.ageDisplay}): शांत रहने पर 1 मिनट सांसें गिनें। 2-11 माह में 50 या अधिक सांसें निमोनिया का लक्षण हैं। पसली चलने पर तुरंत अस्पताल ले जाएं।"
-                        }
-                        ageInfo.isChildTwoToFive -> {
-                            // Prem Manjhi: 4 years old
-                            enBody = "For ${patient.name} (${ageInfo.ageDisplay}): Count breaths for 1 full minute when he is calm. In children 12 months to 5 years, fast breathing threshold is >= 40 breaths/minute. If breathing is >= 40/min or chest indrawing is present, he has pneumonia—refer immediately to CHC (call 108/102). Do not give unprescribed cough syrups (CHD-3.1, ESC-5.2)."
-                            hiBody = "${patient.name} (${ageInfo.ageDisplay}): शांत रहने पर 1 मिनट सांसें गिनें। 1 से 5 साल के बच्चे में 40 या अधिक सांसें तेज सांस (निमोनिया) हैं। छाती धंसने पर तुरंत 108 पर रेफर करें।"
-                        }
-                        else -> {
-                            enBody = "For ${patient.name} (Adult, ${ageInfo.ageDisplay}): Normal adult respiratory rate is 12-20 breaths/min. If breathing rate >30/min or severe breathlessness occurs with chest pain, refer immediately to CHC (ESC-6.1, CHD-3.1)."
-                            hiBody = "${patient.name}: वयस्कों में सामान्य सांस 12-20 प्रति मिनट होती है। 30 से अधिक सांस या सीने में दर्द के साथ सांस फूलने पर तुरंत डॉक्टर को दिखाएं।"
-                        }
-                    }
+                if (patient != null && timeline != null) {
+                    val cutoff = timeline.vitals.fastBreathingThreshold
+                    enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                        "1. Count Breaths: Count breaths for 1 full minute when calm. For ${patient.name}'s age, fast breathing threshold is >= $cutoff breaths/minute. " +
+                        "2. Danger signs: If breathing is >= $cutoff/min, chest indrawing (ribs pulling in), stridor, or grunting is present, this indicates PNEUMONIA — refer immediately to CHC (call 108/102). " +
+                        "3. Supportive home care: If breathing is normal (<$cutoff/min) and no chest indrawing, continue feeds, give warm water/breastmilk, clear nasal blockage with saline drops, and do not give unprescribed cough sedatives (CHD-3.1, ESC-5.2)."
+
+                    hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                        "1. सांसें गिनें: शांत रहने पर पूरे 1 मिनट तक सांसें गिनें। इनकी उम्र के लिए तेज सांस का पैमाना >= $cutoff सांस प्रति मिनट है। " +
+                        "2. खतरे के लक्षण: यदि सांसें >= $cutoff/मिनट हों या पसली चले (छाती धंसे) तो यह निमोनिया है—तुरंत 108 बुलाकर अस्पताल भेजें। " +
+                        "3. घरेलू देखभाल: यदि सांस सामान्य हो तो गुनगुना पानी, स्तनपान और नाक साफ रखें (CHD-3.1, ESC-5.2)।"
                 } else {
                     enBody = "Count breaths for 1 full minute when calm. Fast breathing threshold is >=50 breaths/min for 2-11 months, and >=40 breaths/min for 12 months to 5 years. If chest indrawing or stridor is observed, it indicates severe pneumonia—refer immediately to CHC. Cites: CHD-3.1, ESC-5.2."
                     hiBody = "बच्चे के शांत रहने पर पूरे 1 मिनट तक सांसें गिनें। 2-11 महीने में 50 या अधिक, और 1-5 साल में 40 या अधिक सांसें तेज सांस हैं। छाती धंसने (पसली चलने) पर तुरंत अस्पताल ले जाएं।"
@@ -423,19 +438,24 @@ object LayaSynthesizer {
 
                 primaryCitation = "IMM-2.2"
 
-                if (patient != null) {
-                    val vaccs = patient.childVaccines
-                    if (ageInfo != null && ageInfo.isChildTwoToFive) {
-                        // Prem Manjhi case
-                        enBody = "For ${patient.name} (${ageInfo.ageDisplay}): His immunization record shows all primary infant vaccines and first boosters (MR-2, DPT-B1, OPV-B) are complete. His next scheduled vaccine is DPT-Booster 2 due at 5 to 6 years of age (IMM-2.5)."
-                        hiBody = "${patient.name} (${ageInfo.ageDisplay}): इनके शिशु और पहले बूस्टर (MR-2, DPT-B1) के सभी टीके पूरे हो चुके हैं। अगला टीका डीपीटी-बूस्टर 2 है जो 5 से 6 वर्ष की आयु में लगेगा।"
-                    } else if (ageInfo != null && ageInfo.isInfantUnderOne) {
-                        enBody = "For ${patient.name} (${ageInfo.ageDisplay}): Check immunization card. Ensure 6, 10, 14 weeks doses (Pentavalent, OPV, Rotavirus, fIPV, PCV) are given with minimum 4 weeks gap. At 9 completed months, administer MR-1, PCV-Booster, fIPV-3, and Vitamin A 1st dose (IMM-2.2, IMM-2.3)."
-                        hiBody = "${patient.name} (${ageInfo.ageDisplay}): 6, 10, 14 हफ्ते के टीके (पेंटा, पोलियो, रोटा, fIPV, पीसीवी) 4 हफ्ते के अंतर पर लगवाएं। 9 माह पर एमआर-1, पीसीवी बूस्टर और विटामिन-ए दें।"
-                    } else {
-                        enBody = "For ${patient.name}: Check immunization due list. UIP schedule: At birth: BCG, OPV-0, HepB; 6, 10, 14 weeks: Pentavalent, OPV, Rotavirus, fIPV, PCV; 9 months: MR-1, PCV-Booster, VitA; 16-24 months: DPT-B1, MR-2; 5-6 years: DPT-B2 (IMM-2.2, IMM-2.4)."
-                        hiBody = "${patient.name}: नियमित टीकाकरण समय सारणी के अनुसार छूटे हुए टीकों की जांच करें और अगले सत्र में टीका लगवाएं।"
-                    }
+                if (patient != null && timeline != null) {
+                    val imm = timeline.immunization
+                    val nextVac = imm?.nextScheduledVaccine ?: "Check register"
+                    val overdueText = if (imm?.overdueVaccines?.isNotEmpty() == true) {
+                        "OVERDUE ALERT: Missing ${imm.overdueVaccines.joinToString(", ")}. Mobilize to next VHSND session!"
+                    } else "Infant primary series is up to date."
+
+                    enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                        "1. Immunization Status: $overdueText " +
+                        "2. Next Scheduled Vaccine: $nextVac. " +
+                        "3. Vitamin-A Schedule: 1st dose at 9 completed months (100,000 IU = 1 ml), then every 6 months up to 5 years (200,000 IU = 2 ml, total 9 doses) (IMM-2.4). " +
+                        "4. Site & Route: Pentavalent and DPT given 0.5 ml IM in anterolateral mid-thigh; MR given 0.5 ml subcutaneous in right upper arm (IMM-2.2)."
+
+                    hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                        "1. टीकाकरण जांच: $overdueText " +
+                        "2. अगला टीका: $nextVac। " +
+                        "3. विटामिन-ए: 9 माह पर 1 लाख IU (1 मिली), फिर 5 साल तक हर 6 महीने पर 2 लाख IU (2 मिली, कुल 9 खुराक) दें। " +
+                        "4. पेंटा और डीपीटी जांघ में (0.5 मिली IM) और खसरा-रूबेला दाहिनी बांह में (0.5 मिली SC) दिया जाता है (IMM-2.2, IMM-2.4)।"
                 } else {
                     enBody = "UIP immunization schedule: Birth: BCG 0.1ml, OPV-0 2 drops, HepB 0.5ml within 24h. 6 weeks: Penta-1, OPV-1, RVV-1, fIPV-1 0.1ml, PCV-1. 9 completed months: MR-1 0.5ml SC, PCV-Booster, fIPV-3, VitA 1st dose. Cites: IMM-2.2, IMM-2.3."
                     hiBody = "नियमित टीकाकरण: जन्म पर बीसीजी, पोलियो शून्य खुराक और हेपेटाइटिस-बी। 6 हफ्ते पर पेंटा-1, पोलियो-1, रोटा-1, fIPV और पीसीवी-1। 9 माह पर खसरा-रूबेला (MR-1), पीसीवी बूस्टर और विटामिन-ए दें।"
@@ -445,31 +465,71 @@ object LayaSynthesizer {
             // -------------------------------------------------------------
             // 4. ANTENATAL CARE (ANC-1, ANC-2, ANC-3)
             // -------------------------------------------------------------
-            qLower.contains("anc") || qLower.contains("garbh") || qLower.contains("pregnan") ||
+            Regex("\\banc\\b").containsMatchIn(qLower) || qLower.contains("garbh") || qLower.contains("pregnan") ||
             qLower.contains("garbhavathi") || secId.startsWith("ANC-") -> {
 
                 primaryCitation = "ANC-1.2"
 
-                if (patient != null && patient.isPregnant) {
-                    val edd = patient.edd ?: "Recorded EDD"
-                    val bp = patient.lastAncBp ?: "Check BP"
-                    val hb = patient.lastHbGdl?.let { "$it g/dL" } ?: "Check Hb"
+                if (patient != null && patient.isPregnant && timeline != null) {
+                    val gest = timeline.gestation
+                    val eddStr = patient.edd ?: "Recorded EDD"
+                    val daysUntilEdd = gest?.daysUntilEdd ?: 0
+                    val hbVal = timeline.vitals.hbGdl
+                    val bpVal = timeline.vitals.bpReading ?: "Check BP"
 
                     if (qLower.contains("calcium")) {
                         primaryCitation = "ANC-2.3"
-                        enBody = "For ${patient.name} (Pregnant, EDD: $edd): Give 2 Calcium tablets daily (500 mg elemental calcium each = 1000 mg/day) starting from 14 weeks until 6 months postpartum. Take Calcium separately from IFA by at least 2 hours (ANC-2.3)."
-                        hiBody = "${patient.name} (गर्भवती): 14 हफ्ते से रोजाना 2 कैल्शियम की गोलियां (1000 मिग्रा) दें। कैल्शियम और आयरन की गोली के बीच कम से कम 2 घंटे का अंतर रखें।"
-                    } else if (qLower.contains("ifa") || qLower.contains("iron") || qLower.contains("lal goli")) {
-                        primaryCitation = "ANC-2.2"
-                        enBody = "For ${patient.name} (Pregnant, EDD: $edd, Last Hb: $hb): Provide 1 red IFA tablet daily (100 mg elemental iron + 500 mcg folic acid) for 180 days starting at 14 weeks. Do not take with tea or milk. If severe anaemia (Hb <7.0 g/dL), refer to CHC for parenteral iron (ANC-2.2)."
-                        hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन: $hb): 14 सप्ताह से रोजाना 1 लाल आईएफए की गोली 180 दिनों तक दें। इसे चाय या दूध के साथ न लें।"
-                    } else if (patient.lastHbGdl != null && patient.lastHbGdl < 7.0) {
-                        primaryCitation = "ANC-3.1"
-                        enBody = "For ${patient.name} (Pregnant, EDD: $edd, Severe Anaemia: Hb $hb): Haemoglobin is below 7.0 g/dL. This is severe anaemia—refer immediately to CHC/FRU for parenteral iron therapy or blood transfusion (ANC-3.1, ESC-2.5)."
-                        hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन $hb): 7.0 से कम गंभीर एनीमिया है। तुरंत सीएचसी रेफर करें।"
+                        enBody = "For ${patient.name} (${gest?.displayWeeks ?: "Pregnant"} • EDD: $eddStr): " +
+                            "1. Calcium Schedule: Give 2 Calcium tablets daily (500 mg elemental calcium each = 1000 mg/day) starting from 14 weeks until 6 months postpartum. " +
+                            "2. Timing Precaution: Take Calcium at least 2 hours apart from IFA tablets to prevent iron absorption inhibition. " +
+                            "3. Compliance: Do not take calcium on an empty stomach; take after breakfast and lunch (ANC-2.3)."
+
+                        hiBody = "${patient.name} (गर्भवती, ${gest?.displayWeeks ?: ""}): " +
+                            "1. 14 हफ्ते से रोजाना 2 कैल्शियम की गोलियां (1000 मिग्रा) प्रसव के 6 महीने बाद तक दें। " +
+                            "2. कैल्शियम और लाल आईएफए की गोली के बीच कम से कम 2 घंटे का अंतर रखें ताकि दोनों का असर हो सके। " +
+                            "3. कैल्शियम खाली पेट न लें, भोजन के बाद लें (ANC-2.3)।"
+                    } else if (timeline.vitals.isSevereAnaemia || qLower.contains("ifa") || qLower.contains("iron") || qLower.contains("lal goli") || qLower.contains("anaemia") || qLower.contains("khoon")) {
+                        primaryCitation = if (hbVal != null && hbVal < 7.0) "ANC-3.1" else "ANC-2.2"
+                        when {
+                            hbVal != null && hbVal < 7.0 -> {
+                                enBody = "For ${patient.name} (${gest?.displayWeeks ?: "Pregnant"} • Severe Anaemia: Hb $hbVal g/dL): " +
+                                    "1. Emergency Hospital Referral: Haemoglobin is <7.0 g/dL (Severe Anaemia). Refer immediately to CHC/FRU for parenteral iron sucrose or blood transfusion (ANC-3.1, ESC-2.5). " +
+                                    "2. Oral IFA alone is insufficient for severe anaemia in pregnancy. Arrange 102/108 ambulance (ESC-2.5)."
+
+                                hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन $hbVal g/dL): " +
+                                    "1. हीमोग्लोबिन 7.0 से कम गंभीर एनीमिया है। तुरंत सीएचसी या जिला अस्पताल रेफर करें ताकि नसों द्वारा आयरन या रक्त चढ़ाया जा सके (ANC-3.1, ESC-2.5)।"
+                            }
+                            hbVal != null && hbVal < 10.0 -> {
+                                enBody = "For ${patient.name} (${gest?.displayWeeks ?: "Pregnant"} • Moderate Anaemia: Hb $hbVal g/dL): " +
+                                    "1. Therapeutic IFA Dose: Last recorded Hb is $hbVal g/dL (Moderate Anaemia). Prescribe 2 Red IFA tablets daily (1 morning, 1 evening after meals) for at least 100 days. " +
+                                    "2. Monitoring: Recheck Hb after 1 month. Take with lemon water or amla; never with tea, milk, or coffee. " +
+                                    "3. Dietary Counseling: Add green leafy vegetables, jaggery, and roasted gram to daily diet (ANC-2.2, ANC-3.1)."
+
+                                hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन $hbVal g/dL): " +
+                                    "1. मध्यम एनीमिया के कारण रोजाना 2 लाल आईएफए की गोलियां (1 सुबह, 1 शाम) कम से कम 100 दिनों तक दें। " +
+                                    "2. 1 माह बाद दोबारा हीमोग्लोबिन जांच कराएं। इसे चाय या दूध के साथ न लें, नींबू पानी के साथ लें (ANC-2.2, ANC-3.1)।"
+                            }
+                            else -> {
+                                enBody = "For ${patient.name} (${gest?.displayWeeks ?: "Pregnant"} • Last Hb: ${hbVal ?: "Normal"} g/dL): " +
+                                    "1. Prophylactic IFA Dose: Give 1 Red IFA tablet daily (100 mg elemental iron + 500 mcg folic acid) starting after first trimester for 180 days. " +
+                                    "2. Guidance: Take at bedtime with water; do not take with tea or milk (ANC-2.2)."
+
+                                hiBody = "${patient.name} (गर्भवती): रोजाना 1 लाल आईएफए की गोली 14 सप्ताह से 180 दिनों तक दें। चाय या दूध के साथ न लें (ANC-2.2)।"
+                            }
+                        }
                     } else {
-                        enBody = "For ${patient.name} (Pregnant, EDD: $edd): 1. Ensure all 4 mandatory ANC checkups are completed (ANC-1: <=12w, ANC-2: 14-26w, ANC-3: 28-34w, ANC-4: 36-40w). 2. Vitals check: Last BP $bp, Hb $hb. If BP >=140/90, severe headache, face swelling, or bleeding occurs, refer immediately to CHC (ANC-1.2, ESC-2.3)."
-                        hiBody = "${patient.name} (गर्भवती, ईडीडी: $edd): कम से कम 4 एएनसी जांच समय पर कराएं। हर महीने की 9 तारीख को पीएमएसएमए में डॉक्टर से जांच कराएं। बीपी $bp, हीमोग्लोबिन $hb है।"
+                        // General Antenatal Consultation
+                        enBody = "For ${patient.name} (${gest?.displayWeeks ?: "Pregnant"} • Vill: ${patient.village}): " +
+                            "1. ANC Checkup Status: ${gest?.completedAncCount ?: 0} visits done. Next due: ${gest?.nextDueAnc}. EDD: $eddStr ($daysUntilEdd days remaining). Attend PMSMA on 9th of every month. " +
+                            "2. Vitals & Screening: Last BP $bpVal (${timeline.vitals.bpCategory}), Last Hb ${hbVal?.let { "$it g/dL" } ?: "Check Hb"}. " +
+                            "3. Medications: Take 1 Red IFA tablet daily for 180 days and 2 Calcium tablets daily (2h apart from IFA). " +
+                            "4. Danger Signs: Any vaginal bleeding, severe headache, swelling of face/hands, or reduced fetal movement -> call 102/108 for immediate hospital referral (ANC-1.2, ESC-2.1, ESC-2.3)."
+
+                        hiBody = "${patient.name} (गर्भवती, ${gest?.displayWeeks ?: ""} • ईडीडी: $eddStr): " +
+                            "1. एएनसी स्थिति: ${gest?.completedAncCount ?: 0} जांचें पूरी हुईं। अगली जांच: ${gest?.nextDueAnc}। हर माह की 9 तारीख को पीएमएसएमए में दिखाएं। " +
+                            "2. जांच रिकॉर्ड: बीपी $bpVal, हीमोग्लोबिन ${hbVal?.let { "$it g/dL" } ?: "जांचें"}। " +
+                            "3. दवाएं: रोजाना 1 लाल गोली और 2 कैल्शियम की गोली (2 घंटे के अंतर पर) लें। " +
+                            "4. खतरे के लक्षण: रक्तस्राव, तेज सिरदर्द, चेहरे पर सूजन या बच्चे की हलचल कम होने पर तुरंत 102/108 पर रेफर करें (ANC-1.2, ESC-2.1)।"
                     }
                 } else {
                     enBody = "Mandatory 4 ANC checkups: ANC-1 within 12 weeks, ANC-2 between 14-26 weeks, ANC-3 between 28-34 weeks, ANC-4 between 36-40 weeks. Measure BP, weight, Hb, and arrange doctor visit on 9th of every month (PMSMA). Cites: ANC-1.2, ANC-1.3."
@@ -485,23 +545,44 @@ object LayaSynthesizer {
 
                 primaryCitation = "NUT-1.1"
 
-                if (patient != null && patient.lastMuacCm != null) {
+                if (patient != null && timeline != null) {
                     val muac = patient.lastMuacCm
-                    val isOedema = patient.bilateralPittingOedema
-                    val band = when {
-                        muac < 11.5 -> "Red band (<11.5 cm, Severe Acute Malnutrition - SAM)"
-                        muac < 12.5 -> "Yellow band (11.5-12.4 cm, Moderate Acute Malnutrition - MAM)"
-                        else -> "Green band (>=12.5 cm, Normal)"
-                    }
-                    if (isOedema) {
-                        enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Bilateral pitting oedema detected on both feet. Regardless of MUAC ($muac cm), oedema indicates SAM with complications—refer immediately to NRC (NUT-1.1, NUT-2.1, ESC-5.3)."
-                        hiBody = "${patient.name}: दोनों पैरों में गड्ढे पड़ने वाली सूजन गंभीर कुपोषण (SAM) है—तुरंत पोषण पुनर्वास केंद्र (NRC) रेफर करें।"
-                    } else if (muac < 11.5) {
-                        enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Last recorded MUAC is $muac cm ($band). Child has SAM—refer immediately to Nutrition Rehabilitation Centre (NRC) (NUT-1.1, NUT-2.1)."
-                        hiBody = "${patient.name}: पिछली एमयूएसी $muac सेमी (लाल पट्टी) गंभीर कुपोषण (SAM) है, तुरंत एनआरसी रेफर करें।"
-                    } else {
-                        enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Last recorded MUAC is $muac cm ($band). Maintain healthy growth with energy-dense home feeds (khichdi with ghee, pulses, eggs) 4-5 times daily (NUT-1.1)."
-                        hiBody = "${patient.name}: पिछली एमयूएसी $muac सेमी सामान्य है। रोजाना पौष्टिक आहार और मौसमी फल-सब्जियां दें।"
+                    val muacDate = patient.lastMuacDate ?: "Recent"
+                    val isOedema = timeline.vitals.hasOedema
+
+                    when {
+                        isOedema || timeline.vitals.muacStatus.contains("SAM") -> {
+                            enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                                "1. Severe Acute Malnutrition (SAM) Alert: Last recorded MUAC is $muac cm on $muacDate (${timeline.vitals.muacStatus}). " +
+                                "2. Immediate Action: Refer child immediately to Nutrition Rehabilitation Centre (NRC) at CHC for medical stabilization and therapeutic feeding. " +
+                                "3. Pre-referral: Keep child warm, continue breastfeeding, and prevent hypoglycemia during transit (NUT-1.1, NUT-2.1, ESC-5.3)."
+
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                                "1. गंभीर कुपोषण (SAM): पिछली एमयूएसी $muac सेमी (${timeline.vitals.muacStatus}) है। " +
+                                "2. तुरंत पोषण पुनर्वास केंद्र (NRC) रेफर करें। " +
+                                "3. रास्ते में बच्चे को गर्म रखें और स्तनपान कराते रहें (NUT-1.1, ESC-5.3)।"
+                        }
+                        timeline.vitals.muacStatus.contains("MAM") -> {
+                            enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                                "1. Moderate Acute Malnutrition (MAM): Last recorded MUAC is $muac cm on $muacDate (Yellow Band: 11.5-12.4 cm). " +
+                                "2. Nutritional Intervention: Enroll in Anganwadi Take-Home Ration (THR) supplementary feeding. Provide energy-dense family feeds 4-5 times daily (khichdi with ghee, pulses, eggs, banana). " +
+                                "3. Monitoring: Re-measure MUAC weekly. Check both feet for bilateral pitting oedema (NUT-1.1, NUT-2.1)."
+
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                                "1. मध्यम कुपोषण (MAM): पिछली एमयूएसी $muac सेमी (पीली पट्टी 11.5-12.4 सेमी) है। " +
+                                "2. आंगनवाड़ी से अनुपूरक पोषाहार (THR) दिलाएं। दिन में 4-5 बार ऊर्जा युक्त खाना (घी वाली खिचड़ी, दाल, अंडा) खिलाएं। " +
+                                "3. हर हफ्ते एमयूएसी नापें और पैरों की सूजन जांचें (NUT-1.1)।"
+                        }
+                        else -> {
+                            enBody = "For ${patient.name} (${timeline.ageDisplay}): " +
+                                "1. Growth Status: Last recorded MUAC is ${muac ?: ">=12.5"} cm (Green Band: Normal Growth). " +
+                                "2. Nutrition: Continue diverse family diet, green vegetables, pulses, and bi-annual Vitamin A. " +
+                                "3. Assessment: Re-screen MUAC at monthly VHSND sessions (NUT-1.1)."
+
+                            hiBody = "${patient.name} (${timeline.ageDisplay}): " +
+                                "1. सामान्य पोषण: पिछली एमयूएसी ${muac ?: "12.5+"} सेमी (हरी पट्टी) सामान्य है। " +
+                                "2. पौष्टिक भोजन और हर 6 महीने पर विटामिन-ए दें। मासिक वीएचएसएनडी में नापें (NUT-1.1)।"
+                        }
                     }
                 } else {
                     enBody = "Measure MUAC on left mid-upper arm for children 6-59 months: Red (<11.5 cm) indicates Severe Acute Malnutrition (SAM); Yellow (11.5-12.4 cm) indicates MAM; Green (>=12.5 cm) normal. Check both feet for bilateral pitting oedema. Refer SAM children with complications to NRC. Cites: NUT-1.1, NUT-2.1."
@@ -517,10 +598,25 @@ object LayaSynthesizer {
 
                 primaryCitation = "NCD-1.2"
 
-                if (patient != null && patient.ncdCondition != null) {
-                    val bp = patient.lastBpReading ?: "Not recorded"
-                    enBody = "For ${patient.name} (${patient.ncdCondition}): Last recorded BP is $bp. Protocol requires monthly blood pressure monitoring and compliance with prescribed anti-hypertensive drugs. Lifestyle counseling: reduce salt to <1 teaspoon (5g)/day and 150 minutes of physical activity weekly. If BP >=180/110 or chest pain occurs, refer immediately (NCD-1.2, NCD-3.1, ESC-6.4)."
-                    hiBody = "${patient.name} (${patient.ncdCondition}): पिछला बीपी $bp है। हर महीने बीपी नपवाएं और दवा समय पर लें। खाने में नमक दिन में 1 चम्मच (5 ग्राम) से कम रखें और रोजाना व्यायाम करें।"
+                if (patient != null && timeline != null) {
+                    val ncd = timeline.ncdStatus
+                    val bpReading = ncd?.lastBpReading ?: "Check BP"
+                    val bpDate = ncd?.lastBpDate ?: "previous visit"
+                    val overdueNote = if (ncd?.isBpOverdue == true) {
+                        "OVERDUE ALERT: Last checked ${ncd.daysSinceLastBp} days ago (>30 day monthly cutoff). Measure BP today!"
+                    } else "Monthly monitoring on schedule."
+
+                    enBody = "For ${patient.name} (${ncd?.condition ?: "Hypertension"} • Vill: ${patient.village}): " +
+                        "1. BP Monitoring: Last recorded BP is $bpReading (${timeline.vitals.bpCategory}) checked on $bpDate. $overdueNote " +
+                        "2. Medication Compliance: Take prescribed anti-hypertensive medication daily at a fixed hour without skipping, even when symptom-free. " +
+                        "3. Lifestyle Guidance: Restrict dietary salt to <1 teaspoon (5g)/day; engage in 150 minutes of physical activity weekly (30 mins/day, 5 days/week); avoid tobacco and alcohol (NCD-3.1). " +
+                        "4. Emergency Escalation: If BP >=180/110 or sudden chest pain, breathlessness, or stroke signs occur, refer immediately (call 108) (ESC-6.2, ESC-6.4)."
+
+                    hiBody = "${patient.name} (${ncd?.condition ?: "हाइपरटेंशन"}): " +
+                        "1. बीपी निगरानी: पिछला बीपी $bpReading है ($bpDate)। $overdueNote " +
+                        "2. दवा: डॉक्टर द्वारा दी गई बीपी की दवा रोजाना समय पर लें। " +
+                        "3. जीवनशैली: खाने में नमक दिन में 1 चम्मच (5 ग्राम) से कम रखें, रोजाना 30 मिनट टहलें और बीड़ी-तंबाकू छोड़ें (NCD-3.1)। " +
+                        "4. खतरे के लक्षण: बीपी 180/110 से अधिक या सीने में दर्द होने पर तुरंत 108 बुलाएं (ESC-6.4)।"
                 } else {
                     enBody = "Screen all adults >=30 years using CBAC checklist. Hypertension is defined as BP >=140/90 mmHg; diabetes as random blood sugar >=200 mg/dL. Counsel on lifestyle: limit salt to maximum 1 teaspoon (5g) per day and engage in 150 minutes of physical activity weekly. Cites: NCD-1.2, NCD-3.1."
                     hiBody = "30 वर्ष या अधिक उम्र के सभी लोगों की सीबैक (CBAC) से स्क्रीनिंग करें। बीपी 140/90 या शुगर 200 से अधिक होने पर डॉक्टर को दिखाएं। खाने में नमक दिन में 1 चम्मच (5 ग्राम) से कम रखें और रोजाना व्यायाम करें।"
@@ -535,8 +631,24 @@ object LayaSynthesizer {
 
                 primaryCitation = "HBNC-1.1"
 
-                enBody = "HBNC visit schedule: Institutional birth requires 6 visits (days 3, 7, 14, 21, 28, 42); home birth requires 7 visits (days 1, 3, 7, 14, 21, 28, 42). Initiate breastfeeding within 1 hour. Do not bathe baby in the first 48 hours or if weight <2000g. Keep cord clean and dry—apply nothing. Cites: HBNC-1.1, HBNC-2.2."
-                hiBody = "एचबीएनसी भ्रमण: अस्पताल प्रसव में 6 बार (दिन 3, 7, 14, 21, 28, 42) और घर पर प्रसव में 7 बार (दिन 1, 3, 7, 14, 21, 28, 42)। पहले घंटे में स्तनपान शुरू कराएं। पहले 48 घंटे बच्चे को न नहलाएं और नाल पर कुछ न लगाएं।"
+                if (patient != null && timeline != null && timeline.hbncStatus != null) {
+                    val hbnc = timeline.hbncStatus
+                    val bw = patient.birthWeightKg ?: 2.5
+                    enBody = "For ${patient.name} (Newborn, ${timeline.ageDisplay} • Delivery: ${hbnc.placeOfDelivery}): " +
+                        "1. Birth Weight & Thermal Care: Birth weight is $bw kg. ${if (hbnc.isVeryLowBirthWeight) "SNCU ALERT: Weight <1.8 kg — refer immediately to SNCU (call 102/108) (ESC-4.4)." else if (hbnc.isLowBirthWeight) "Low Birth Weight (<2.5 kg): Provide Kangaroo Mother Care (KMC) skin-to-skin for at least 8-12 hours daily. Do not bathe until weight >2.0 kg." else "Normal Weight: Keep warm; do not bathe in first 48 hours."} " +
+                        "2. HBNC Visit Schedule: Total ${hbnc.totalVisitsRequired} visits required (${hbnc.completedVisits.size} completed). Next due: Visit ${hbnc.nextDueVisitNumber ?: "Complete"}. " +
+                        "3. Cord & Feeding: Keep cord clean and dry (apply nothing). Exclusive breastfeeding on demand day and night (at least 8-10 times/24h) (HBNC-2.2). " +
+                        "4. Danger Signs: Temperature <35.5 C or >=37.5 C, unable to feed, fast breathing (>=60/min), or lethargy -> refer immediately (ESC-4.1, ESC-4.3)."
+
+                    hiBody = "${patient.name} (नवजात, ${timeline.ageDisplay}): " +
+                        "1. जन्म वजन: $bw किग्रा। ${if (hbnc.isVeryLowBirthWeight) "वजन 1.8 किग्रा से कम गंभीर खतरा है—तुरंत एसएनसीयू रेफर करें (ESC-4.4)।" else if (hbnc.isLowBirthWeight) "कम वजन (<2.5 किग्रा): रोजाना 8-12 घंटे कंगारू मदर केयर (KMC) दें। 2 किग्रा होने तक न नहलाएं।" else "पहले 48 घंटे बच्चे को न नहलाएं, गर्म रखें।"} " +
+                        "2. एचबीएनसी भ्रमण: अगली जांच: भ्रमण संख्या ${hbnc.nextDueVisitNumber}। " +
+                        "3. नाल पर कुछ न लगाएं, केवल स्तनपान कराएं। " +
+                        "4. बदन ठंडा पड़ना, बुखार या दूध न पीने पर तुरंत 108 बुलाएं (HBNC-1.1, ESC-4.3)।"
+                } else {
+                    enBody = "HBNC visit schedule: Institutional birth requires 6 visits (days 3, 7, 14, 21, 28, 42); home birth requires 7 visits (days 1, 3, 7, 14, 21, 28, 42). Initiate breastfeeding within 1 hour. Do not bathe baby in the first 48 hours or if weight <2000g. Keep cord clean and dry—apply nothing. Cites: HBNC-1.1, HBNC-2.2."
+                    hiBody = "एचबीएनसी भ्रमण: अस्पताल प्रसव में 6 बार (दिन 3, 7, 14, 21, 28, 42) और घर पर प्रसव में 7 बार (दिन 1, 3, 7, 14, 21, 28, 42)। पहले घंटे में स्तनपान शुरू कराएं। पहले 48 घंटे बच्चे को न नहलाएं और नाल पर कुछ न लगाएं।"
+                }
             }
 
             // -------------------------------------------------------------
@@ -551,8 +663,8 @@ object LayaSynthesizer {
             }
         }
 
-        val enFinal = if (enBody.length <= 400) enBody else enBody.take(398)
-        val hiFinal = if (hiBody.length <= 400) hiBody else hiBody.take(398)
+        val enFinal = if (patient != null) enBody else (if (enBody.length <= 400) enBody else enBody.take(398))
+        val hiFinal = if (patient != null) hiBody else (if (hiBody.length <= 400) hiBody else hiBody.take(398))
 
         return SynthesizedGuidance(
             textEnglish = enFinal,

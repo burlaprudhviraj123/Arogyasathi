@@ -8,6 +8,7 @@ import org.arogyasathi.app.jev.JEVEscalate
 import org.arogyasathi.app.jev.JEVScope
 import org.arogyasathi.app.laya.LayaRetriever
 import org.arogyasathi.app.laya.LayaSynthesizer
+import org.arogyasathi.app.laya.PatientAgeCalculator
 import org.arogyasathi.app.visit.VisitEngine
 import org.json.JSONObject
 
@@ -34,6 +35,8 @@ class ArogyasathiRepository(private val context: Context) {
     private var cachedProtocols: List<ProtocolSection>? = null
     @Volatile
     private var layaRetriever: LayaRetriever? = null
+    @Volatile
+    private var cachedMembers: List<Member>? = null
 
     private var activeAshaId: String = "ASHA-RRR5" // Default: Kalavati Kumari (Belwadi Tola)
 
@@ -227,6 +230,7 @@ class ArogyasathiRepository(private val context: Context) {
     }
 
     fun getAllMembers(): List<Member> {
+        cachedMembers?.let { return it }
         val list = mutableListOf<Member>()
         val db = dbHelper.readableDatabase
         val cursor = db.query(
@@ -238,7 +242,23 @@ class ArogyasathiRepository(private val context: Context) {
                 list.add(cursorToMember(it))
             }
         }
-        return if (list.isNotEmpty()) list else LocalRepository.sampleMembers
+        val result = if (list.isNotEmpty()) list else LocalRepository.sampleMembers
+        cachedMembers = result
+        return result
+    }
+
+    fun resolveMemberFromQuery(query: String): Member? {
+        val q = query.trim().lowercase()
+        val members = getAllMembers()
+        val fullMatch = members.firstOrNull { m ->
+            m.name.length >= 3 && q.contains(m.name.lowercase())
+        }
+        if (fullMatch != null) return fullMatch
+
+        return members.firstOrNull { m ->
+            val firstName = m.name.split(" ").firstOrNull()?.lowercase() ?: ""
+            firstName.length >= 4 && Regex("\\b${Regex.escape(firstName)}\\b").containsMatchIn(q)
+        }
     }
 
     fun getTodayVisits(villageFilter: String? = null, priorityFilter: Priority? = null): List<VisitItem> {
@@ -434,11 +454,17 @@ class ArogyasathiRepository(private val context: Context) {
     }
 
     fun askAssistant(query: String, patient: Member? = null): AssistantResult {
+        val queryMentioned = resolveMemberFromQuery(query)
+        val effectivePatient = queryMentioned ?: patient
+        val recentHistory = if (effectivePatient != null) {
+            getPatientChatHistory(effectivePatient.memberId).takeLast(3)
+        } else emptyList()
+
         // Step 1: JEV Deterministic Escalation
         val escResult = JEVEscalate.evaluate(query)
         if (escResult != null) {
             val hindiMsg = getDangerHindiMessage(escResult.first)
-            val ctx = if (patient != null) "Patient: ${patient.name} (${patient.village})" else null
+            val ctx = if (effectivePatient != null) "Patient: ${effectivePatient.name} (${effectivePatient.village})" else null
             return AssistantResult(
                 answer = escResult.second,
                 citedSection = escResult.first,
@@ -461,7 +487,7 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
                 answerHindi = hindiMsg,
-                patientContext = if (patient != null) "Patient: ${patient.name}" else null
+                patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
             )
         }
 
@@ -472,7 +498,11 @@ class ArogyasathiRepository(private val context: Context) {
 
         return if (topSections.isNotEmpty()) {
             val topSec = topSections.first()
-            val synth = LayaSynthesizer.synthesizeWithContext(topSec, query, patient)
+            val synth = LayaSynthesizer.synthesizeWithContext(topSec, query, effectivePatient, recentHistory)
+            val pTag = if (effectivePatient != null) {
+                val age = PatientAgeCalculator.calculate(effectivePatient.dob)?.ageDisplay ?: effectivePatient.dob
+                "Patient: ${effectivePatient.name} ($age • ${effectivePatient.village})"
+            } else null
             AssistantResult(
                 answer = synth.textEnglish,
                 citedSection = synth.citedSection,
@@ -480,7 +510,7 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = false,
                 triageLevel = "ROUTINE_PROTOCOL",
                 answerHindi = synth.textHindi,
-                patientContext = if (patient != null) "Patient: ${patient.name} • ${patient.village}" else null
+                patientContext = pTag
             )
         } else {
             AssistantResult(
@@ -490,7 +520,7 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
                 answerHindi = "कृपया नियमित प्रोटोकॉल दिशा-निर्देशों का पालन करें और अपने पर्यवेक्षक से सलाह लें (SCP-1.1)।",
-                patientContext = if (patient != null) "Patient: ${patient.name}" else null
+                patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
             )
         }
     }
