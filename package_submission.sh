@@ -27,12 +27,17 @@ if [ ! -f "$APK_SRC" ]; then
 fi
 cp "$APK_SRC" "$BUNDLE_DIR/Arogyasathi-v1.0-offline.apk"
 
-# 3. Copy key documents
+# 3. Copy FULL_CODE (Python engine, CLI, tests and clean Android source)
+mkdir -p "$BUNDLE_DIR/FULL_CODE"
+rsync -av --exclude="__pycache__" --exclude="*.pyc" --exclude=".pytest_cache" FULL_CODE/ "$BUNDLE_DIR/FULL_CODE/"
+rsync -av --exclude="build" --exclude=".gradle" --exclude=".idea" --exclude="*.apk" --exclude="local.properties" --exclude="*.hprof" android_app/ "$BUNDLE_DIR/FULL_CODE/android_app/"
+
+# 4. Copy key documents
 cp README.md "$BUNDLE_DIR/"
 cp docs/PROJECT_MANIFEST.md "$BUNDLE_DIR/"
 cp docs/presentation/01_HACKATHON_PITCH_AND_ARCHITECTURE_WALKTHROUGH.md "$BUNDLE_DIR/PITCH_AND_ARCHITECTURE.md"
 
-# 4. Create ZIP archive
+# 5. Create ZIP archive
 ZIP_NAME="Arogyasathi_Track_H5_Submission.zip"
 rm -f "$ZIP_NAME"
 (cd "$BUNDLE_DIR" && zip -r "../$ZIP_NAME" .)
