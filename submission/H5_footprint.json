@@ -3,8 +3,8 @@
     "arogyasathi-jev-laya (cpu offline)"
   ],
   "model_size_mb": 0.25,
-  "peak_ram_mb": 103.8,
-  "median_latency_ms_cpu": 0.469,
+  "peak_ram_mb": 106.44,
+  "median_latency_ms_cpu": 0.361,
   "offline": true,
-  "total_elapsed_sec": 0.17
+  "total_elapsed_sec": 0.21
 }
