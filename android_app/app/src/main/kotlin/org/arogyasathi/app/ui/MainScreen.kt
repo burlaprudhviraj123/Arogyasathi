@@ -68,46 +68,25 @@ fun MainScreen() {
                     }
                 },
                 actions = {
-                    // Top Right Clickable ASHA Profile Chip
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = Color(0xFFE6F4F1),
-                        border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.3f)),
+                    // Minimalist Circular Avatar Button (Standard Material 3 UX)
+                    IconButton(
+                        onClick = { showProfileDialog = true },
                         modifier = Modifier
-                            .padding(end = 12.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .clickable { showProfileDialog = true }
+                            .padding(end = 8.dp)
+                            .size(40.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        Surface(
+                            modifier = Modifier.size(36.dp),
+                            shape = CircleShape,
+                            color = Color(0xFFE6F4F1),
+                            border = BorderStroke(1.5.dp, PrimaryTeal.copy(alpha = 0.35f))
                         ) {
-                            Surface(
-                                modifier = Modifier.size(24.dp),
-                                shape = CircleShape,
-                                color = PrimaryTeal
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_person),
-                                        contentDescription = "ASHA Profile",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                }
-                            }
-                            Column {
+                            Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = activeProfile.name.split(" ").firstOrNull() ?: activeProfile.name,
-                                    fontSize = 12.sp,
+                                    text = activeProfile.name.firstOrNull()?.uppercase() ?: "A",
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = DarkTeal
-                                )
-                                Text(
-                                    text = activeProfile.phone,
-                                    fontSize = 10.sp,
-                                    color = TextSecondary
+                                    color = PrimaryTeal
                                 )
                             }
                         }
