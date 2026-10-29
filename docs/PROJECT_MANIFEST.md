@@ -118,8 +118,9 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Structured Clinical Referral Slips: Pre-formatted emergency slips with one-tap 108 dialing, SMS/WhatsApp clipboard copy, and outbox queuing.
   - Polished Chat UX: Anchored input bar flush above floating navigation with `imePadding()`, dynamic clinical chips, and zero phantom gaps.
   - Minimal Connectivity Indicator: Simplified home card badge to live Online / Offline state (no technical SQLite terminology), driven by real-time network capability callbacks.
+  - Comprehensive Reliability Audit: Added beat-aware village filtering ("My Beat" and block-wide scrollable chips), calculated age formatting in family registers, severe anaemia and bilateral pitting oedema SAM alerts, ordered navigation launch effects preventing race conditions, and graceful voice error handling.
   - Background `NetworkSyncManager`: Auto-detects connectivity restoration and syncs outbox queue to Neon central backend.
-  - Evaluator Score: **0.9735** (Escalation Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Visit Score: 1.0000). All 19 unit tests passing.
+  - Evaluator Score: **0.9735** (Escalation Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Visit Score: 1.0000). All 22 unit tests passing.
 
 ---
 
