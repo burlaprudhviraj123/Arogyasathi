@@ -111,12 +111,14 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Unit tests: 100% pass via `./gradlew test`
 
 - [x] Phase 7B — Enhanced Laya Intelligence, Patient History, Referral Slips & Auto-Sync
-  - Laya Clinical Intelligence Generator: Conversational, empathetic, protocol-grounded answers with verbatim numbers and bilingual Hindi/English synthesis.
-  - Patient Context & Longitudinal Chat History: Per-patient SQLite consultation records (`patient_chat_history`), patient picker, and seamless navigation from Today / Families registers.
+  - Laya Clinical Intelligence Generator: Conversational, empathetic, protocol-grounded answers with verbatim numbers, bilingual Hindi/English synthesis, and precise patient age calculation (`PatientAgeCalculator`).
+  - Personalized Clinical Care: Tailored directly to patient age and records (e.g. for Prem Manjhi, 4y 6m: exact 100-200 ml ORS, 20 mg Zinc, $\ge 40$/min fast breathing threshold, next due vaccine DPT-Booster 2) instead of reciting generic rule branches.
+  - Multilingual & Regional Dialect Support: Expanded Telugu and Hinglish clinical vocabulary ("motions avthunnai", "virachanalu", "swasa kastam", "jhatkalu", "spruha ledu", "raktham paduthondi") integrated into LayaLexicon and deterministic JEV emergency gates.
+  - Patient Context & Longitudinal Chat History: Per-patient SQLite consultation records (`patient_chat_history`), patient picker across all 2,234 members, and seamless navigation from Today / Families registers.
   - Structured Clinical Referral Slips: Pre-formatted emergency slips with one-tap 108 dialing, SMS/WhatsApp clipboard copy, and outbox queuing.
-  - Polished Chat UX: Anchored input bar above floating navigation with `imePadding()`, dynamic clinical chips, and zero phantom gaps.
+  - Polished Chat UX: Anchored input bar flush above floating navigation with `imePadding()`, dynamic clinical chips, and zero phantom gaps.
   - Background `NetworkSyncManager`: Auto-detects connectivity restoration and syncs outbox queue to Neon central backend.
-  - Evaluator Score: **0.9735** (Escalation Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Visit Score: 1.0000).
+  - Evaluator Score: **0.9735** (Escalation Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Visit Score: 1.0000). All 19 unit tests passing.
 
 ---
 
