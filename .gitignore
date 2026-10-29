@@ -11,3 +11,6 @@ H5_Frontline_Health_Worker_Companion/models/
 .vscode/
 H5_Frontline_Health_Worker_Companion/submission_dev/
 H5_Frontline_Health_Worker_Companion/score.json
+submission_dev/
+score*.json
+
