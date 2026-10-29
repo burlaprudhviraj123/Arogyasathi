@@ -84,203 +84,206 @@ fun TodayScreen(
     val totalPlanned = visitList.size + completedCount
     val urgentCount = visitList.count { it.priority == Priority.HIGH }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(CanvasBackground)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(CanvasBackground),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 88.dp)
     ) {
-        // ASHA Header Card
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        // ASHA Header Card (Scrolls with list)
+        item(key = "asha_header_card") {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column {
-                    Text(
-                        text = activeProfile.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = "${activeProfile.ashaId} • Chandrapuri Block",
-                        fontSize = 13.sp,
-                        color = TextSecondary
-                    )
-                }
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = if (isOnline) Color(0xFFE8F5E9) else Color(0xFFF1F5F9),
-                    modifier = Modifier.padding(2.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(if (isOnline) RoutineGreen else Color(0xFF64748B))
+                    Column {
+                        Text(
+                            text = activeProfile.name,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = TextPrimary
                         )
                         Text(
-                            text = if (isOnline) "Online" else "Offline",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isOnline) RoutineGreen else Color(0xFF475569)
+                            text = "${activeProfile.ashaId} • Chandrapuri Block",
+                            fontSize = 13.sp,
+                            color = TextSecondary
                         )
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (isOnline) Color(0xFFE8F5E9) else Color(0xFFF1F5F9),
+                        modifier = Modifier.padding(2.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isOnline) RoutineGreen else Color(0xFF64748B))
+                            )
+                            Text(
+                                text = if (isOnline) "Online" else "Offline",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isOnline) RoutineGreen else Color(0xFF475569)
+                            )
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // 3 Metrics Counter Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            MetricCard(
-                label = "Planned",
-                count = totalPlanned,
-                color = PrimaryTeal,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                label = "Urgent",
-                count = urgentCount,
-                color = EmergencyRed,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                label = "Completed",
-                count = completedCount,
-                color = RoutineGreen,
-                modifier = Modifier.weight(1f)
-            )
+        // 3 Metrics Counter Row (Scrolls with list)
+        item(key = "metrics_row") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MetricCard(
+                    label = "Planned",
+                    count = totalPlanned,
+                    color = PrimaryTeal,
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    label = "Urgent",
+                    count = urgentCount,
+                    color = EmergencyRed,
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    label = "Completed",
+                    count = completedCount,
+                    color = RoutineGreen,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Village Filter Chips (Scrollable across all block villages & beat)
-        val villageOptions = remember(activeProfile) {
-            listOf("All", "My Beat") + repository.getAllVillages()
+        // Village Filter Chips (Scrolls with list)
+        item(key = "village_filters") {
+            val villageOptions = remember(activeProfile) {
+                listOf("All", "My Beat") + repository.getAllVillages()
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                villageOptions.forEach { village ->
+                    FilterChip(
+                        selected = selectedVillage == village,
+                        onClick = { selectedVillage = village },
+                        label = { Text(village, fontSize = 12.sp) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = PrimaryTeal,
+                            selectedLabelColor = Color.White
+                        )
+                    )
+                }
+            }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            villageOptions.forEach { village ->
+
+        // Priority Filter Chips (Scrolls with list)
+        item(key = "priority_filters") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 FilterChip(
-                    selected = selectedVillage == village,
-                    onClick = { selectedVillage = village },
-                    label = { Text(village, fontSize = 12.sp) },
+                    selected = selectedPriority == null,
+                    onClick = { selectedPriority = null },
+                    label = { Text("All Priorities", fontSize = 12.sp) }
+                )
+                FilterChip(
+                    selected = selectedPriority == Priority.HIGH,
+                    onClick = { selectedPriority = Priority.HIGH },
+                    label = { Text("Urgent", fontSize = 12.sp, color = if (selectedPriority == Priority.HIGH) Color.White else EmergencyRed) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = PrimaryTeal,
+                        selectedContainerColor = EmergencyRed,
                         selectedLabelColor = Color.White
                     )
                 )
+                FilterChip(
+                    selected = selectedPriority == Priority.MEDIUM,
+                    onClick = { selectedPriority = Priority.MEDIUM },
+                    label = { Text("Medium", fontSize = 12.sp) }
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // Priority Filter Chips
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            FilterChip(
-                selected = selectedPriority == null,
-                onClick = { selectedPriority = null },
-                label = { Text("All Priorities", fontSize = 12.sp) }
-            )
-            FilterChip(
-                selected = selectedPriority == Priority.HIGH,
-                onClick = { selectedPriority = Priority.HIGH },
-                label = { Text("Urgent", fontSize = 12.sp, color = if (selectedPriority == Priority.HIGH) Color.White else EmergencyRed) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = EmergencyRed,
-                    selectedLabelColor = Color.White
-                )
-            )
-            FilterChip(
-                selected = selectedPriority == Priority.MEDIUM,
-                onClick = { selectedPriority = Priority.MEDIUM },
-                label = { Text("Medium", fontSize = 12.sp) }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Visit List
+        // Visit List Cards or Empty State
         if (visitList.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_check_circle),
-                        contentDescription = null,
-                        tint = RoutineGreen,
-                        modifier = Modifier.size(40.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "All prioritized visits complete",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = RoutineGreen
-                    )
-                    Text(
-                        text = "New visit schedules will populate automatically for tomorrow.",
-                        fontSize = 13.sp,
-                        color = TextSecondary
-                    )
+            item(key = "empty_visits_state") {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_check_circle),
+                            contentDescription = null,
+                            tint = RoutineGreen,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "All prioritized visits complete",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = RoutineGreen
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "New visit schedules will populate automatically for tomorrow.",
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        )
+                    }
                 }
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 80.dp) // Leave room for floating bottom nav
-            ) {
-                items(visitList, key = { "${it.memberId}_${it.dueItem}" }) { item ->
-                    VisitCard(
-                        item = item,
-                        onCompleteClick = { showOutcomeDialog = item },
-                        onConsultProtocolClick = {
-                            val prompt = when {
-                                item.dueItem.startsWith("ANC") -> "ANC checkup protocol for ${item.dueItem}"
-                                item.dueItem.startsWith("HBNC") -> "HBNC neonatal visit guidelines ${item.dueItem}"
-                                item.dueItem == "MUAC-check" -> "MUAC screening SAM MAM referral"
-                                item.dueItem == "BP-followup" -> "Hypertension BP screening ASHA referral"
-                                item.dueItem == "Sugar-followup" -> "Diabetes blood sugar screening guidelines"
-                                item.dueItem == "HRP-followup" -> "High risk pregnancy severe anaemia pre-eclampsia"
-                                else -> "Vaccine protocol for ${item.dueItem}"
-                            }
-                            onNavigateToAssistant(prompt, item.memberId)
+            items(visitList, key = { "${it.memberId}_${it.dueItem}" }) { item ->
+                VisitCard(
+                    item = item,
+                    onCompleteClick = { showOutcomeDialog = item },
+                    onConsultProtocolClick = {
+                        val prompt = when {
+                            item.dueItem.startsWith("ANC") -> "ANC checkup protocol for ${item.dueItem}"
+                            item.dueItem.startsWith("HBNC") -> "HBNC neonatal visit guidelines ${item.dueItem}"
+                            item.dueItem == "MUAC-check" -> "MUAC screening SAM MAM referral"
+                            item.dueItem == "BP-followup" -> "Hypertension BP screening ASHA referral"
+                            item.dueItem == "Sugar-followup" -> "Diabetes blood sugar screening guidelines"
+                            item.dueItem == "HRP-followup" -> "High risk pregnancy severe anaemia pre-eclampsia"
+                            else -> "Vaccine protocol for ${item.dueItem}"
                         }
-                    )
-                }
+                        onNavigateToAssistant(prompt, item.memberId)
+                    }
+                )
             }
         }
     }

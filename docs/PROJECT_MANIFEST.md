@@ -151,6 +151,12 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Comprehensive Referral Slip Integration: Preloads attending Medical Officer details and destination PHC into structured emergency slips (`ReferralSlipDialog`) with 1-tap doctor calling and SMS dispatch.
   - Verification: 29/29 Kotlin unit tests pass; 18/18 Python unit tests pass; Official Evaluator certified at **0.9735** (`ESCALATION GATE: PASS`); Pre-flight Certification 100% PASS; live on-device consultation verified on `prudhvi_s_phone`.
 
+- [x] Phase 7F — Home Screen Unified Ergonomic Scrolling Optimization
+  - Unified Viewport Architecture (`TodayScreen.kt`): Replaced outer static non-scrolling Column container with a unified `LazyColumn`, encapsulating the ASHA identity header card, 3 metric summary counters, horizontal village filter chips, and priority severity filter chips as scrollable `item`s.
+  - Maximized Clinical Reading Space: When frontline health workers scroll through prioritized household visit lists, top administrative headers and filters smoothly scroll away off-screen, unlocking 100% of the viewport height for patient cards and clinical protocol actions on compact frontline mobile devices.
+  - Zero Performance Impact: Maintains lazy composition with unique keys (`asha_header_card`, `metrics_row`, `village_filters`, `priority_filters`), preserving high FPS rendering without dropped frames.
+  - Verification: 29/29 Kotlin unit tests pass; 18/18 Python unit tests pass; Pre-flight Certification 100% PASS; verified live on `prudhvi_s_phone` emulator via swipe gestures with before/after visual tour artifacts.
+
 ---
 
 ## Mandatory Engineering Rules
