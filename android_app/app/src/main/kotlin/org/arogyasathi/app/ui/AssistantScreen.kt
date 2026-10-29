@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
@@ -90,6 +91,7 @@ fun AssistantScreen(
     val isHindiMode = selectedLanguage == VoiceLanguage.HINDI
     var showPatientPicker by remember { mutableStateOf(false) }
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
+    var showOfflineVoiceGuide by remember { mutableStateOf(false) }
 
     var queryText by remember { mutableStateOf("") }
     var isSpeaking by remember { mutableStateOf(false) }
@@ -266,6 +268,9 @@ fun AssistantScreen(
             if (!spoken.isNullOrBlank()) {
                 submitQuery(spoken)
             }
+        } else if (res.resultCode == Activity.RESULT_CANCELED && selectedLanguage != VoiceLanguage.ENGLISH) {
+            // When cancelled or offline speech model is not installed for this language, open guidance
+            showOfflineVoiceGuide = true
         }
     }
 
@@ -526,6 +531,37 @@ fun AssistantScreen(
                     }
                 }
             }
+
+            // Offline Voice Pack Guide button
+            item {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFFEF3C7),
+                    border = BorderStroke(1.dp, Color(0xFFF59E0B)),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { showOfflineVoiceGuide = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_info),
+                            contentDescription = "Offline Voice Setup Guide",
+                            tint = Color(0xFFB45309),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "Offline Voice Setup",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFB45309)
+                        )
+                    }
+                }
+            }
         }
 
         // Quick Question Chips
@@ -624,6 +660,7 @@ fun AssistantScreen(
                                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
                                 putExtra(RecognizerIntent.EXTRA_PROMPT, selectedLanguage.prompt)
+                                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                             }
                             speechLauncher.launch(intent)
                         } catch (e: Exception) {
@@ -712,6 +749,110 @@ fun AssistantScreen(
                 val result = repository.saveReferralSlip(slip)
                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
                 activeReferralSlip = null
+            }
+        )
+    }
+
+    // Offline Voice Setup Dialog
+    if (showOfflineVoiceGuide) {
+        AlertDialog(
+            onDismissRequest = { showOfflineVoiceGuide = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_info),
+                        contentDescription = null,
+                        tint = PrimaryTeal,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = "Offline Voice Setup",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = TextPrimary
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Android includes English offline voice by default. For Telugu, Hindi, Tamil, Kannada, or Malayalam to work 100% offline with zero network:",
+                        fontSize = 13.sp,
+                        color = TextPrimary,
+                        lineHeight = 18.sp
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFF8FAFC),
+                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "1. Connect device to Wi-Fi / mobile data once",
+                                fontSize = 12.sp,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "2. Open phone Settings > Google > Voice",
+                                fontSize = 12.sp,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "3. Tap 'Offline speech recognition' > ALL tab",
+                                fontSize = 12.sp,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "4. Download your language pack (~25 MB)",
+                                fontSize = 12.sp,
+                                color = TextPrimary
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "Once downloaded, voice input operates completely offline anywhere in the field. You can also type queries directly in Telugu/Indic scripts or tap suggestion chips anytime.",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        lineHeight = 16.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        try {
+                            val settingsIntent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+                            context.startActivity(settingsIntent)
+                        } catch (e: Exception) {
+                            try {
+                                val localeIntent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                                context.startActivity(localeIntent)
+                            } catch (e2: Exception) {
+                                Toast.makeText(context, "Please open phone Settings > Voice to configure offline speech.", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                        showOfflineVoiceGuide = false
+                    }
+                ) {
+                    Text("Open Voice Settings", fontWeight = FontWeight.Bold, color = PrimaryTeal)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOfflineVoiceGuide = false }) {
+                    Text("Dismiss", color = TextSecondary)
+                }
             }
         )
     }
