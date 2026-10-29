@@ -6,17 +6,17 @@ object JEVEscalate {
     private val dangerRules = listOf(
         // 1. Unconsciousness / Coma
         Pair(
-            Regex("\\b(behosh|unconscious|coma|behosh pada|behosh ho gayi)\\b", RegexOption.IGNORE_CASE),
+            Regex("\\b(behosh|unconscious|coma|behosh pada|behosh ho gayi|spruha ledu|behosh ayipoyadu)\\b", RegexOption.IGNORE_CASE),
             Pair("ESC-6.3", "Unconscious patient: refer immediately (call 108). Give nothing by mouth (ESC-6.3, ESC-1.3).")
         ),
         // 2. Convulsions / fits
         Pair(
-            Regex("\\b(jhatke|daura|convuls|fits|mirgi|tyala jhatke)\\b", RegexOption.IGNORE_CASE),
+            Regex("\\b(jhatke|daura|convuls|fits|mirgi|tyala jhatke|jhatkalu|jhatka)\\b", RegexOption.IGNORE_CASE),
             Pair("ESC-5.1", "Convulsions (fits / jhatke): general danger sign, refer immediately to hospital (call 108/102). Give nothing by mouth (ESC-5.1, ESC-1.3).")
         ),
         // 3. Child unable to feed
         Pair(
-            Regex("(doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|not able to drink|cannot drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha)", RegexOption.IGNORE_CASE),
+            Regex("(doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|not able to drink|cannot drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu)", RegexOption.IGNORE_CASE),
             Pair("ESC-5.1", "Child not able to drink or breastfeed: general danger sign, refer immediately to hospital (call 108/102) (ESC-5.1).")
         ),
         // 4. Prolonged fever (> 7 days)
@@ -36,12 +36,12 @@ object JEVEscalate {
         ),
         // 7. Vaginal bleeding in pregnancy
         Pair(
-            Regex("(bleeding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|bleeding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati).*(bleeding|khoon aa raha|khoon beh).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh).*(\\d+.*mahine|pregnant|garbh))", RegexOption.IGNORE_CASE),
+            Regex("(bleeding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|bleeding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati|garbhavathi).*(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnant|garbh)|garbhavathi.*raktham|raktham paduthondi)", RegexOption.IGNORE_CASE),
             Pair("ESC-2.1", "Any vaginal bleeding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2).")
         ),
         // 8. Pre-eclampsia
         Pair(
-            Regex("((chehra|face).*suj.*sir\\s*dard|sir\\s*dard.*(chehra|face).*suj|pair aur chehra suja|swelling of the face|pre-eclampsia|eclampsia|dhundhla dikh raha aur sir me tez dard|aankhon ke aage dhundhla|हाथ मुह पे सूजन|सिर मे बहुत तेज दर्द)", RegexOption.IGNORE_CASE),
+            Regex("((chehra|face|mukham).*suj.*sir\\s*dard|sir\\s*dard.*(chehra|face).*suj|pair aur chehra suja|swelling of the face|pre-eclampsia|eclampsia|dhundhla dikh raha aur sir me tez dard|aankhon ke aage dhundhla|हाथ मुह पे सूजन|सिर मे बहुत तेज दर्द|mukham vathalu|thalanoppi.*vathalu)", RegexOption.IGNORE_CASE),
             Pair("ESC-2.3", "Pre-eclampsia danger signs in pregnancy: swelling of the face, severe headache, blurred vision. Refer immediately (call 102/108) (ESC-2.3).")
         ),
         // 9. Severe anaemia / breathlessness in pregnancy

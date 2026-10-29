@@ -96,4 +96,57 @@ class LayaTest {
         assertTrue("Hindi text must contain ओआरएस", synth.textHindi.contains("ओआरएस"))
         assertEquals("CHD-1.2", synth.citedSection)
     }
+
+    @Test
+    fun testPremManjhiAgeTailoredDiarrhoeaAdvice() {
+        val section = ProtocolSection(
+            sectionId = "CHD-1.2",
+            title = "How much ORS to give",
+            body = "Give 1 packet of ORS in 1 litre drinking water. Children under 2 years: 50-100 ml. Children 2 years and older: 100-200 ml.",
+            category = "CHD"
+        )
+        // Prem Manjhi from household_register.csv: born 2022-04-12 (4 years old on 2026-10-26)
+        val premManjhi = org.arogyasathi.app.core.Member(
+            memberId = "M-R76DUV5C",
+            householdId = "HH-014Q8O",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Prem Manjhi",
+            relation = "son",
+            sex = "M",
+            dob = "2022-04-12"
+        )
+        val synth = LayaSynthesizer.synthesizeWithContext(section, "motions avthunnai", premManjhi)
+        assertTrue("Must acknowledge Prem Manjhi", synth.textEnglish.contains("Prem Manjhi"))
+        assertTrue("Must calculate and display 4 years", synth.textEnglish.contains("4 years"))
+        assertTrue("Must prescribe 100 to 200 ml ORS for a 4-year-old child", synth.textEnglish.contains("100 to 200 ml"))
+        assertFalse("Must NOT give under 2 years dose for 4-year-old", synth.textEnglish.contains("50 to 100 ml"))
+        assertTrue("Must prescribe 20 mg Zinc for child >=6m", synth.textEnglish.contains("Zinc 20 mg"))
+        assertFalse("Must NOT prescribe 10 mg Zinc for 4-year-old", synth.textEnglish.contains("10 mg"))
+        assertTrue("Must cite CHD-1.2", synth.textEnglish.contains("CHD-1.2"))
+        assertTrue("Length must be <= 400 chars", synth.textEnglish.length <= 400)
+    }
+
+    @Test
+    fun testTeluguDiarrhoeaQueryRetrieval() {
+        val retriever = LayaRetriever(LocalRepository.sampleProtocols)
+        val hits = retriever.retrieve("motions avthunnai", topK = 1)
+        assertFalse("Retriever should find relevant protocol for Telugu motions query", hits.isEmpty())
+        assertTrue("Must retrieve CHD-1 diarrhoea protocol (CHD-1.2 or CHD-1.3)", hits.first().sectionId.startsWith("CHD-1"))
+    }
+
+    @Test
+    fun testTeluguEmergencyPhrasesInJEV() {
+        val res1 = org.arogyasathi.app.jev.JEVEscalate.evaluate("jhatkalu vasthunnai")
+        assertNotNull("Must detect Telugu convulsions as emergency", res1)
+        assertEquals("ESC-5.1", res1?.first)
+
+        val res2 = org.arogyasathi.app.jev.JEVEscalate.evaluate("garbhavathi lo raktham paduthondi")
+        assertNotNull("Must detect Telugu severe bleeding as emergency", res2)
+        assertEquals("ESC-2.1", res2?.first)
+
+        val res3 = org.arogyasathi.app.jev.JEVEscalate.evaluate("spruha ledu")
+        assertNotNull("Must detect Telugu unconsciousness as emergency", res3)
+        assertEquals("ESC-6.3", res3?.first)
+    }
 }
