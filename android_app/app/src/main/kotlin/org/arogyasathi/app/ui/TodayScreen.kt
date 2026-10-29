@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -407,14 +409,18 @@ fun VisitCard(
             ) {
                 OutlinedButton(
                     onClick = onConsultProtocolClick,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = "Consult protocol for ${item.dueItem}" },
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Protocols", fontSize = 13.sp, color = PrimaryTeal)
                 }
                 Button(
                     onClick = onCompleteClick,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = "Record completion for ${item.memberName}'s ${item.dueItem} visit" },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
                     shape = RoundedCornerShape(8.dp)
                 ) {

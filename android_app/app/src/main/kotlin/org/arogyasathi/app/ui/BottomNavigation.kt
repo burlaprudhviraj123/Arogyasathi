@@ -19,7 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 
 data class NavigationTabItem(
@@ -81,6 +85,11 @@ fun FloatingGlassBottomBar(
                         color = animBg,
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
+                            .semantics {
+                                role = Role.Tab
+                                contentDescription = "${item.title} tab"
+                                stateDescription = if (isSelected) "Selected" else "Not selected"
+                            }
                             .clickable { onTabSelected(item.index) }
                     ) {
                         Row(
