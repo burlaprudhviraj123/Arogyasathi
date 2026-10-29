@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.arogyasathi.app.core.Priority
@@ -497,4 +498,27 @@ fun VisitOutcomeDialog(
             }
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun VisitCardPreview() {
+    ArogyasathiTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            VisitCard(
+                item = VisitItem(
+                    memberId = "M-TEST01",
+                    memberName = "Jamuna Devi",
+                    householdId = "HH-014Q8O",
+                    village = "Belwadi Tola",
+                    dueItem = "ANC-2",
+                    priority = Priority.HIGH,
+                    status = VisitStatus.DUE_TODAY,
+                    dueDate = "2026-10-26"
+                ),
+                onCompleteClick = {},
+                onConsultProtocolClick = {}
+            )
+        }
+    }
 }

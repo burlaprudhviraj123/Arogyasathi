@@ -19,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.tooling.preview.Preview
+
 data class NavigationTabItem(
     val title: String,
     val icon: String,
@@ -95,6 +97,25 @@ fun FloatingGlassBottomBar(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FloatingGlassBottomBarPreview() {
+    ArogyasathiTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .background(CanvasBackground),
+            contentAlignment = Alignment.Center
+        ) {
+            FloatingGlassBottomBar(
+                selectedIndex = 0,
+                onTabSelected = {}
+            )
         }
     }
 }

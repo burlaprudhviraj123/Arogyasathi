@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.arogyasathi.app.core.Household
@@ -251,5 +252,30 @@ fun TagChip(text: String, color: Color) {
             color = color,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MemberRowPreview() {
+    ArogyasathiTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            MemberRowItem(
+                member = Member(
+                    memberId = "M-TEST01",
+                    householdId = "HH-014Q8O",
+                    village = "Belwadi Tola",
+                    ashaId = "ASHA-RRR5",
+                    name = "Jamuna Devi",
+                    relation = "wife",
+                    sex = "F",
+                    dob = "2002-10-31",
+                    isPregnant = true,
+                    edd = "2026-12-30",
+                    lastHbGdl = 6.8
+                ),
+                onConsult = {}
+            )
+        }
     }
 }
