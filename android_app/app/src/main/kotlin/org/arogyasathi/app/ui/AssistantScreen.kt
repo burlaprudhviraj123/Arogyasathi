@@ -39,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.arogyasathi.app.R
+import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.core.Member
 import org.arogyasathi.app.core.ReferralSlip
+import org.arogyasathi.app.core.maskPhoneNumber
 import org.arogyasathi.app.data.ArogyasathiRepository
 import org.arogyasathi.app.data.AssistantResult
 import java.util.Locale
@@ -95,6 +97,7 @@ fun AssistantScreen(
 
     var queryText by remember { mutableStateOf("") }
     var isSpeaking by remember { mutableStateOf(false) }
+    val activeProfile = remember(repository) { repository.getActiveProfile() }
 
     val messages = remember { mutableStateListOf<ChatMessage>() }
 
@@ -323,15 +326,15 @@ fun AssistantScreen(
             .fillMaxSize()
             .background(CanvasBackground)
     ) {
-        // Top 108 Emergency Banner
+        // Top Clinical Escalation & Sector Contacts Bar
         Surface(
-            color = EmergencyRed,
+            color = Color(0xFF1E293B),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -339,40 +342,77 @@ fun AssistantScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_emergency),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Surface(
+                        shape = CircleShape,
+                        color = EmergencyRed,
+                        modifier = Modifier.size(22.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_emergency),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "EMERGENCY HOTLINE 108 / 102",
+                            text = "CLINICAL ESCALATION & CONTACTS",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             color = Color.White
                         )
                         Text(
-                            text = "One-tap ambulance & CHC referral dispatch",
+                            text = "${activeProfile.medicalOfficerName} • ${activeProfile.parentPhc}",
                             fontSize = 10.sp,
-                            color = Color(0xFFFFCDD2)
+                            color = Color(0xFF94A3B8),
+                            maxLines = 1
                         )
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(
-                        onClick = { dialEmergency(context, "108") },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                        onClick = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
                         shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.height(28.dp)
+                        modifier = Modifier.height(26.dp)
                     ) {
                         Text(
-                            text = "CALL 108",
+                            text = "CALL MO",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            color = EmergencyRed
+                            fontSize = 10.sp,
+                            color = Color.White
+                        )
+                    }
+                    Button(
+                        onClick = { dialEmergency(context, activeProfile.anmPhone) },
+                        colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(26.dp)
+                    ) {
+                        Text(
+                            text = "CALL ANM",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            color = Color.White
+                        )
+                    }
+                    Button(
+                        onClick = { dialEmergency(context, "108") },
+                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(26.dp)
+                    ) {
+                        Text(
+                            text = "108",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            color = Color.White
                         )
                     }
                 }
@@ -617,6 +657,7 @@ fun AssistantScreen(
                     message = message,
                     isHindiMode = isHindiMode,
                     activePatient = activePatient,
+                    activeProfile = activeProfile,
                     onPlayTts = { textToSpeak ->
                         if (isSpeaking) {
                             tts?.stop()
@@ -635,6 +676,8 @@ fun AssistantScreen(
                             isSpeaking = true
                         }
                     },
+                    onCallMo = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
+                    onCallAnm = { dialEmergency(context, activeProfile.anmPhone) },
                     onCall108 = { dialEmergency(context, "108") },
                     onOpenReferralSlip = { slip ->
                         activeReferralSlip = slip
@@ -753,6 +796,7 @@ fun AssistantScreen(
         ReferralSlipDialog(
             slip = slip,
             onDismiss = { activeReferralSlip = null },
+            onCallMo = { dialEmergency(context, slip.medicalOfficerPhone) },
             onCall108 = { dialEmergency(context, "108") },
             onSaveToOutbox = {
                 val result = repository.saveReferralSlip(slip)
@@ -872,7 +916,10 @@ fun ChatBubble(
     message: ChatMessage,
     isHindiMode: Boolean,
     activePatient: Member?,
+    activeProfile: AshaProfile,
     onPlayTts: (String) -> Unit,
+    onCallMo: () -> Unit = {},
+    onCallAnm: () -> Unit = {},
     onCall108: () -> Unit,
     onOpenReferralSlip: (ReferralSlip) -> Unit
 ) {
@@ -1009,6 +1056,164 @@ fun ChatBubble(
                             isRefusal = isRefusal
                         )
 
+                        // If Danger Sign: Immediate Doctor & ANM Contact Card
+                        if (isEscalation) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFFFF5F5),
+                                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.35f)),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_emergency),
+                                            contentDescription = null,
+                                            tint = EmergencyRed,
+                                            modifier = Modifier.size(13.dp)
+                                        )
+                                        Text(
+                                            text = "CLINICAL EMERGENCY ESCALATION",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = EmergencyRed
+                                        )
+                                    }
+                                    Text(
+                                        text = "Alert your Medical Officer / ANM immediately before transport:",
+                                        fontSize = 10.sp,
+                                        color = TextPrimary
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Button(
+                                            onClick = onCallMo,
+                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                            shape = RoundedCornerShape(6.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(26.dp)
+                                        ) {
+                                            Text(
+                                                text = "CALL MO (${activeProfile.maskedMoPhone()})",
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1
+                                            )
+                                        }
+                                        Button(
+                                            onClick = onCallAnm,
+                                            colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                                            shape = RoundedCornerShape(6.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(26.dp)
+                                        ) {
+                                            Text(
+                                                text = "CALL ANM (${activeProfile.maskedAnmPhone()})",
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // If Out of Scope: Doctor Redirection Card
+                        if (isRefusal) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFFFFBEB),
+                                border = BorderStroke(1.dp, HighPriorityOrange.copy(alpha = 0.4f)),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_shield),
+                                            contentDescription = null,
+                                            tint = HighPriorityOrange,
+                                            modifier = Modifier.size(13.dp)
+                                        )
+                                        Text(
+                                            text = "DOCTOR CONSULTATION REQUIRED (SCP-1.2)",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = HighPriorityOrange
+                                        )
+                                    }
+                                    Text(
+                                        text = "Prescription medicines or diagnosis must be approved by the doctor:",
+                                        fontSize = 10.sp,
+                                        color = TextPrimary
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Button(
+                                            onClick = onCallMo,
+                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                            shape = RoundedCornerShape(6.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(26.dp)
+                                        ) {
+                                            Text(
+                                                text = "CALL MO (${activeProfile.maskedMoPhone()})",
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1
+                                            )
+                                        }
+                                        Button(
+                                            onClick = onCallAnm,
+                                            colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                                            shape = RoundedCornerShape(6.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(26.dp)
+                                        ) {
+                                            Text(
+                                                text = "CALL ANM (${activeProfile.maskedAnmPhone()})",
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Footer with Citation & Action Buttons
@@ -1084,7 +1289,13 @@ fun ChatBubble(
                                                     activePatient?.lastMuacCm != null -> "MUAC: ${activePatient.lastMuacCm} cm"
                                                     else -> "Critical Triage"
                                                 },
-                                                protocolCitation = res.citedSection
+                                                protocolCitation = res.citedSection,
+                                                referredFacility = activeProfile.parentPhc,
+                                                immediateActionTaken = "Medical Officer Alerted & 108 Emergency Ambulance Dispatched",
+                                                ashaName = activeProfile.name,
+                                                ashaPhone = activeProfile.phone,
+                                                medicalOfficerName = activeProfile.medicalOfficerName,
+                                                medicalOfficerPhone = activeProfile.medicalOfficerPhone
                                             )
                                             onOpenReferralSlip(slip)
                                         },
@@ -1240,6 +1451,7 @@ fun PatientPickerDialog(
 fun ReferralSlipDialog(
     slip: ReferralSlip,
     onDismiss: () -> Unit,
+    onCallMo: () -> Unit = {},
     onCall108: () -> Unit,
     onSaveToOutbox: () -> Unit
 ) {
@@ -1253,7 +1465,8 @@ Danger Sign: ${slip.suspectedCondition}
 Protocol Citation: ${slip.protocolCitation}
 Vitals / Findings: ${slip.vitalSigns}
 Action Taken: ${slip.immediateActionTaken}
-Referred To: ${slip.referredFacility}
+Referred Facility: ${slip.referredFacility}
+Medical Officer: ${slip.medicalOfficerName} (${slip.medicalOfficerPhone})
 ASHA Worker: ${slip.ashaName} (${slip.ashaPhone})
 Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(java.util.Date(slip.timestamp))}
     """.trimIndent()
@@ -1340,6 +1553,12 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                             color = TextPrimary
                         )
                         Text(
+                            text = "Attending MO: ${slip.medicalOfficerName} (${maskPhoneNumber(slip.medicalOfficerPhone)})",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PrimaryTeal
+                        )
+                        Text(
                             text = "Attending ASHA: ${slip.ashaName} (${slip.ashaPhone})",
                             fontSize = 10.sp,
                             color = TextSecondary
@@ -1349,7 +1568,27 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
             }
         },
         confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Button(
+                    onClick = onCallMo,
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                    modifier = Modifier.height(28.dp)
+                ) {
+                    Text("Call MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Button(
+                    onClick = onCall108,
+                    colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                    modifier = Modifier.height(28.dp)
+                ) {
+                    Text("Call 108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+
                 Button(
                     onClick = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -1357,26 +1596,22 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                         clipboard.setPrimaryClip(clip)
                         Toast.makeText(context, "Referral slip copied to clipboard for SMS/WhatsApp", Toast.LENGTH_SHORT).show()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                    shape = RoundedCornerShape(6.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                    modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Copy SMS", fontSize = 11.sp)
+                    Text("Copy", fontSize = 10.sp)
                 }
 
                 Button(
                     onClick = onSaveToOutbox,
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
-                    shape = RoundedCornerShape(6.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                    shape = RoundedCornerShape(6.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                    modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Save Outbox", fontSize = 11.sp)
-                }
-
-                Button(
-                    onClick = onCall108,
-                    colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                    shape = RoundedCornerShape(6.dp)
-                ) {
-                    Text("Call 108", fontSize = 11.sp)
+                    Text("Outbox", fontSize = 10.sp)
                 }
             }
         },

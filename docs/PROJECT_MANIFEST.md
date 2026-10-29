@@ -1,6 +1,6 @@
 # Arogyasathi — Project Manifest
 
-> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone`). Primary Evaluator Score: **0.9735** (Gate: PASS). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**. Longitudinal Clinical Timeline Engine & Record Grounding verified live.
+> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone`). Primary Evaluator Score: **0.9735** (Gate: PASS). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**. Facility Hierarchy & Clinical Supervision Contacts verified live.
 > **Last Updated:** 2026-10-30
 
 ---
@@ -139,6 +139,17 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Prior Consultation Context: Integrates longitudinal context from SQLite `patient_chat_history` into synthesis, allowing follow-up continuity.
   - Longitudinal Output Synthesis: Decoupled benchmark character limits ($\le 400$ chars for non-interactive `evaluate.py`) from real clinical consultations, giving frontline workers complete, unclipped multi-step guidance with exact clinical dosages and follow-ups.
   - Verification: 27/27 Kotlin unit tests pass; 18/18 Python unit tests pass; Official Evaluator certified at **0.9735** (`ESCALATION GATE: PASS`); Pre-flight Certification 100% PASS; live on-device consultation verified on `prudhvi_s_phone`.
+
+- [x] Phase 7E — Facility Hierarchy & Clinical Supervision Escalation Engine
+  - Institutional Healthcare Governance Hierarchy: Formally mapped all 5 Chandrapuri Block ASHAs into sector facility clusters under the National Health Mission structure:
+    * Sector 1 (Belwadi Tola & Amrapur): Parent Facility `Chandrapuri PHC (Sector 1)`, Medical Officer In-Charge `Dr. Rajesh Sharma, MBBS`, with dedicated HWCs and Sector ANMs (`Anita Sharma` & `Sunita Kumari`).
+    * Sector 2 (Kesarganj & Dhanpura): Parent Facility `Chandrapuri PHC (Sector 2)`, Medical Officer In-Charge `Dr. Priyadarshini Sen, MBBS, DGO`, with dedicated HWCs and Sector ANMs (`Kavita Rawat` & `Fatima Bano`).
+    * Sector 3 (Navagaon Khurd & Sitapahari): Parent Facility `Chandrapuri PHC (Sector 3)`, Medical Officer In-Charge `Dr. Alok Ranjan, MBBS, MD`, with dedicated HWCs and Sector ANM (`Bimla Soren`).
+  - Privacy-Preserving Phone Number Masking: Standardized `maskPhoneNumber` utility displaying masked contact numbers in quick consultation cards and emergency alert banners (e.g., `+91 94310 •••01`), while revealing complete unmasked numbers and direct 1-tap call buttons in the Worker Profile Dialog.
+  - Actionable Out-of-Scope Redirection (`SCP-1.2`): Replaced static text refusal with direct 1-tap `[CALL MO]` and `[CALL ANM]` action buttons, allowing frontline workers to immediately consult their assigned doctor for non-protocol medicines (e.g. amoxicillin) or unverified diagnoses.
+  - Multi-tier Clinical Escalation: Upgraded the top app bar from a generic 108 banner into a comprehensive Clinical Escalation Bar featuring active Medical Officer affiliation, one-tap doctor calling, Sector ANM calling, and 108/102 ambulance dispatch.
+  - Comprehensive Referral Slip Integration: Preloads attending Medical Officer details and destination PHC into structured emergency slips (`ReferralSlipDialog`) with 1-tap doctor calling and SMS dispatch.
+  - Verification: 29/29 Kotlin unit tests pass; 18/18 Python unit tests pass; Official Evaluator certified at **0.9735** (`ESCALATION GATE: PASS`); Pre-flight Certification 100% PASS; live on-device consultation verified on `prudhvi_s_phone`.
 
 ---
 

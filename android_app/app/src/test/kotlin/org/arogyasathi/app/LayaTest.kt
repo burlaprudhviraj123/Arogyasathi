@@ -367,4 +367,53 @@ class LayaTest {
         assertTrue("Must recommend ReSoMal or careful low-osmolarity ORS", synth.textEnglish.contains("ReSoMal") || synth.textEnglish.contains("5 ml/kg"))
         assertTrue("Must refer immediately to NRC", synth.textEnglish.contains("NRC") || synth.textEnglish.contains("Nutrition Rehabilitation Centre"))
     }
+
+    @Test
+    fun testPhoneNumberMasking() {
+        val masked = org.arogyasathi.app.core.maskPhoneNumber("+91 94310 82101")
+        assertEquals("+91 94310 •••01", masked)
+
+        val profile = org.arogyasathi.app.core.AshaProfile(
+            ashaId = "ASHA-RRR5",
+            name = "Kalavati Kumari",
+            phone = "+91 98765 43220",
+            villages = listOf("Belwadi Tola"),
+            subCentre = "Belwadi Tola HWC",
+            parentPhc = "Chandrapuri PHC (Sector 1)",
+            medicalOfficerName = "Dr. Rajesh Sharma, MBBS",
+            medicalOfficerRole = "Medical Officer In-Charge",
+            medicalOfficerPhone = "+91 94310 82101",
+            anmName = "Anita Sharma",
+            anmRole = "Designated Sector ANM",
+            anmPhone = "+91 98350 41102"
+        )
+
+        assertEquals("+91 94310 •••01", profile.maskedMoPhone())
+        assertEquals("+91 98350 •••02", profile.maskedAnmPhone())
+        assertEquals("Chandrapuri PHC (Sector 1)", profile.parentPhc)
+        assertEquals("Dr. Rajesh Sharma, MBBS", profile.medicalOfficerName)
+    }
+
+    @Test
+    fun testReferralSlipMedicalOfficerLinkage() {
+        val slip = org.arogyasathi.app.core.ReferralSlip(
+            patientId = "M-TEST01",
+            patientName = "Puja Devi",
+            ageGender = "22y / Female",
+            village = "Belwadi Tola",
+            householdId = "HH-TEST",
+            suspectedCondition = "Severe Pre-eclampsia",
+            dangerSigns = listOf("ESC-2.3"),
+            vitalSigns = "BP: 160/110 mmHg",
+            protocolCitation = "ESC-2.3",
+            referredFacility = "Chandrapuri PHC (Sector 1)",
+            medicalOfficerName = "Dr. Rajesh Sharma, MBBS",
+            medicalOfficerPhone = "+91 94310 82101"
+        )
+
+        assertEquals("Dr. Rajesh Sharma, MBBS", slip.medicalOfficerName)
+        assertEquals("+91 94310 82101", slip.medicalOfficerPhone)
+        assertEquals("Chandrapuri PHC (Sector 1)", slip.referredFacility)
+        assertEquals("+91 94310 •••01", org.arogyasathi.app.core.maskPhoneNumber(slip.medicalOfficerPhone))
+    }
 }

@@ -1,5 +1,7 @@
 package org.arogyasathi.app.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -171,6 +173,20 @@ fun AshaProfileDialog(
     onSelectProfile: (AshaProfile) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    fun dialContact(number: String) {
+        try {
+            val intent = Intent(Intent.ACTION_DIAL).apply {
+                data = Uri.parse("tel:${number.replace(" ", "")}")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -248,7 +264,7 @@ fun AshaProfileDialog(
                             color = TextSecondary
                         )
                         Text(
-                            text = "Sub-Centre / Facility: ${activeProfile.subCentre}",
+                            text = "Assigned Sub-Centre: ${activeProfile.subCentre}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
@@ -257,6 +273,169 @@ fun AshaProfileDialog(
                             fontSize = 11.sp,
                             color = TextSecondary
                         )
+                    }
+                }
+
+                // Facility Hierarchy & Clinical Supervision Contacts (Full Numbers Visible Here)
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFFF8FAFC),
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_records),
+                                contentDescription = null,
+                                tint = PrimaryTeal,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Facility & Clinical Hierarchy",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = DarkTeal
+                            )
+                        }
+
+                        // Facility info
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "Parent Facility: ${activeProfile.parentPhc}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "Assigned HWC: ${activeProfile.subCentre}",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                        }
+
+                        HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
+
+                        // Medical Officer In-Charge (Doctor)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = activeProfile.medicalOfficerRole,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DarkTeal
+                                )
+                                Text(
+                                    text = activeProfile.medicalOfficerName,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = activeProfile.medicalOfficerPhone,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = PrimaryTeal
+                                )
+                            }
+                            Button(
+                                onClick = { dialContact(activeProfile.medicalOfficerPhone) },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.height(26.dp)
+                            ) {
+                                Text("CALL MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        // Designated Sector ANM
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = activeProfile.anmRole,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = RoutineGreen
+                                )
+                                Text(
+                                    text = activeProfile.anmName,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = activeProfile.anmPhone,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = RoutineGreen
+                                )
+                            }
+                            Button(
+                                onClick = { dialContact(activeProfile.anmPhone) },
+                                colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.height(26.dp)
+                            ) {
+                                Text("CALL ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        // Emergency Ambulances (108 / 102)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Emergency Transport",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = EmergencyRed
+                                )
+                                Text(
+                                    text = "108 (General) • 102 (Maternal JSSK)",
+                                    fontSize = 10.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Button(
+                                    onClick = { dialContact("108") },
+                                    colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                    shape = RoundedCornerShape(6.dp),
+                                    modifier = Modifier.height(26.dp)
+                                ) {
+                                    Text("108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Button(
+                                    onClick = { dialContact("102") },
+                                    colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                    shape = RoundedCornerShape(6.dp),
+                                    modifier = Modifier.height(26.dp)
+                                ) {
+                                    Text("102", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -319,15 +498,20 @@ fun AshaProfileDialog(
                             ) {
                                 Column {
                                     Text(
-                                        text = profile.name,
+                                        text = "${profile.name} (${profile.ashaId})",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isSelected) Color.White else TextPrimary
                                     )
                                     Text(
-                                        text = "${profile.phone} • ${profile.villages.firstOrNull()}",
+                                        text = "${profile.villages.firstOrNull()} • ${profile.parentPhc}",
                                         fontSize = 10.sp,
                                         color = if (isSelected) Color(0xFFE6F4F1) else TextSecondary
+                                    )
+                                    Text(
+                                        text = "MO: ${profile.medicalOfficerName}",
+                                        fontSize = 9.sp,
+                                        color = if (isSelected) Color(0xFFE6F4F1) else PrimaryTeal
                                     )
                                 }
                                 if (isSelected) {

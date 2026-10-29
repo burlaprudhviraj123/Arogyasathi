@@ -33,8 +33,32 @@ data class AshaProfile(
     val villages: List<String>,
     val subCentre: String,
     val assignedHouseholdsCount: Int = 100,
-    val isVerified: Boolean = true
-)
+    val isVerified: Boolean = true,
+    val parentPhc: String = "Chandrapuri Primary Health Centre",
+    val medicalOfficerName: String = "Dr. Rajesh Sharma, MBBS",
+    val medicalOfficerRole: String = "Medical Officer In-Charge (MO-IC)",
+    val medicalOfficerPhone: String = "+91 94310 82101",
+    val anmName: String = "Anita Sharma",
+    val anmRole: String = "Designated Sector ANM",
+    val anmPhone: String = "+91 98350 41102",
+    val ambulance108: String = "108",
+    val ambulance102: String = "102"
+) {
+    fun maskedMoPhone(): String = maskPhoneNumber(medicalOfficerPhone)
+    fun maskedAnmPhone(): String = maskPhoneNumber(anmPhone)
+}
+
+fun maskPhoneNumber(phone: String): String {
+    val digits = phone.filter { it.isDigit() }
+    return if (digits.length >= 10) {
+        val ten = digits.takeLast(10)
+        val p1 = ten.take(5)
+        val p2 = ten.takeLast(2)
+        "+91 $p1 •••$p2"
+    } else {
+        "+91 ••••• •••••"
+    }
+}
 
 data class Household(
     val householdId: String,
@@ -154,6 +178,8 @@ data class ReferralSlip(
     val immediateActionTaken: String = "108 Emergency Ambulance Dispatched",
     val ashaName: String = "Kalavati Kumari",
     val ashaPhone: String = "+919876543220",
+    val medicalOfficerName: String = "Dr. Rajesh Sharma, MBBS",
+    val medicalOfficerPhone: String = "+91 94310 82101",
     val timestamp: Long = System.currentTimeMillis()
 )
 

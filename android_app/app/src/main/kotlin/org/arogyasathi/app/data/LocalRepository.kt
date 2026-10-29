@@ -46,45 +46,80 @@ class ArogyasathiRepository(private val context: Context) {
             name = "Kalavati Kumari",
             phone = "+91 98765 43220",
             villages = listOf("Belwadi Tola"),
-            subCentre = "Belwadi Tola Sub-Centre",
+            subCentre = "Belwadi Tola Ayushman Arogya Mandir (HWC)",
             assignedHouseholdsCount = 100,
-            isVerified = true
+            isVerified = true,
+            parentPhc = "Chandrapuri PHC (Sector 1)",
+            medicalOfficerName = "Dr. Rajesh Sharma, MBBS",
+            medicalOfficerRole = "Medical Officer In-Charge (MO-IC)",
+            medicalOfficerPhone = "+91 94310 82101",
+            anmName = "Anita Sharma",
+            anmRole = "Designated Sector ANM",
+            anmPhone = "+91 98350 41102"
         ),
         AshaProfile(
             ashaId = "ASHA-096P",
             name = "Sunaina Devi",
             phone = "+91 98765 43221",
             villages = listOf("Amrapur"),
-            subCentre = "Amrapur Sub-Centre",
+            subCentre = "Amrapur Health & Wellness Centre",
             assignedHouseholdsCount = 100,
-            isVerified = true
+            isVerified = true,
+            parentPhc = "Chandrapuri PHC (Sector 1)",
+            medicalOfficerName = "Dr. Rajesh Sharma, MBBS",
+            medicalOfficerRole = "Medical Officer In-Charge (MO-IC)",
+            medicalOfficerPhone = "+91 94310 82101",
+            anmName = "Sunita Kumari",
+            anmRole = "Designated Sector ANM",
+            anmPhone = "+91 98350 41103"
         ),
         AshaProfile(
             ashaId = "ASHA-YFK5",
             name = "Rinku Devi",
             phone = "+91 98765 43222",
             villages = listOf("Kesarganj"),
-            subCentre = "Kesarganj Sub-Centre",
+            subCentre = "Kesarganj Health & Wellness Centre",
             assignedHouseholdsCount = 100,
-            isVerified = true
+            isVerified = true,
+            parentPhc = "Chandrapuri PHC (Sector 2)",
+            medicalOfficerName = "Dr. Priyadarshini Sen, MBBS, DGO",
+            medicalOfficerRole = "Medical Officer In-Charge (MO-IC)",
+            medicalOfficerPhone = "+91 94310 82102",
+            anmName = "Kavita Rawat",
+            anmRole = "Designated Sector ANM",
+            anmPhone = "+91 98350 41104"
         ),
         AshaProfile(
             ashaId = "ASHA-L9R8",
             name = "Shabnam Khatoon",
             phone = "+91 98765 43223",
             villages = listOf("Dhanpura"),
-            subCentre = "Dhanpura Sub-Centre",
+            subCentre = "Dhanpura Health & Wellness Centre",
             assignedHouseholdsCount = 100,
-            isVerified = true
+            isVerified = true,
+            parentPhc = "Chandrapuri PHC (Sector 2)",
+            medicalOfficerName = "Dr. Priyadarshini Sen, MBBS, DGO",
+            medicalOfficerRole = "Medical Officer In-Charge (MO-IC)",
+            medicalOfficerPhone = "+91 94310 82102",
+            anmName = "Fatima Bano",
+            anmRole = "Designated Sector ANM",
+            anmPhone = "+91 98350 41105"
         ),
         AshaProfile(
             ashaId = "ASHA-KQXR",
             name = "Malti Devi",
             phone = "+91 98765 43224",
             villages = listOf("Navagaon Khurd", "Sitapahari"),
-            subCentre = "Navagaon Khurd Sub-Centre",
+            subCentre = "Navagaon Khurd Health & Wellness Centre",
             assignedHouseholdsCount = 100,
-            isVerified = true
+            isVerified = true,
+            parentPhc = "Chandrapuri PHC (Sector 3)",
+            medicalOfficerName = "Dr. Alok Ranjan, MBBS, MD",
+            medicalOfficerRole = "Medical Officer In-Charge (MO-IC)",
+            medicalOfficerPhone = "+91 94310 82103",
+            anmName = "Bimla Soren",
+            anmRole = "Designated Sector ANM",
+            anmPhone = "+91 98350 41106"
         )
     )
 
