@@ -49,8 +49,11 @@ object LayaLexicon {
         "sugar" to "diabetes random blood sugar 200 mg dl ncd-1.3",
         "salt" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "namak" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
-        "exercise" to "physical activity 30 minutes 5 days a week 150 minutes ncd-3.1",
-        "overdue" to "grace period 28 days overdue vis-1.3"
+        "exercise" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1 lifestyle counselling",
+        "kasrat" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1",
+        "baithe" to "physical activity 30 minutes 5 days a week 150 minutes ncd-3.1 sedentary",
+        "overdue" to "overdue 28 days grace period vis-1.3 counting conventions",
+        "kab overdue" to "overdue 28 days grace period vis-1.3 counting conventions"
     )
 
     fun expand(text: String): List<String> {

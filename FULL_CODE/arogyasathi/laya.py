@@ -55,7 +55,8 @@ LAYA_LEXICON: Dict[str, str] = {
     "td": "td tetanus diphtheria pregnancy anc-2.5 imm-4.1",
     "booster": "booster dose dpt opv pcv imm-2.4",
     "gap": "minimum gap 4 weeks 2 months 8 weeks imm-2.6",
-    "overdue": "grace period 28 days overdue vis-1.3",
+    "overdue": "overdue 28 days grace period vis-1.3 counting conventions",
+    "kab overdue": "overdue 28 days grace period vis-1.3 counting conventions",
     
     # Maternal & ANC
     "pregnant": "pregnancy antenatal anc-1.1 anc-1.2",
@@ -105,7 +106,9 @@ LAYA_LEXICON: Dict[str, str] = {
     "sugar": "diabetes random blood sugar 200 mg dl ncd-1.3",
     "salt": "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
     "namak": "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
-    "exercise": "physical activity 30 minutes 5 days a week 150 minutes ncd-3.1",
+    "exercise": "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1 lifestyle counselling",
+    "kasrat": "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1",
+    "baithe": "physical activity 30 minutes 5 days a week 150 minutes ncd-3.1 sedentary",
     
     # Visit Engine Rules
     "chautha anc": "fourth 4th anc 36 weeks anc-1.2",
