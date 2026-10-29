@@ -1,6 +1,6 @@
 # Arogyasathi — Project Manifest
 
-> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone`). Primary Evaluator Score: **0.9735** (Gate: PASS). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**. Facility Hierarchy & Clinical Supervision Contacts verified live.
+> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone`). Primary Evaluator Score: **0.9735** (Gate: PASS). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**. Facility Hierarchy, Ergonomic Scrolling & Clinical Supervision Contacts verified live.
 > **Last Updated:** 2026-10-30
 
 ---
