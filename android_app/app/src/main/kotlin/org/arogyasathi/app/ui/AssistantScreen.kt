@@ -40,13 +40,13 @@ fun AssistantScreen(
         var speech: TextToSpeech? = null
         speech = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                speech?.language = Locale("hi", "IN")
+                speech?.language = Locale.forLanguageTag("hi-IN")
             }
         }
         tts = speech
         onDispose {
-            speech?.stop()
-            speech?.shutdown()
+            speech.stop()
+            speech.shutdown()
         }
     }
 
