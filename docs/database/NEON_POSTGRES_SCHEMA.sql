@@ -203,3 +203,4 @@ VALUES
     ('asha.shabnam@arogyasathi.org', 'Shabnam Khatoon', 'ASHA', 'ASHA-L9R8', 'Dhanpura Sub-Centre', '+91-9876543223'),
     ('asha.malti@arogyasathi.org', 'Malti Devi', 'ASHA', 'ASHA-KQXR', 'Navagaon Khurd Sub-Centre', '+91-9876543224')
 ON CONFLICT (email) DO NOTHING;
+

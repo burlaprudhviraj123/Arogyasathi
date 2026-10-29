@@ -22,3 +22,7 @@ release_bundle/
 *.apk
 
 
+.neon
+node_modules/
+.env.local
+dist/

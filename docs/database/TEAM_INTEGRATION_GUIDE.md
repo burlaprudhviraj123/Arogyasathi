@@ -185,3 +185,4 @@ CREATE TABLE feedback_queue (
 3. [ ] **Doctor Portal Dev**: Connect your frontend to query `SELECT * FROM danger_escalations WHERE status = 'PENDING_TRIAGE'`.
 4. [ ] **Supervisor Portal Dev**: Connect your frontend to query `SELECT * FROM visit_outcomes` and join with `ashas` and `members`.
 5. [ ] **FastAPI Backend Dev**: Use [`FULL_CODE/arogyasathi/server.py`](file:///Users/burlaprudhviraj/Projects/Arogyasathi/FULL_CODE/arogyasathi/server.py) to sync incoming Android outbox arrays directly into `visit_outcomes`.
+
