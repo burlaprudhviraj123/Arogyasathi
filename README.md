@@ -79,7 +79,7 @@ python3 H5_Frontline_Health_Worker_Companion/evaluate.py \
 ```bash
 cd android_app
 
-# Run 14 Kotlin unit tests
+# Run 22 Kotlin unit tests
 ./gradlew test
 
 # Build 7.88 MB standalone release APK (or ./gradlew assembleDebug for debug)

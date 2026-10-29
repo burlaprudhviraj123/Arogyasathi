@@ -161,5 +161,5 @@ adb shell am start -n org.arogyasathi.app/.MainActivity
 - [x] Native offline Android app in `android_app/` with 100% offline capability.
 - [x] High-resolution on-device screenshots committed in `android_app/screenshots/`.
 - [x] Living project manifest updated in `docs/PROJECT_MANIFEST.md`.
-- [x] All 14 Kotlin tests and 16 Python tests passing.
+- [x] All 22 Kotlin tests and 18 Python tests passing.
 - [x] Git working tree clean on branch `master`.

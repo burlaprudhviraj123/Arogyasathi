@@ -63,7 +63,7 @@
 
 | Timestamp | Visual Cue (On Screen) | Spoken Narration Script |
 |:---|:---|:---|
-| **2:25 – 2:40** | Switch to terminal and run `./verify_all.sh`. Show live terminal output passing in 5 seconds. | *"We don't make unsubstantiated claims. Running our unified verification pipeline executes 17 Python tests, 14 Android Kotlin tests, and the official competition evaluator in 5 seconds."* |
+| **2:25 – 2:40** | Switch to terminal and run `./verify_all.sh`. Show live terminal output passing in 5 seconds. | *"We don't make unsubstantiated claims. Running our unified verification pipeline executes 18 Python tests, 22 Android Kotlin tests, and the official competition evaluator in 5 seconds."* |
 | **2:40 – 2:50** | Zoom in on the evaluator scorecard: **`0.9735 Primary Score`**, **`ESCALATION GATE: PASS`**, **`Recall: 1.0000`**, **`FER: 0.0000`**. | *"Arogyasathi achieves an exceptional 0.9735 primary score on the official evaluator, achieving 100% recall on danger signs, zero false alarms, and 100% citation accuracy."* |
 | **2:50 – 3:00** | Flash the benchmark slide: **7.88 MB APK**, **101 MB RAM**, **1.4s Cold Start**. Show GitHub repo and conclusion slide. | *"With a 7.88 MB release APK, sub-millisecond CPU latency, and zero cloud reliance, Arogyasathi is production-ready to protect mothers and children across rural India. Thank you."* |
 
