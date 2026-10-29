@@ -106,15 +106,17 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Full Clean Architecture in Kotlin + Jetpack Compose (`android_app/`)
   - 4 Primary Tabs: **Today** (3 metrics counters, visit cards, outcome completion modal), **Families** (search, village filters, expandable cards, health badges), **Assistant** (108 emergency dialer, clinical Q&A, native speech recognition input `🎙️`, TTS audio playback `🔊`), **Records** (outcomes history, sync outbox with edge gateway network sync & offline banner, 107 leaf protocols database browser)
   - Floating Liquid Glass bottom navigation (translucent capsule navbar matching Stitch MCP design tokens)
-  - Persistent SQLite Layer (`ArogyasathiDbHelper.kt`) with idempotent first-launch seeding of 500 households, 2,234 beneficiaries, and 107 protocols in < 200 ms
+  - Persistent SQLite Layer (`ArogyasathiDbHelper.kt`) with sub-millisecond query indices on `household_id`, `village`, and `status`, plus idempotent first-launch seeding of 500 households, 2,234 beneficiaries, and 107 protocols in < 200 ms
   - Edge Synchronization: Sub-Centre gateway connection (`POST /api/v1/sync/visit_outcomes`) with durable offline SQLite fallback and automatic retry counters
   - Complete Kotlin ports of JEV (deterministic danger escalation & scope refusal), Laya (BM25 multilingual retrieval & synthesis <= 400 chars), and VisitEngine (all 09_VIS Chandrapuri Block rules)
-  - On-Device Verified on Android Emulator (API 35 ARM64): APK Size `12.0 MB`, Cold Start `1.424s`, Peak PSS RAM `107.3 MB` (Java Heap `21.7 MB`, Native Heap `13.3 MB`, SQLite Cache `576 KB`), 58.1% RAM Headroom on 256 MB Budget
-  - Automated Unit Tests: 14/14 Kotlin tests passing + 16/16 Python tests passing with 0 failures, 0 errors
+  - On-Device Verified on Android Emulator (API 35 ARM64): APK Size `11.90 MB` release / `12.0 MB` debug, Cold Start `1.424s`, Peak PSS RAM `106.9 MB` (Java Heap `21.3 MB`, Native Heap `11.3 MB`), 58.1% RAM Headroom on 256 MB Budget
+  - Automated Unit Tests: 14/14 Kotlin tests passing + 17/17 Python tests passing with 0 failures, 0 errors
   - Full TalkBack Accessibility semantics and content-descriptions verified via Android CLI layout inspector
-  - Zero-Dependency Web Demo (`web_demo.html`) for browser-based judge evaluation
+  - Interactive Offline Pitch Deck (`slides.html`) and Zero-Dependency Web Demo (`web_demo.html`) for browser-based judge evaluation
   - Complete Pitch & Presentation Suite: 10-slide deck (`02_JUDGES_SLIDE_DECK.md`) and 3-minute video recording script (`03_DEMO_VIDEO_SCRIPT_AND_RECORDING_GUIDE.md`)
   - Automated Pre-Flight Certification Audit (`preflight_audit.py`) integrated into 5-step unified verification pipeline (`verify_all.sh`)
+  - Automated Android UI Live Tour (`demo_android_tour.py`) with 8 live captured screenshots in `docs/screenshots/tour/`
+  - GitHub Actions CI/CD workflow (`.github/workflows/ci.yml`) automating test evaluation, APK compilation, package assembly, and pre-flight certification
   - CPU Statistical Latency Profile: Mean `0.180 ms`, P50 `0.131 ms`, P99 `0.447 ms` over 100 continuous queries
 
 ---
