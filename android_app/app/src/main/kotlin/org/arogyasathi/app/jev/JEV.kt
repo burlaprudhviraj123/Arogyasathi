@@ -31,7 +31,7 @@ object JEVEscalate {
         ),
         // 6. Postpartum hemorrhage
         Pair(
-            Regex("(pad\\s+[1-4]\\s*minute|pad\\s+3-4\\s*minute|less than 5 minutes|din me ([6-9]|\\d{2,})\\s*pad|din me 8 pad|दिन में 8 पैड|more than 5 pads|6-7 kapde|khoon bahut beh raha|delivery.*khoon bahut)", RegexOption.IGNORE_CASE),
+            Regex("(pad\\s+[1-4]\\s*minute|pad\\s+3-4\\s*minute|less than 5 minutes|din me ([6-9]|\\d{2,})\\s*pad|din me 8 pad|दिन में 8 पैड|more than 5 pads|6-7 kapde|[5-9]\\s*kapde|\\d{2,}\\s*kapde|khoon bahut beh raha|delivery.*khoon bahut)", RegexOption.IGNORE_CASE),
             Pair("ESC-3.1", "Heavy postpartum bleeding (pad soaked in less than 5 minutes or more than 5 pads/day): refer immediately (call 108/102) (ESC-3.1).")
         ),
         // 7. Vaginal bleeding in pregnancy
@@ -111,7 +111,7 @@ object JEVEscalate {
         ),
         // 22. Accidental poisoning
         Pair(
-            Regex("(kerosene pee liya|poison|zeher|keetnashak|dawai pee li)", RegexOption.IGNORE_CASE),
+            Regex("(kerosene pee liya|mitti ka tel|poison|zeher|keetnashak|dawai pee li)", RegexOption.IGNORE_CASE),
             Pair("ESC-1.4", "Accidental poisoning / chemical ingestion: life-threatening emergency, refer immediately to hospital (call 108). Do not induce vomiting (ESC-1.4).")
         )
     )
@@ -141,7 +141,7 @@ object JEVScope {
             Pair("SCP-1.2", "This is outside my protocol book. Please ask the Medical Officer at the PHC (or your ANM). If any danger sign is present, refer immediately (SCP-1.2).")
         ),
         Pair(
-            Regex("(ladka hai ya ladki|sex determination|ling jaanch|kahin pata karwa sakte)", RegexOption.IGNORE_CASE),
+            Regex("(ladka.*ladki|sex determination|ling jaanch|kahin pata karwa sakte|ling parikshan)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book and prohibited by law (PC-PNDT Act). Every pregnancy requires full antenatal care. Please consult your ANM / MO (SCP-1.2).")
         ),
         Pair(

@@ -48,7 +48,7 @@ DANGER_RULES = [
     ),
     # 6. Postpartum Hemorrhage / Heavy Bleeding (ESC-3.1)
     (
-        r"pad\s+[1-4]\s*minute|pad\s+3-4\s*minute|less than 5 minutes|din me (?:[6-9]|\d{2,})\s*pad|din me 8 pad|दिन में 8 पैड|more than 5 pads|6-7 kapde|khoon bahut beh raha|delivery.*khoon bahut|khoon band nahi ho raha",
+        r"pad\s+[1-4]\s*minute|pad\s+3-4\s*minute|less than 5 minutes|din me (?:[6-9]|\d{2,})\s*pad|din me 8 pad|दिन में 8 पैड|more than 5 pads|6-7 kapde|[5-9]\s*kapde|\d{2,}\s*kapde|khoon bahut beh raha|delivery.*khoon bahut|khoon band nahi ho raha",
         "ESC-3.1",
         "Heavy postpartum bleeding (pad soaked in less than 5 minutes or more than 5 pads/day): refer immediately (call 108/102) (ESC-3.1)."
     ),
@@ -168,7 +168,7 @@ DANGER_RULES = [
     ),
     # 26. Poisoning / chemical ingestion (ESC-1.4)
     (
-        r"kerosene pee liya|poison|zeher|keetnashak|dawai pee li",
+        r"kerosene pee liya|mitti ka tel|poison|zeher|keetnashak|dawai pee li",
         "ESC-1.4",
         "Accidental poisoning / chemical ingestion: life-threatening emergency, refer immediately to hospital (call 108). Do not induce vomiting (ESC-1.4)."
     ),
@@ -225,7 +225,7 @@ OUT_OF_SCOPE_RULES = [
     ),
     # 4. Sex determination (PC-PNDT prohibited by law)
     (
-        r"ladka hai ya ladki|sex determination|ling jaanch|kahin pata karwa sakte",
+        r"ladka.*ladki|sex determination|ling jaanch|kahin pata karwa sakte|ling parikshan",
         "SCP-1.2",
         "This is outside my protocol book and prohibited by law (PC-PNDT Act). Every pregnancy requires full antenatal care. Please consult your ANM / MO (SCP-1.2)."
     ),
