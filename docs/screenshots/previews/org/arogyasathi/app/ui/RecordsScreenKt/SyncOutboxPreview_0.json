@@ -1,0 +1,1269 @@
+{
+  "previewId": "SyncOutboxPreview",
+  "methodFQN": "org.arogyasathi.app.ui.RecordsScreenKt.SyncOutboxPreview",
+  "width": 1080,
+  "height": 2400,
+  "densityDpi": 420,
+  "fontScale": 1.0,
+  "uiMode": 0,
+  "deviceId": "medium_phone",
+  "components": [
+    {
+      "name": "SyncOutboxPreview",
+      "bounds": {
+        "left": 42,
+        "top": 42,
+        "right": 1038,
+        "bottom": 2358,
+        "width": 996,
+        "height": 2316
+      },
+      "children": [
+        {
+          "name": "ArogyasathiTheme",
+          "bounds": {
+            "left": 42,
+            "top": 42,
+            "right": 1038,
+            "bottom": 2358,
+            "width": 996,
+            "height": 2316
+          },
+          "sourceLocation": {
+            "fileName": "RecordsScreen.kt",
+            "lineNumber": 488,
+            "packageHash": 703053379
+          },
+          "children": [
+            {
+              "name": "Box",
+              "bounds": {
+                "left": 42,
+                "top": 42,
+                "right": 1038,
+                "bottom": 2358,
+                "width": 996,
+                "height": 2316
+              },
+              "sourceLocation": {
+                "fileName": "RecordsScreen.kt",
+                "lineNumber": 489,
+                "packageHash": 703053379
+              },
+              "children": [
+                {
+                  "name": "SyncOutboxView",
+                  "bounds": {
+                    "left": 42,
+                    "top": 42,
+                    "right": 1038,
+                    "bottom": 2358,
+                    "width": 996,
+                    "height": 2316
+                  },
+                  "sourceLocation": {
+                    "fileName": "RecordsScreen.kt",
+                    "lineNumber": 490,
+                    "packageHash": 703053379
+                  },
+                  "children": [
+                    {
+                      "name": "Column",
+                      "bounds": {
+                        "left": 42,
+                        "top": 42,
+                        "right": 1038,
+                        "bottom": 2358,
+                        "width": 996,
+                        "height": 2316
+                      },
+                      "sourceLocation": {
+                        "fileName": "RecordsScreen.kt",
+                        "lineNumber": 246,
+                        "packageHash": 703053379
+                      },
+                      "children": [
+                        {
+                          "name": "Column",
+                          "bounds": {
+                            "left": 42,
+                            "top": 42,
+                            "right": 1038,
+                            "bottom": 2358,
+                            "width": 996,
+                            "height": 2316
+                          },
+                          "sourceLocation": {
+                            "fileName": "Composables.kt",
+                            "lineNumber": 400,
+                            "packageHash": 575200393
+                          },
+                          "children": [
+                            {
+                              "name": "Card",
+                              "bounds": {
+                                "left": 42,
+                                "top": 42,
+                                "right": 1038,
+                                "bottom": 252,
+                                "width": 996,
+                                "height": 210
+                              },
+                              "sourceLocation": {
+                                "fileName": "RecordsScreen.kt",
+                                "lineNumber": 296,
+                                "packageHash": 703053379
+                              },
+                              "children": [
+                                {
+                                  "name": "Surface",
+                                  "bounds": {
+                                    "left": 42,
+                                    "top": 42,
+                                    "right": 1038,
+                                    "bottom": 252,
+                                    "width": 996,
+                                    "height": 210
+                                  },
+                                  "sourceLocation": {
+                                    "fileName": "Card.kt",
+                                    "lineNumber": 88,
+                                    "packageHash": 1842882507
+                                  },
+                                  "children": [
+                                    {
+                                      "name": "Box",
+                                      "bounds": {
+                                        "left": 42,
+                                        "top": 42,
+                                        "right": 1038,
+                                        "bottom": 252,
+                                        "width": 996,
+                                        "height": 210
+                                      },
+                                      "sourceLocation": {
+                                        "fileName": "Surface.kt",
+                                        "lineNumber": 111,
+                                        "packageHash": 1842882507
+                                      },
+                                      "children": [
+                                        {
+                                          "name": "Column",
+                                          "bounds": {
+                                            "left": 42,
+                                            "top": 42,
+                                            "right": 1038,
+                                            "bottom": 252,
+                                            "width": 996,
+                                            "height": 210
+                                          },
+                                          "sourceLocation": {
+                                            "fileName": "Card.kt",
+                                            "lineNumber": 96,
+                                            "packageHash": 1842882507
+                                          },
+                                          "children": [
+                                            {
+                                              "name": "Row",
+                                              "bounds": {
+                                                "left": 84,
+                                                "top": 84,
+                                                "right": 996,
+                                                "bottom": 210,
+                                                "width": 912,
+                                                "height": 126
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "RecordsScreen.kt",
+                                                "lineNumber": 302,
+                                                "packageHash": 703053379
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "Row",
+                                                  "bounds": {
+                                                    "left": 84,
+                                                    "top": 84,
+                                                    "right": 996,
+                                                    "bottom": 210,
+                                                    "width": 912,
+                                                    "height": 126
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "Composables.kt",
+                                                    "lineNumber": 400,
+                                                    "packageHash": 575200393
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "Column",
+                                                      "bounds": {
+                                                        "left": 84,
+                                                        "top": 84,
+                                                        "right": 716,
+                                                        "bottom": 210,
+                                                        "width": 632,
+                                                        "height": 126
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "RecordsScreen.kt",
+                                                        "lineNumber": 309,
+                                                        "packageHash": 703053379
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "name": "Column",
+                                                          "bounds": {
+                                                            "left": 84,
+                                                            "top": 84,
+                                                            "right": 716,
+                                                            "bottom": 210,
+                                                            "width": 632,
+                                                            "height": 126
+                                                          },
+                                                          "sourceLocation": {
+                                                            "fileName": "Composables.kt",
+                                                            "lineNumber": 400,
+                                                            "packageHash": 575200393
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "name": "Text",
+                                                              "bounds": {
+                                                                "left": 84,
+                                                                "top": 84,
+                                                                "right": 439,
+                                                                "bottom": 147,
+                                                                "width": 355,
+                                                                "height": 63
+                                                              },
+                                                              "sourceLocation": {
+                                                                "fileName": "RecordsScreen.kt",
+                                                                "lineNumber": 310,
+                                                                "packageHash": 703053379
+                                                              },
+                                                              "semantics": {
+                                                                "text": "1 Items In Outbox"
+                                                              }
+                                                            },
+                                                            {
+                                                              "name": "Text",
+                                                              "bounds": {
+                                                                "left": 84,
+                                                                "top": 147,
+                                                                "right": 552,
+                                                                "bottom": 210,
+                                                                "width": 468,
+                                                                "height": 63
+                                                              },
+                                                              "sourceLocation": {
+                                                                "fileName": "RecordsScreen.kt",
+                                                                "lineNumber": 316,
+                                                                "packageHash": 703053379
+                                                              },
+                                                              "semantics": {
+                                                                "text": "Deferred synchronization ready"
+                                                              }
+                                                            }
+                                                          ],
+                                                          "modifiers": {
+                                                            "weight": "1.0"
+                                                          }
+                                                        }
+                                                      ],
+                                                      "modifiers": {
+                                                        "weight": "1.0"
+                                                      }
+                                                    },
+                                                    {
+                                                      "name": "Button",
+                                                      "bounds": {
+                                                        "left": 716,
+                                                        "top": 95,
+                                                        "right": 996,
+                                                        "bottom": 200,
+                                                        "width": 280,
+                                                        "height": 105
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "RecordsScreen.kt",
+                                                        "lineNumber": 323,
+                                                        "packageHash": 703053379
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "name": "Surface",
+                                                          "bounds": {
+                                                            "left": 716,
+                                                            "top": 95,
+                                                            "right": 996,
+                                                            "bottom": 200,
+                                                            "width": 280,
+                                                            "height": 105
+                                                          },
+                                                          "sourceLocation": {
+                                                            "fileName": "Button.kt",
+                                                            "lineNumber": 128,
+                                                            "packageHash": 1842882507
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "name": "Box",
+                                                              "bounds": {
+                                                                "left": 716,
+                                                                "top": 95,
+                                                                "right": 996,
+                                                                "bottom": 200,
+                                                                "width": 280,
+                                                                "height": 105
+                                                              },
+                                                              "sourceLocation": {
+                                                                "fileName": "Surface.kt",
+                                                                "lineNumber": 216,
+                                                                "packageHash": 1842882507
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "name": "ProvideContentColorTextStyle",
+                                                                  "bounds": {
+                                                                    "left": 779,
+                                                                    "top": 116,
+                                                                    "right": 933,
+                                                                    "bottom": 179,
+                                                                    "width": 154,
+                                                                    "height": 63
+                                                                  },
+                                                                  "sourceLocation": {
+                                                                    "fileName": "Button.kt",
+                                                                    "lineNumber": 139,
+                                                                    "packageHash": 1842882507
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "name": "Row",
+                                                                      "bounds": {
+                                                                        "left": 779,
+                                                                        "top": 116,
+                                                                        "right": 933,
+                                                                        "bottom": 179,
+                                                                        "width": 154,
+                                                                        "height": 63
+                                                                      },
+                                                                      "sourceLocation": {
+                                                                        "fileName": "Button.kt",
+                                                                        "lineNumber": 143,
+                                                                        "packageHash": 1842882507
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "name": "Text",
+                                                                          "bounds": {
+                                                                            "left": 779,
+                                                                            "top": 121,
+                                                                            "right": 933,
+                                                                            "bottom": 174,
+                                                                            "width": 154,
+                                                                            "height": 53
+                                                                          },
+                                                                          "sourceLocation": {
+                                                                            "fileName": "RecordsScreen.kt",
+                                                                            "lineNumber": 338,
+                                                                            "packageHash": 703053379
+                                                                          },
+                                                                          "semantics": {
+                                                                            "text": "Sync Now"
+                                                                          }
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ],
+                                                              "semantics": {
+                                                                "role": "Button",
+                                                                "actions": "OnClick"
+                                                              },
+                                                              "modifiers": {
+                                                                "background": "#FF0F766E, shape=RoundedCornerShape(topStart = CornerSize(size = 8.0.dp), topEnd = CornerSize(size = 8.0.dp), bottomEnd = CornerSize(size = 8.0.dp), bottomStart = CornerSize(size = 8.0.dp))",
+                                                                "clip": "true",
+                                                                "clickable": "enabled=true"
+                                                              }
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ],
+                                                  "modifiers": {
+                                                    "fill": "Horizontal (1.0)",
+                                                    "padding": "16.0.dp"
+                                                  }
+                                                }
+                                              ],
+                                              "modifiers": {
+                                                "fill": "Horizontal (1.0)",
+                                                "padding": "16.0.dp"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ],
+                                      "modifiers": {
+                                        "fill": "Horizontal (1.0)",
+                                        "background": "#FFFFFFFF, shape=RoundedCornerShape(topStart = CornerSize(size = 14.0.dp), topEnd = CornerSize(size = 14.0.dp), bottomEnd = CornerSize(size = 14.0.dp), bottomStart = CornerSize(size = 14.0.dp))",
+                                        "clip": "true"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "name": "LazyColumn",
+                              "bounds": {
+                                "left": 42,
+                                "top": 284,
+                                "right": 1038,
+                                "bottom": 2358,
+                                "width": 996,
+                                "height": 2074
+                              },
+                              "sourceLocation": {
+                                "fileName": "RecordsScreen.kt",
+                                "lineNumber": 346,
+                                "packageHash": 703053379
+                              },
+                              "children": [
+                                {
+                                  "name": "LazyList",
+                                  "bounds": {
+                                    "left": 42,
+                                    "top": 284,
+                                    "right": 1038,
+                                    "bottom": 2358,
+                                    "width": 996,
+                                    "height": 2074
+                                  },
+                                  "sourceLocation": {
+                                    "fileName": "LazyDsl.kt",
+                                    "lineNumber": 401,
+                                    "packageHash": 245627794
+                                  },
+                                  "children": [
+                                    {
+                                      "name": "LazyLayout",
+                                      "bounds": {
+                                        "left": 42,
+                                        "top": 284,
+                                        "right": 1038,
+                                        "bottom": 2358,
+                                        "width": 996,
+                                        "height": 2074
+                                      },
+                                      "sourceLocation": {
+                                        "fileName": "LazyList.kt",
+                                        "lineNumber": 129,
+                                        "packageHash": 245627794
+                                      },
+                                      "children": [
+                                        {
+                                          "name": "LazySaveableStateHolderProvider",
+                                          "bounds": {
+                                            "left": 42,
+                                            "top": 284,
+                                            "right": 1038,
+                                            "bottom": 2358,
+                                            "width": 996,
+                                            "height": 2074
+                                          },
+                                          "sourceLocation": {
+                                            "fileName": "LazyLayout.kt",
+                                            "lineNumber": 115,
+                                            "packageHash": 1976722602
+                                          },
+                                          "children": [
+                                            {
+                                              "name": "DisposableEffect",
+                                              "bounds": {
+                                                "left": 42,
+                                                "top": 284,
+                                                "right": 1038,
+                                                "bottom": 474,
+                                                "width": 996,
+                                                "height": 190
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "LazyLayoutItemContentFactory.kt",
+                                                "lineNumber": 102,
+                                                "packageHash": 1976722602
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "SkippableItem",
+                                                  "bounds": {
+                                                    "left": 42,
+                                                    "top": 284,
+                                                    "right": 1038,
+                                                    "bottom": 474,
+                                                    "width": 996,
+                                                    "height": 190
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "LazyLayoutItemContentFactory.kt",
+                                                    "lineNumber": 95,
+                                                    "packageHash": 1976722602
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "SaveableStateProvider",
+                                                      "bounds": {
+                                                        "left": 42,
+                                                        "top": 284,
+                                                        "right": 1038,
+                                                        "bottom": 474,
+                                                        "width": 996,
+                                                        "height": 190
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "LazyLayoutItemContentFactory.kt",
+                                                        "lineNumber": 126,
+                                                        "packageHash": 1976722602
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "name": "ReusableContent",
+                                                          "bounds": {
+                                                            "left": 42,
+                                                            "top": 284,
+                                                            "right": 1038,
+                                                            "bottom": 474,
+                                                            "width": 996,
+                                                            "height": 190
+                                                          },
+                                                          "sourceLocation": {
+                                                            "fileName": "SaveableStateHolder.kt",
+                                                            "lineNumber": 72,
+                                                            "packageHash": 1636570350
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "name": "Item",
+                                                              "bounds": {
+                                                                "left": 42,
+                                                                "top": 284,
+                                                                "right": 1038,
+                                                                "bottom": 474,
+                                                                "width": 996,
+                                                                "height": 190
+                                                              },
+                                                              "sourceLocation": {
+                                                                "fileName": "LazyLayoutItemContentFactory.kt",
+                                                                "lineNumber": 127,
+                                                                "packageHash": 1976722602
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "name": "LazyLayoutPinnableItem",
+                                                                  "bounds": {
+                                                                    "left": 42,
+                                                                    "top": 284,
+                                                                    "right": 1038,
+                                                                    "bottom": 474,
+                                                                    "width": 996,
+                                                                    "height": 190
+                                                                  },
+                                                                  "sourceLocation": {
+                                                                    "fileName": "LazyListItemProvider.kt",
+                                                                    "lineNumber": 78,
+                                                                    "packageHash": 245627794
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "name": "Card",
+                                                                      "bounds": {
+                                                                        "left": 42,
+                                                                        "top": 284,
+                                                                        "right": 1038,
+                                                                        "bottom": 474,
+                                                                        "width": 996,
+                                                                        "height": 190
+                                                                      },
+                                                                      "sourceLocation": {
+                                                                        "fileName": "RecordsScreen.kt",
+                                                                        "lineNumber": 352,
+                                                                        "packageHash": 703053379
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "name": "Surface",
+                                                                          "bounds": {
+                                                                            "left": 42,
+                                                                            "top": 284,
+                                                                            "right": 1038,
+                                                                            "bottom": 474,
+                                                                            "width": 996,
+                                                                            "height": 190
+                                                                          },
+                                                                          "sourceLocation": {
+                                                                            "fileName": "Card.kt",
+                                                                            "lineNumber": 88,
+                                                                            "packageHash": 1842882507
+                                                                          },
+                                                                          "children": [
+                                                                            {
+                                                                              "name": "Box",
+                                                                              "bounds": {
+                                                                                "left": 42,
+                                                                                "top": 284,
+                                                                                "right": 1038,
+                                                                                "bottom": 474,
+                                                                                "width": 996,
+                                                                                "height": 190
+                                                                              },
+                                                                              "sourceLocation": {
+                                                                                "fileName": "Surface.kt",
+                                                                                "lineNumber": 111,
+                                                                                "packageHash": 1842882507
+                                                                              },
+                                                                              "children": [
+                                                                                {
+                                                                                  "name": "Column",
+                                                                                  "bounds": {
+                                                                                    "left": 42,
+                                                                                    "top": 284,
+                                                                                    "right": 1038,
+                                                                                    "bottom": 474,
+                                                                                    "width": 996,
+                                                                                    "height": 190
+                                                                                  },
+                                                                                  "sourceLocation": {
+                                                                                    "fileName": "Card.kt",
+                                                                                    "lineNumber": 96,
+                                                                                    "packageHash": 1842882507
+                                                                                  },
+                                                                                  "children": [
+                                                                                    {
+                                                                                      "name": "Row",
+                                                                                      "bounds": {
+                                                                                        "left": 74,
+                                                                                        "top": 316,
+                                                                                        "right": 1006,
+                                                                                        "bottom": 442,
+                                                                                        "width": 932,
+                                                                                        "height": 126
+                                                                                      },
+                                                                                      "sourceLocation": {
+                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                        "lineNumber": 357,
+                                                                                        "packageHash": 703053379
+                                                                                      },
+                                                                                      "children": [
+                                                                                        {
+                                                                                          "name": "Row",
+                                                                                          "bounds": {
+                                                                                            "left": 74,
+                                                                                            "top": 316,
+                                                                                            "right": 1006,
+                                                                                            "bottom": 442,
+                                                                                            "width": 932,
+                                                                                            "height": 126
+                                                                                          },
+                                                                                          "sourceLocation": {
+                                                                                            "fileName": "Composables.kt",
+                                                                                            "lineNumber": 400,
+                                                                                            "packageHash": 575200393
+                                                                                          },
+                                                                                          "children": [
+                                                                                            {
+                                                                                              "name": "Column",
+                                                                                              "bounds": {
+                                                                                                "left": 74,
+                                                                                                "top": 316,
+                                                                                                "right": 825,
+                                                                                                "bottom": 442,
+                                                                                                "width": 751,
+                                                                                                "height": 126
+                                                                                              },
+                                                                                              "sourceLocation": {
+                                                                                                "fileName": "RecordsScreen.kt",
+                                                                                                "lineNumber": 364,
+                                                                                                "packageHash": 703053379
+                                                                                              },
+                                                                                              "children": [
+                                                                                                {
+                                                                                                  "name": "Column",
+                                                                                                  "bounds": {
+                                                                                                    "left": 74,
+                                                                                                    "top": 316,
+                                                                                                    "right": 825,
+                                                                                                    "bottom": 442,
+                                                                                                    "width": 751,
+                                                                                                    "height": 126
+                                                                                                  },
+                                                                                                  "sourceLocation": {
+                                                                                                    "fileName": "Composables.kt",
+                                                                                                    "lineNumber": 400,
+                                                                                                    "packageHash": 575200393
+                                                                                                  },
+                                                                                                  "children": [
+                                                                                                    {
+                                                                                                      "name": "Text",
+                                                                                                      "bounds": {
+                                                                                                        "left": 74,
+                                                                                                        "top": 316,
+                                                                                                        "right": 551,
+                                                                                                        "bottom": 379,
+                                                                                                        "width": 477,
+                                                                                                        "height": 63
+                                                                                                      },
+                                                                                                      "sourceLocation": {
+                                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                                        "lineNumber": 365,
+                                                                                                        "packageHash": 703053379
+                                                                                                      },
+                                                                                                      "semantics": {
+                                                                                                        "text": "VISIT_OUTCOME • OUT-001"
+                                                                                                      }
+                                                                                                    },
+                                                                                                    {
+                                                                                                      "name": "Text",
+                                                                                                      "bounds": {
+                                                                                                        "left": 74,
+                                                                                                        "top": 379,
+                                                                                                        "right": 326,
+                                                                                                        "bottom": 442,
+                                                                                                        "width": 252,
+                                                                                                        "height": 63
+                                                                                                      },
+                                                                                                      "sourceLocation": {
+                                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                                        "lineNumber": 371,
+                                                                                                        "packageHash": 703053379
+                                                                                                      },
+                                                                                                      "semantics": {
+                                                                                                        "text": "09:45 am, 29 Oct"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  ],
+                                                                                                  "modifiers": {
+                                                                                                    "weight": "1.0",
+                                                                                                    "padding": "start=0.0.dp, top=0.0.dp, end=8.0.dp, bottom=0.0.dp"
+                                                                                                  }
+                                                                                                }
+                                                                                              ],
+                                                                                              "modifiers": {
+                                                                                                "weight": "1.0",
+                                                                                                "padding": "start=0.0.dp, top=0.0.dp, end=8.0.dp, bottom=0.0.dp"
+                                                                                              }
+                                                                                            },
+                                                                                            {
+                                                                                              "name": "Surface",
+                                                                                              "bounds": {
+                                                                                                "left": 846,
+                                                                                                "top": 343,
+                                                                                                "right": 1006,
+                                                                                                "bottom": 416,
+                                                                                                "width": 160,
+                                                                                                "height": 73
+                                                                                              },
+                                                                                              "sourceLocation": {
+                                                                                                "fileName": "RecordsScreen.kt",
+                                                                                                "lineNumber": 378,
+                                                                                                "packageHash": 703053379
+                                                                                              },
+                                                                                              "children": [
+                                                                                                {
+                                                                                                  "name": "Box",
+                                                                                                  "bounds": {
+                                                                                                    "left": 846,
+                                                                                                    "top": 343,
+                                                                                                    "right": 1006,
+                                                                                                    "bottom": 416,
+                                                                                                    "width": 160,
+                                                                                                    "height": 73
+                                                                                                  },
+                                                                                                  "sourceLocation": {
+                                                                                                    "fileName": "Surface.kt",
+                                                                                                    "lineNumber": 111,
+                                                                                                    "packageHash": 1842882507
+                                                                                                  },
+                                                                                                  "children": [
+                                                                                                    {
+                                                                                                      "name": "Text",
+                                                                                                      "bounds": {
+                                                                                                        "left": 862,
+                                                                                                        "top": 348,
+                                                                                                        "right": 990,
+                                                                                                        "bottom": 411,
+                                                                                                        "width": 128,
+                                                                                                        "height": 63
+                                                                                                      },
+                                                                                                      "sourceLocation": {
+                                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                                        "lineNumber": 382,
+                                                                                                        "packageHash": 703053379
+                                                                                                      },
+                                                                                                      "semantics": {
+                                                                                                        "text": "PENDING"
+                                                                                                      },
+                                                                                                      "modifiers": {
+                                                                                                        "padding": "start=6.0.dp, top=2.0.dp, end=6.0.dp, bottom=2.0.dp"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  ],
+                                                                                                  "modifiers": {
+                                                                                                    "background": "#FFFFF8E1, shape=RoundedCornerShape(topStart = CornerSize(size = 6.0.dp), topEnd = CornerSize(size = 6.0.dp), bottomEnd = CornerSize(size = 6.0.dp), bottomStart = CornerSize(size = 6.0.dp))",
+                                                                                                    "clip": "true"
+                                                                                                  }
+                                                                                                }
+                                                                                              ]
+                                                                                            }
+                                                                                          ],
+                                                                                          "modifiers": {
+                                                                                            "fill": "Horizontal (1.0)",
+                                                                                            "padding": "12.0.dp"
+                                                                                          }
+                                                                                        }
+                                                                                      ],
+                                                                                      "modifiers": {
+                                                                                        "fill": "Horizontal (1.0)",
+                                                                                        "padding": "12.0.dp"
+                                                                                      }
+                                                                                    }
+                                                                                  ]
+                                                                                }
+                                                                              ],
+                                                                              "modifiers": {
+                                                                                "fill": "Horizontal (1.0)",
+                                                                                "background": "#FFFFFFFF, shape=RoundedCornerShape(topStart = CornerSize(size = 10.0.dp), topEnd = CornerSize(size = 10.0.dp), bottomEnd = CornerSize(size = 10.0.dp), bottomStart = CornerSize(size = 10.0.dp))",
+                                                                                "clip": "true"
+                                                                              }
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "name": "DisposableEffect",
+                                              "bounds": {
+                                                "left": 42,
+                                                "top": 495,
+                                                "right": 1038,
+                                                "bottom": 685,
+                                                "width": 996,
+                                                "height": 190
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "LazyLayoutItemContentFactory.kt",
+                                                "lineNumber": 102,
+                                                "packageHash": 1976722602
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "SkippableItem",
+                                                  "bounds": {
+                                                    "left": 42,
+                                                    "top": 495,
+                                                    "right": 1038,
+                                                    "bottom": 685,
+                                                    "width": 996,
+                                                    "height": 190
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "LazyLayoutItemContentFactory.kt",
+                                                    "lineNumber": 95,
+                                                    "packageHash": 1976722602
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "SaveableStateProvider",
+                                                      "bounds": {
+                                                        "left": 42,
+                                                        "top": 495,
+                                                        "right": 1038,
+                                                        "bottom": 685,
+                                                        "width": 996,
+                                                        "height": 190
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "LazyLayoutItemContentFactory.kt",
+                                                        "lineNumber": 126,
+                                                        "packageHash": 1976722602
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "name": "ReusableContent",
+                                                          "bounds": {
+                                                            "left": 42,
+                                                            "top": 495,
+                                                            "right": 1038,
+                                                            "bottom": 685,
+                                                            "width": 996,
+                                                            "height": 190
+                                                          },
+                                                          "sourceLocation": {
+                                                            "fileName": "SaveableStateHolder.kt",
+                                                            "lineNumber": 72,
+                                                            "packageHash": 1636570350
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "name": "Item",
+                                                              "bounds": {
+                                                                "left": 42,
+                                                                "top": 495,
+                                                                "right": 1038,
+                                                                "bottom": 685,
+                                                                "width": 996,
+                                                                "height": 190
+                                                              },
+                                                              "sourceLocation": {
+                                                                "fileName": "LazyLayoutItemContentFactory.kt",
+                                                                "lineNumber": 127,
+                                                                "packageHash": 1976722602
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "name": "LazyLayoutPinnableItem",
+                                                                  "bounds": {
+                                                                    "left": 42,
+                                                                    "top": 495,
+                                                                    "right": 1038,
+                                                                    "bottom": 685,
+                                                                    "width": 996,
+                                                                    "height": 190
+                                                                  },
+                                                                  "sourceLocation": {
+                                                                    "fileName": "LazyListItemProvider.kt",
+                                                                    "lineNumber": 78,
+                                                                    "packageHash": 245627794
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "name": "Card",
+                                                                      "bounds": {
+                                                                        "left": 42,
+                                                                        "top": 495,
+                                                                        "right": 1038,
+                                                                        "bottom": 685,
+                                                                        "width": 996,
+                                                                        "height": 190
+                                                                      },
+                                                                      "sourceLocation": {
+                                                                        "fileName": "RecordsScreen.kt",
+                                                                        "lineNumber": 352,
+                                                                        "packageHash": 703053379
+                                                                      },
+                                                                      "children": [
+                                                                        {
+                                                                          "name": "Surface",
+                                                                          "bounds": {
+                                                                            "left": 42,
+                                                                            "top": 495,
+                                                                            "right": 1038,
+                                                                            "bottom": 685,
+                                                                            "width": 996,
+                                                                            "height": 190
+                                                                          },
+                                                                          "sourceLocation": {
+                                                                            "fileName": "Card.kt",
+                                                                            "lineNumber": 88,
+                                                                            "packageHash": 1842882507
+                                                                          },
+                                                                          "children": [
+                                                                            {
+                                                                              "name": "Box",
+                                                                              "bounds": {
+                                                                                "left": 42,
+                                                                                "top": 495,
+                                                                                "right": 1038,
+                                                                                "bottom": 685,
+                                                                                "width": 996,
+                                                                                "height": 190
+                                                                              },
+                                                                              "sourceLocation": {
+                                                                                "fileName": "Surface.kt",
+                                                                                "lineNumber": 111,
+                                                                                "packageHash": 1842882507
+                                                                              },
+                                                                              "children": [
+                                                                                {
+                                                                                  "name": "Column",
+                                                                                  "bounds": {
+                                                                                    "left": 42,
+                                                                                    "top": 495,
+                                                                                    "right": 1038,
+                                                                                    "bottom": 685,
+                                                                                    "width": 996,
+                                                                                    "height": 190
+                                                                                  },
+                                                                                  "sourceLocation": {
+                                                                                    "fileName": "Card.kt",
+                                                                                    "lineNumber": 96,
+                                                                                    "packageHash": 1842882507
+                                                                                  },
+                                                                                  "children": [
+                                                                                    {
+                                                                                      "name": "Row",
+                                                                                      "bounds": {
+                                                                                        "left": 74,
+                                                                                        "top": 527,
+                                                                                        "right": 1006,
+                                                                                        "bottom": 653,
+                                                                                        "width": 932,
+                                                                                        "height": 126
+                                                                                      },
+                                                                                      "sourceLocation": {
+                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                        "lineNumber": 357,
+                                                                                        "packageHash": 703053379
+                                                                                      },
+                                                                                      "children": [
+                                                                                        {
+                                                                                          "name": "Row",
+                                                                                          "bounds": {
+                                                                                            "left": 74,
+                                                                                            "top": 527,
+                                                                                            "right": 1006,
+                                                                                            "bottom": 653,
+                                                                                            "width": 932,
+                                                                                            "height": 126
+                                                                                          },
+                                                                                          "sourceLocation": {
+                                                                                            "fileName": "Composables.kt",
+                                                                                            "lineNumber": 400,
+                                                                                            "packageHash": 575200393
+                                                                                          },
+                                                                                          "children": [
+                                                                                            {
+                                                                                              "name": "Column",
+                                                                                              "bounds": {
+                                                                                                "left": 74,
+                                                                                                "top": 527,
+                                                                                                "right": 839,
+                                                                                                "bottom": 653,
+                                                                                                "width": 765,
+                                                                                                "height": 126
+                                                                                              },
+                                                                                              "sourceLocation": {
+                                                                                                "fileName": "RecordsScreen.kt",
+                                                                                                "lineNumber": 364,
+                                                                                                "packageHash": 703053379
+                                                                                              },
+                                                                                              "children": [
+                                                                                                {
+                                                                                                  "name": "Column",
+                                                                                                  "bounds": {
+                                                                                                    "left": 74,
+                                                                                                    "top": 527,
+                                                                                                    "right": 839,
+                                                                                                    "bottom": 653,
+                                                                                                    "width": 765,
+                                                                                                    "height": 126
+                                                                                                  },
+                                                                                                  "sourceLocation": {
+                                                                                                    "fileName": "Composables.kt",
+                                                                                                    "lineNumber": 400,
+                                                                                                    "packageHash": 575200393
+                                                                                                  },
+                                                                                                  "children": [
+                                                                                                    {
+                                                                                                      "name": "Text",
+                                                                                                      "bounds": {
+                                                                                                        "left": 74,
+                                                                                                        "top": 527,
+                                                                                                        "right": 551,
+                                                                                                        "bottom": 590,
+                                                                                                        "width": 477,
+                                                                                                        "height": 63
+                                                                                                      },
+                                                                                                      "sourceLocation": {
+                                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                                        "lineNumber": 365,
+                                                                                                        "packageHash": 703053379
+                                                                                                      },
+                                                                                                      "semantics": {
+                                                                                                        "text": "VISIT_OUTCOME • OUT-002"
+                                                                                                      }
+                                                                                                    },
+                                                                                                    {
+                                                                                                      "name": "Text",
+                                                                                                      "bounds": {
+                                                                                                        "left": 74,
+                                                                                                        "top": 590,
+                                                                                                        "right": 326,
+                                                                                                        "bottom": 653,
+                                                                                                        "width": 252,
+                                                                                                        "height": 63
+                                                                                                      },
+                                                                                                      "sourceLocation": {
+                                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                                        "lineNumber": 371,
+                                                                                                        "packageHash": 703053379
+                                                                                                      },
+                                                                                                      "semantics": {
+                                                                                                        "text": "08:45 am, 29 Oct"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  ],
+                                                                                                  "modifiers": {
+                                                                                                    "weight": "1.0",
+                                                                                                    "padding": "start=0.0.dp, top=0.0.dp, end=8.0.dp, bottom=0.0.dp"
+                                                                                                  }
+                                                                                                }
+                                                                                              ],
+                                                                                              "modifiers": {
+                                                                                                "weight": "1.0",
+                                                                                                "padding": "start=0.0.dp, top=0.0.dp, end=8.0.dp, bottom=0.0.dp"
+                                                                                              }
+                                                                                            },
+                                                                                            {
+                                                                                              "name": "Surface",
+                                                                                              "bounds": {
+                                                                                                "left": 860,
+                                                                                                "top": 554,
+                                                                                                "right": 1006,
+                                                                                                "bottom": 627,
+                                                                                                "width": 146,
+                                                                                                "height": 73
+                                                                                              },
+                                                                                              "sourceLocation": {
+                                                                                                "fileName": "RecordsScreen.kt",
+                                                                                                "lineNumber": 378,
+                                                                                                "packageHash": 703053379
+                                                                                              },
+                                                                                              "children": [
+                                                                                                {
+                                                                                                  "name": "Box",
+                                                                                                  "bounds": {
+                                                                                                    "left": 860,
+                                                                                                    "top": 554,
+                                                                                                    "right": 1006,
+                                                                                                    "bottom": 627,
+                                                                                                    "width": 146,
+                                                                                                    "height": 73
+                                                                                                  },
+                                                                                                  "sourceLocation": {
+                                                                                                    "fileName": "Surface.kt",
+                                                                                                    "lineNumber": 111,
+                                                                                                    "packageHash": 1842882507
+                                                                                                  },
+                                                                                                  "children": [
+                                                                                                    {
+                                                                                                      "name": "Text",
+                                                                                                      "bounds": {
+                                                                                                        "left": 876,
+                                                                                                        "top": 559,
+                                                                                                        "right": 990,
+                                                                                                        "bottom": 622,
+                                                                                                        "width": 114,
+                                                                                                        "height": 63
+                                                                                                      },
+                                                                                                      "sourceLocation": {
+                                                                                                        "fileName": "RecordsScreen.kt",
+                                                                                                        "lineNumber": 382,
+                                                                                                        "packageHash": 703053379
+                                                                                                      },
+                                                                                                      "semantics": {
+                                                                                                        "text": "SYNCED"
+                                                                                                      },
+                                                                                                      "modifiers": {
+                                                                                                        "padding": "start=6.0.dp, top=2.0.dp, end=6.0.dp, bottom=2.0.dp"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  ],
+                                                                                                  "modifiers": {
+                                                                                                    "background": "#FFE8F5E9, shape=RoundedCornerShape(topStart = CornerSize(size = 6.0.dp), topEnd = CornerSize(size = 6.0.dp), bottomEnd = CornerSize(size = 6.0.dp), bottomStart = CornerSize(size = 6.0.dp))",
+                                                                                                    "clip": "true"
+                                                                                                  }
+                                                                                                }
+                                                                                              ]
+                                                                                            }
+                                                                                          ],
+                                                                                          "modifiers": {
+                                                                                            "fill": "Horizontal (1.0)",
+                                                                                            "padding": "12.0.dp"
+                                                                                          }
+                                                                                        }
+                                                                                      ],
+                                                                                      "modifiers": {
+                                                                                        "fill": "Horizontal (1.0)",
+                                                                                        "padding": "12.0.dp"
+                                                                                      }
+                                                                                    }
+                                                                                  ]
+                                                                                }
+                                                                              ],
+                                                                              "modifiers": {
+                                                                                "fill": "Horizontal (1.0)",
+                                                                                "background": "#FFFFFFFF, shape=RoundedCornerShape(topStart = CornerSize(size = 10.0.dp), topEnd = CornerSize(size = 10.0.dp), bottomEnd = CornerSize(size = 10.0.dp), bottomStart = CornerSize(size = 10.0.dp))",
+                                                                                "clip": "true"
+                                                                              }
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "semantics": {
+                                            "actions": "ScrollBy, ScrollToIndex"
+                                          },
+                                          "modifiers": {
+                                            "fill": "Both (1.0)",
+                                            "clip": "true",
+                                            "scroll": "true"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "modifiers": {
+                            "fill": "Both (1.0)"
+                          }
+                        }
+                      ],
+                      "modifiers": {
+                        "fill": "Both (1.0)"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": {
+                "padding": "16.0.dp"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

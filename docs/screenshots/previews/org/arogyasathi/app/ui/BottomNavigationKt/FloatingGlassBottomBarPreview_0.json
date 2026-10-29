@@ -1,0 +1,581 @@
+{
+  "previewId": "FloatingGlassBottomBarPreview",
+  "methodFQN": "org.arogyasathi.app.ui.BottomNavigationKt.FloatingGlassBottomBarPreview",
+  "width": 1080,
+  "height": 315,
+  "densityDpi": 420,
+  "fontScale": 1.0,
+  "uiMode": 0,
+  "deviceId": "medium_phone",
+  "components": [
+    {
+      "name": "FloatingGlassBottomBarPreview",
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "right": 1080,
+        "bottom": 315,
+        "width": 1080,
+        "height": 315
+      },
+      "children": [
+        {
+          "name": "ArogyasathiTheme",
+          "bounds": {
+            "left": 0,
+            "top": 0,
+            "right": 1080,
+            "bottom": 315,
+            "width": 1080,
+            "height": 315
+          },
+          "sourceLocation": {
+            "fileName": "BottomNavigation.kt",
+            "lineNumber": 123,
+            "packageHash": 703053379
+          },
+          "children": [
+            {
+              "name": "Box",
+              "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 1080,
+                "bottom": 315,
+                "width": 1080,
+                "height": 315
+              },
+              "sourceLocation": {
+                "fileName": "BottomNavigation.kt",
+                "lineNumber": 124,
+                "packageHash": 703053379
+              },
+              "children": [
+                {
+                  "name": "FloatingGlassBottomBar",
+                  "bounds": {
+                    "left": 53,
+                    "top": 74,
+                    "right": 1027,
+                    "bottom": 242,
+                    "width": 974,
+                    "height": 168
+                  },
+                  "sourceLocation": {
+                    "fileName": "BottomNavigation.kt",
+                    "lineNumber": 131,
+                    "packageHash": 703053379
+                  },
+                  "children": [
+                    {
+                      "name": "Box",
+                      "bounds": {
+                        "left": 53,
+                        "top": 74,
+                        "right": 1027,
+                        "bottom": 242,
+                        "width": 974,
+                        "height": 168
+                      },
+                      "sourceLocation": {
+                        "fileName": "BottomNavigation.kt",
+                        "lineNumber": 54,
+                        "packageHash": 703053379
+                      },
+                      "children": [
+                        {
+                          "name": "Surface",
+                          "bounds": {
+                            "left": 53,
+                            "top": 74,
+                            "right": 1027,
+                            "bottom": 242,
+                            "width": 974,
+                            "height": 168
+                          },
+                          "sourceLocation": {
+                            "fileName": "BottomNavigation.kt",
+                            "lineNumber": 60,
+                            "packageHash": 703053379
+                          },
+                          "children": [
+                            {
+                              "name": "Box",
+                              "bounds": {
+                                "left": 53,
+                                "top": 74,
+                                "right": 1027,
+                                "bottom": 242,
+                                "width": 974,
+                                "height": 168
+                              },
+                              "sourceLocation": {
+                                "fileName": "Surface.kt",
+                                "lineNumber": 111,
+                                "packageHash": 1842882507
+                              },
+                              "children": [
+                                {
+                                  "name": "Row",
+                                  "bounds": {
+                                    "left": 74,
+                                    "top": 74,
+                                    "right": 1006,
+                                    "bottom": 242,
+                                    "width": 932,
+                                    "height": 168
+                                  },
+                                  "sourceLocation": {
+                                    "fileName": "BottomNavigation.kt",
+                                    "lineNumber": 69,
+                                    "packageHash": 703053379
+                                  },
+                                  "children": [
+                                    {
+                                      "name": "Row",
+                                      "bounds": {
+                                        "left": 74,
+                                        "top": 74,
+                                        "right": 1006,
+                                        "bottom": 242,
+                                        "width": 932,
+                                        "height": 168
+                                      },
+                                      "sourceLocation": {
+                                        "fileName": "Composables.kt",
+                                        "lineNumber": 400,
+                                        "packageHash": 575200393
+                                      },
+                                      "children": [
+                                        {
+                                          "name": "Surface",
+                                          "bounds": {
+                                            "left": 113,
+                                            "top": 106,
+                                            "right": 354,
+                                            "bottom": 211,
+                                            "width": 241,
+                                            "height": 105
+                                          },
+                                          "sourceLocation": {
+                                            "fileName": "BottomNavigation.kt",
+                                            "lineNumber": 83,
+                                            "packageHash": 703053379
+                                          },
+                                          "children": [
+                                            {
+                                              "name": "Box",
+                                              "bounds": {
+                                                "left": 113,
+                                                "top": 106,
+                                                "right": 354,
+                                                "bottom": 211,
+                                                "width": 241,
+                                                "height": 105
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "Surface.kt",
+                                                "lineNumber": 111,
+                                                "packageHash": 1842882507
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "Row",
+                                                  "bounds": {
+                                                    "left": 150,
+                                                    "top": 127,
+                                                    "right": 317,
+                                                    "bottom": 190,
+                                                    "width": 167,
+                                                    "height": 63
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "BottomNavigation.kt",
+                                                    "lineNumber": 95,
+                                                    "packageHash": 703053379
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "Row",
+                                                      "bounds": {
+                                                        "left": 150,
+                                                        "top": 127,
+                                                        "right": 317,
+                                                        "bottom": 190,
+                                                        "width": 167,
+                                                        "height": 63
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "Composables.kt",
+                                                        "lineNumber": 400,
+                                                        "packageHash": 575200393
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "name": "Text",
+                                                          "bounds": {
+                                                            "left": 150,
+                                                            "top": 127,
+                                                            "right": 203,
+                                                            "bottom": 190,
+                                                            "width": 53,
+                                                            "height": 63
+                                                          },
+                                                          "sourceLocation": {
+                                                            "fileName": "BottomNavigation.kt",
+                                                            "lineNumber": 100,
+                                                            "packageHash": 703053379
+                                                          },
+                                                          "semantics": {
+                                                            "text": "📅"
+                                                          }
+                                                        },
+                                                        {
+                                                          "name": "Text",
+                                                          "bounds": {
+                                                            "left": 219,
+                                                            "top": 127,
+                                                            "right": 317,
+                                                            "bottom": 190,
+                                                            "width": 98,
+                                                            "height": 63
+                                                          },
+                                                          "sourceLocation": {
+                                                            "fileName": "BottomNavigation.kt",
+                                                            "lineNumber": 105,
+                                                            "packageHash": 703053379
+                                                          },
+                                                          "semantics": {
+                                                            "text": "Today"
+                                                          }
+                                                        }
+                                                      ],
+                                                      "modifiers": {
+                                                        "padding": "start=14.0.dp, top=8.0.dp, end=14.0.dp, bottom=8.0.dp"
+                                                      }
+                                                    }
+                                                  ],
+                                                  "modifiers": {
+                                                    "padding": "start=14.0.dp, top=8.0.dp, end=14.0.dp, bottom=8.0.dp"
+                                                  }
+                                                }
+                                              ],
+                                              "semantics": {
+                                                "contentDescription": "Today tab",
+                                                "stateDescription": "Selected",
+                                                "role": "Tab",
+                                                "actions": "OnClick"
+                                              },
+                                              "modifiers": {
+                                                "clip": "true",
+                                                "clickable": "enabled=true",
+                                                "background": "#FFE6F4F1, shape=RoundedCornerShape(topStart = CornerSize(size = 20.0.dp), topEnd = CornerSize(size = 20.0.dp), bottomEnd = CornerSize(size = 20.0.dp), bottomStart = CornerSize(size = 20.0.dp))"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "name": "Surface",
+                                          "bounds": {
+                                            "left": 431,
+                                            "top": 106,
+                                            "right": 558,
+                                            "bottom": 211,
+                                            "width": 127,
+                                            "height": 105
+                                          },
+                                          "sourceLocation": {
+                                            "fileName": "BottomNavigation.kt",
+                                            "lineNumber": 83,
+                                            "packageHash": 703053379
+                                          },
+                                          "children": [
+                                            {
+                                              "name": "Box",
+                                              "bounds": {
+                                                "left": 431,
+                                                "top": 106,
+                                                "right": 558,
+                                                "bottom": 211,
+                                                "width": 127,
+                                                "height": 105
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "Surface.kt",
+                                                "lineNumber": 111,
+                                                "packageHash": 1842882507
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "Row",
+                                                  "bounds": {
+                                                    "left": 468,
+                                                    "top": 127,
+                                                    "right": 521,
+                                                    "bottom": 190,
+                                                    "width": 53,
+                                                    "height": 63
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "BottomNavigation.kt",
+                                                    "lineNumber": 95,
+                                                    "packageHash": 703053379
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "Text",
+                                                      "bounds": {
+                                                        "left": 468,
+                                                        "top": 127,
+                                                        "right": 521,
+                                                        "bottom": 190,
+                                                        "width": 53,
+                                                        "height": 63
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "BottomNavigation.kt",
+                                                        "lineNumber": 100,
+                                                        "packageHash": 703053379
+                                                      },
+                                                      "semantics": {
+                                                        "text": "👥"
+                                                      }
+                                                    }
+                                                  ],
+                                                  "modifiers": {
+                                                    "padding": "start=14.0.dp, top=8.0.dp, end=14.0.dp, bottom=8.0.dp"
+                                                  }
+                                                }
+                                              ],
+                                              "semantics": {
+                                                "contentDescription": "Families tab",
+                                                "stateDescription": "Not selected",
+                                                "role": "Tab",
+                                                "actions": "OnClick"
+                                              },
+                                              "modifiers": {
+                                                "clip": "true",
+                                                "clickable": "enabled=true",
+                                                "background": "#00000000, shape=RoundedCornerShape(topStart = CornerSize(size = 20.0.dp), topEnd = CornerSize(size = 20.0.dp), bottomEnd = CornerSize(size = 20.0.dp), bottomStart = CornerSize(size = 20.0.dp))"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "name": "Surface",
+                                          "bounds": {
+                                            "left": 636,
+                                            "top": 106,
+                                            "right": 763,
+                                            "bottom": 211,
+                                            "width": 127,
+                                            "height": 105
+                                          },
+                                          "sourceLocation": {
+                                            "fileName": "BottomNavigation.kt",
+                                            "lineNumber": 83,
+                                            "packageHash": 703053379
+                                          },
+                                          "children": [
+                                            {
+                                              "name": "Box",
+                                              "bounds": {
+                                                "left": 636,
+                                                "top": 106,
+                                                "right": 763,
+                                                "bottom": 211,
+                                                "width": 127,
+                                                "height": 105
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "Surface.kt",
+                                                "lineNumber": 111,
+                                                "packageHash": 1842882507
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "Row",
+                                                  "bounds": {
+                                                    "left": 673,
+                                                    "top": 127,
+                                                    "right": 726,
+                                                    "bottom": 190,
+                                                    "width": 53,
+                                                    "height": 63
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "BottomNavigation.kt",
+                                                    "lineNumber": 95,
+                                                    "packageHash": 703053379
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "Text",
+                                                      "bounds": {
+                                                        "left": 673,
+                                                        "top": 127,
+                                                        "right": 726,
+                                                        "bottom": 190,
+                                                        "width": 53,
+                                                        "height": 63
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "BottomNavigation.kt",
+                                                        "lineNumber": 100,
+                                                        "packageHash": 703053379
+                                                      },
+                                                      "semantics": {
+                                                        "text": "🩺"
+                                                      }
+                                                    }
+                                                  ],
+                                                  "modifiers": {
+                                                    "padding": "start=14.0.dp, top=8.0.dp, end=14.0.dp, bottom=8.0.dp"
+                                                  }
+                                                }
+                                              ],
+                                              "semantics": {
+                                                "contentDescription": "Assistant tab",
+                                                "stateDescription": "Not selected",
+                                                "role": "Tab",
+                                                "actions": "OnClick"
+                                              },
+                                              "modifiers": {
+                                                "clip": "true",
+                                                "clickable": "enabled=true",
+                                                "background": "#00000000, shape=RoundedCornerShape(topStart = CornerSize(size = 20.0.dp), topEnd = CornerSize(size = 20.0.dp), bottomEnd = CornerSize(size = 20.0.dp), bottomStart = CornerSize(size = 20.0.dp))"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "name": "Surface",
+                                          "bounds": {
+                                            "left": 840,
+                                            "top": 106,
+                                            "right": 967,
+                                            "bottom": 211,
+                                            "width": 127,
+                                            "height": 105
+                                          },
+                                          "sourceLocation": {
+                                            "fileName": "BottomNavigation.kt",
+                                            "lineNumber": 83,
+                                            "packageHash": 703053379
+                                          },
+                                          "children": [
+                                            {
+                                              "name": "Box",
+                                              "bounds": {
+                                                "left": 840,
+                                                "top": 106,
+                                                "right": 967,
+                                                "bottom": 211,
+                                                "width": 127,
+                                                "height": 105
+                                              },
+                                              "sourceLocation": {
+                                                "fileName": "Surface.kt",
+                                                "lineNumber": 111,
+                                                "packageHash": 1842882507
+                                              },
+                                              "children": [
+                                                {
+                                                  "name": "Row",
+                                                  "bounds": {
+                                                    "left": 877,
+                                                    "top": 127,
+                                                    "right": 930,
+                                                    "bottom": 190,
+                                                    "width": 53,
+                                                    "height": 63
+                                                  },
+                                                  "sourceLocation": {
+                                                    "fileName": "BottomNavigation.kt",
+                                                    "lineNumber": 95,
+                                                    "packageHash": 703053379
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "name": "Text",
+                                                      "bounds": {
+                                                        "left": 877,
+                                                        "top": 127,
+                                                        "right": 930,
+                                                        "bottom": 190,
+                                                        "width": 53,
+                                                        "height": 63
+                                                      },
+                                                      "sourceLocation": {
+                                                        "fileName": "BottomNavigation.kt",
+                                                        "lineNumber": 100,
+                                                        "packageHash": 703053379
+                                                      },
+                                                      "semantics": {
+                                                        "text": "📁"
+                                                      }
+                                                    }
+                                                  ],
+                                                  "modifiers": {
+                                                    "padding": "start=14.0.dp, top=8.0.dp, end=14.0.dp, bottom=8.0.dp"
+                                                  }
+                                                }
+                                              ],
+                                              "semantics": {
+                                                "contentDescription": "Records tab",
+                                                "stateDescription": "Not selected",
+                                                "role": "Tab",
+                                                "actions": "OnClick"
+                                              },
+                                              "modifiers": {
+                                                "clip": "true",
+                                                "clickable": "enabled=true",
+                                                "background": "#00000000, shape=RoundedCornerShape(topStart = CornerSize(size = 20.0.dp), topEnd = CornerSize(size = 20.0.dp), bottomEnd = CornerSize(size = 20.0.dp), bottomStart = CornerSize(size = 20.0.dp))"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ],
+                                      "modifiers": {
+                                        "fill": "Both (1.0)",
+                                        "padding": "start=8.0.dp, top=0.0.dp, end=8.0.dp, bottom=0.0.dp"
+                                      }
+                                    }
+                                  ],
+                                  "modifiers": {
+                                    "fill": "Both (1.0)",
+                                    "padding": "start=8.0.dp, top=0.0.dp, end=8.0.dp, bottom=0.0.dp"
+                                  }
+                                }
+                              ],
+                              "modifiers": {
+                                "fill": "Horizontal (1.0)",
+                                "height": "64.0.dp",
+                                "shadow": "elevation=12.0.dp, shape=RoundedCornerShape(topStart = CornerSize(size = 32.0.dp), topEnd = CornerSize(size = 32.0.dp), bottomEnd = CornerSize(size = 32.0.dp), bottomStart = CornerSize(size = 32.0.dp)), clip=true",
+                                "clip": "true",
+                                "background": "#EBFFFFFF"
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "modifiers": {
+                        "fill": "Horizontal (1.0)",
+                        "padding": "start=20.0.dp, top=14.0.dp, end=20.0.dp, bottom=14.0.dp"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "modifiers": {
+                "fill": "Horizontal (1.0)",
+                "height": "120.0.dp",
+                "background": "#FFF7F8F6"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

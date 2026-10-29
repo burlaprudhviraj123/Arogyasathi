@@ -1,0 +1,49 @@
+{
+  "previewId": "AssistantDangerResultPreview",
+  "methodFQN": "org.arogyasathi.app.ui.AssistantScreenKt.AssistantDangerResultPreview",
+  "width": 1,
+  "height": 1,
+  "densityDpi": 420,
+  "fontScale": 1.0,
+  "uiMode": 0,
+  "deviceId": "medium_phone",
+  "components": [
+    {
+      "name": "androidx.compose.ui.tooling.ComposeViewAdapter",
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1,
+        "width": 1,
+        "height": 1
+      },
+      "children": [
+        {
+          "name": "androidx.compose.ui.platform.ComposeView",
+          "bounds": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "children": [
+            {
+              "name": "androidx.compose.ui.platform.AndroidComposeView",
+              "bounds": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "width": 0,
+                "height": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
