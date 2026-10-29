@@ -19,6 +19,13 @@ data class AssistantResult(
     val triageLevel: String // "EMERGENCY", "OUT_OF_SCOPE", "ROUTINE_PROTOCOL"
 )
 
+data class SyncResult(
+    val success: Boolean,
+    val syncedCount: Int,
+    val isOnline: Boolean,
+    val message: String
+)
+
 class ArogyasathiRepository(private val context: Context) {
 
     private val dbHelper = ArogyasathiDbHelper.getInstance(context)
@@ -293,17 +300,76 @@ class ArogyasathiRepository(private val context: Context) {
         return list
     }
 
-    fun triggerSync(): Int {
-        val db = dbHelper.writableDatabase
-        val cv = ContentValues().apply {
-            put("status", SyncStatus.SYNCED.name)
+    fun triggerSync(
+        endpointUrl: String = "http://10.0.2.2:8000/api/v1/sync/visit_outcomes",
+        forceOfflineMark: Boolean = false
+    ): SyncResult {
+        val pending = getSyncQueueItems().filter { it.status == SyncStatus.PENDING }
+        if (pending.isEmpty()) {
+            return SyncResult(true, 0, true, "Sync outbox is up to date (0 pending items).")
         }
-        return db.update(
-            ArogyasathiDbHelper.TABLE_SYNC_QUEUE,
-            cv,
-            "status = ?",
-            arrayOf(SyncStatus.PENDING.name)
-        )
+
+        if (forceOfflineMark) {
+            val db = dbHelper.writableDatabase
+            val cv = ContentValues().apply { put("status", SyncStatus.SYNCED.name) }
+            val count = db.update(ArogyasathiDbHelper.TABLE_SYNC_QUEUE, cv, "status = ?", arrayOf(SyncStatus.PENDING.name))
+            return SyncResult(true, count, false, "Marked $count items as synced (offline simulation).")
+        }
+
+        // Attempt network synchronization with 1.5s connection timeout
+        return try {
+            val url = java.net.URL(endpointUrl)
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.connectTimeout = 1500
+            conn.readTimeout = 1500
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+
+            val batch = JSONObject()
+            batch.put("worker_id", "ASHA-RRR5")
+            val array = org.json.JSONArray()
+            for (p in pending) {
+                try {
+                    array.put(JSONObject(p.payloadJson))
+                } catch (e: Exception) {
+                    val fallback = JSONObject().apply {
+                        put("outcome_id", p.entityId)
+                        put("status", "COMPLETED")
+                    }
+                    array.put(fallback)
+                }
+            }
+            batch.put("outcomes", array)
+
+            conn.outputStream.use { os ->
+                os.write(batch.toString().toByteArray(Charsets.UTF_8))
+            }
+
+            val code = conn.responseCode
+            if (code in 200..299) {
+                val db = dbHelper.writableDatabase
+                val cv = ContentValues().apply { put("status", SyncStatus.SYNCED.name) }
+                val updated = db.update(ArogyasathiDbHelper.TABLE_SYNC_QUEUE, cv, "status = ?", arrayOf(SyncStatus.PENDING.name))
+                SyncResult(true, updated, true, "Successfully synchronized $updated records with Sub-Centre edge gateway!")
+            } else {
+                incrementSyncRetries()
+                SyncResult(false, 0, false, "Gateway returned HTTP $code. Outbox retained safely.")
+            }
+        } catch (e: Exception) {
+            // Graceful offline fallback: server is unreachable, so retain outbox safely in SQLite
+            incrementSyncRetries()
+            SyncResult(false, 0, false, "Offline Mode: Sub-Centre gateway unreachable. ${pending.size} item(s) safely retained in SQLite outbox.")
+        }
+    }
+
+    private fun incrementSyncRetries() {
+        try {
+            val db = dbHelper.writableDatabase
+            db.execSQL("UPDATE ${ArogyasathiDbHelper.TABLE_SYNC_QUEUE} SET retry_count = retry_count + 1 WHERE status = '${SyncStatus.PENDING.name}'")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun askAssistant(query: String): AssistantResult {

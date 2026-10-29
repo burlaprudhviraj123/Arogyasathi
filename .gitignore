@@ -15,5 +15,6 @@ submission_dev/
 score*.json
 release_bundle/
 *.zip
+*.apk
 
 

@@ -1,6 +1,7 @@
 package org.arogyasathi.app.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,9 @@ import org.arogyasathi.app.core.SyncItem
 import org.arogyasathi.app.core.SyncStatus
 import org.arogyasathi.app.core.VisitOutcome
 import org.arogyasathi.app.data.ArogyasathiRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,6 +38,10 @@ fun RecordsScreen(repository: ArogyasathiRepository) {
     var protocols by remember { mutableStateOf<List<ProtocolSection>>(emptyList()) }
     var protocolSearch by remember { mutableStateOf("") }
     var expandedProtocolId by remember { mutableStateOf<String?>(null) }
+    var syncBannerMessage by remember { mutableStateOf<String?>(null) }
+    var syncSuccess by remember { mutableStateOf(false) }
+    var isSyncing by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     fun refreshData() {
         completedVisits = repository.getCompletedVisits()
@@ -93,8 +101,26 @@ fun RecordsScreen(repository: ArogyasathiRepository) {
             1 -> SyncOutboxView(
                 syncQueue = syncQueue,
                 pendingCount = pendingCount,
+                syncBannerMessage = syncBannerMessage,
+                syncSuccess = syncSuccess,
+                isSyncing = isSyncing,
+                onDismissBanner = { syncBannerMessage = null },
                 onSyncNow = {
-                    repository.triggerSync()
+                    isSyncing = true
+                    coroutineScope.launch {
+                        val res = withContext(Dispatchers.IO) {
+                            repository.triggerSync()
+                        }
+                        syncSuccess = res.success
+                        syncBannerMessage = res.message
+                        isSyncing = false
+                        refreshData()
+                    }
+                },
+                onSimulateSync = {
+                    val res = repository.triggerSync(forceOfflineMark = true)
+                    syncSuccess = res.success
+                    syncBannerMessage = res.message
                     refreshData()
                 }
             )
@@ -208,11 +234,65 @@ fun VisitHistoryView(visits: List<VisitOutcome>) {
 fun SyncOutboxView(
     syncQueue: List<SyncItem>,
     pendingCount: Int,
-    onSyncNow: () -> Unit
+    syncBannerMessage: String? = null,
+    syncSuccess: Boolean = false,
+    isSyncing: Boolean = false,
+    onDismissBanner: () -> Unit = {},
+    onSyncNow: () -> Unit,
+    onSimulateSync: () -> Unit = {}
 ) {
     val dateFormat = remember { SimpleDateFormat("hh:mm a, dd MMM", Locale.getDefault()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (syncBannerMessage != null) {
+            Card(
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (syncSuccess) Color(0xFFE8F5E9) else Color(0xFFFFF3E0)
+                ),
+                border = BorderStroke(1.dp, if (syncSuccess) RoutineGreen.copy(alpha = 0.5f) else HighPriorityOrange.copy(alpha = 0.5f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (syncSuccess) "✓" else "ℹ",
+                            fontWeight = FontWeight.Bold,
+                            color = if (syncSuccess) RoutineGreen else HighPriorityOrange,
+                            fontSize = 15.sp,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = syncBannerMessage,
+                            fontSize = 12.sp,
+                            color = TextPrimary,
+                            lineHeight = 16.sp
+                        )
+                    }
+                    Text(
+                        text = "✕",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextSecondary,
+                        modifier = Modifier
+                            .clickable { onDismissBanner() }
+                            .padding(start = 8.dp, end = 4.dp)
+                    )
+                }
+            }
+        }
+
         Card(
             shape = RoundedCornerShape(14.dp),
             colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
@@ -226,7 +306,7 @@ fun SyncOutboxView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "$pendingCount Items In Outbox",
                         fontWeight = FontWeight.Bold,
@@ -242,11 +322,21 @@ fun SyncOutboxView(
 
                 Button(
                     onClick = onSyncNow,
-                    enabled = pendingCount > 0,
+                    enabled = pendingCount > 0 && !isSyncing,
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Sync Now", fontSize = 13.sp, color = Color.White)
+                    if (isSyncing) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(14.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Syncing...", fontSize = 13.sp, color = Color.White)
+                    } else {
+                        Text("Sync Now", fontSize = 13.sp, color = Color.White)
+                    }
                 }
             }
         }
@@ -271,7 +361,7 @@ fun SyncOutboxView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                             Text(
                                 text = "${item.entityType} • ${item.entityId}",
                                 fontWeight = FontWeight.SemiBold,
