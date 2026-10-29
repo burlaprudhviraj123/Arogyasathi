@@ -12,7 +12,7 @@
 Phase 6A authorizes the implementation of the Core Python Engine and Scored Submissions. Under strict adherence to the **Master Engineering Workflow** and **Karpathy Behavioral Guidelines**, the core clinical governance, multilingual retrieval, citation verification, and daily visit-list engines were implemented and validated against the official competition evaluator (`evaluate.py`).
 
 ### Key Outcome Highlights
-- **Primary Evaluator Score:** **`0.9603`** (exceeding baseline `0.3068` by +213%).
+- **Primary Evaluator Score:** **`0.9603`** (initial Phase 6A baseline; subsequently elevated to **`0.9735`** in Phase 7 via dialect lexicon enrichment, +217% over baseline `0.3068`).
 - **Two-Sided Escalation Gate:** **`PASS`** (`escalation_recall == 1.0000`, `false_escalation_rate == 0.0000`).
 - **Refusal Accuracy:** **`1.0000`** (100% correct refusal on out-of-scope queries).
 - **Visit List Engine:** **`1.0000`** (Exact 1.0000 F1 and 1.0000 Priority Accuracy across 39 truth pairs).
