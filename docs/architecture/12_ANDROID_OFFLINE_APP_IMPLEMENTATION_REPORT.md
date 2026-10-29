@@ -122,3 +122,4 @@ Using `adb shell input` and `uiautomator dump`:
 | **Visit List Rules** | `org.arogyasathi.app.visit.VisitEngine` | Strict `09_VIS` Chandrapuri Block rules implementation. |
 | **HCI 3-Key Ergonomics** | `org.arogyasathi.app.ui.MainScreen` | Big Emergency Call button, Query input, Daily visit list tabs. |
 | **Zero Cloud Requirement** | 100% on-device embedded data | Completely functional with airplane mode / network disabled. |
+
