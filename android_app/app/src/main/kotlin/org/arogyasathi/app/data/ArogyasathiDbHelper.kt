@@ -122,6 +122,12 @@ class ArogyasathiDbHelper(private val context: Context) :
             """.trimIndent()
         )
 
+        // Create indexes for sub-millisecond lookups on low-end hardware
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_members_hh ON $TABLE_MEMBERS (household_id)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_members_village ON $TABLE_MEMBERS (village)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_households_village ON $TABLE_HOUSEHOLDS (village)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON $TABLE_SYNC_QUEUE (status)")
+
         // Seed data in transaction
         seedInitialData(db)
     }
