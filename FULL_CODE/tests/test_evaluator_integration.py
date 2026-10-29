@@ -59,3 +59,57 @@ def test_evaluator_dev_run(tmp_path):
     assert score_data["visit_list_score"] == 1.0
     assert score_data["primary_score"] >= 0.85
 
+
+def test_test_split_submission_integrity():
+    """Validates the official 200-question test split submission artifacts."""
+    import csv
+    sub_dir = ROOT_DIR / "submission"
+    answers_file = sub_dir / "H5_answers.jsonl"
+    visit_file = sub_dir / "H5_visit_list.csv"
+    footprint_file = sub_dir / "H5_footprint.json"
+    test_q_file = COMP_DIR / "data" / "questions_test.csv"
+
+    assert answers_file.exists(), "Missing H5_answers.jsonl in submission/"
+    assert visit_file.exists(), "Missing H5_visit_list.csv in submission/"
+    assert footprint_file.exists(), "Missing H5_footprint.json in submission/"
+
+    # Check question IDs match test questions exactly
+    with open(test_q_file, encoding="utf-8") as f:
+        test_questions = [row["question_id"] for row in csv.DictReader(f)]
+    assert len(test_questions) == 200
+
+    answers = []
+    with open(answers_file, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                answers.append(json.loads(line))
+
+    assert len(answers) == 200, f"Expected 200 answers, got {len(answers)}"
+
+    for i, ans in enumerate(answers):
+        assert ans["question_id"] == test_questions[i], f"Mismatch at index {i}"
+        assert isinstance(ans["answer_text"], str) and len(ans["answer_text"]) > 0
+        assert len(ans["answer_text"]) <= 400, f"Answer {i} exceeds 400 chars"
+        assert isinstance(ans["cited_section_ids"], list) and len(ans["cited_section_ids"]) > 0
+        assert isinstance(ans["escalate"], bool)
+        assert isinstance(ans["refused"], bool)
+        assert isinstance(ans["latency_ms"], (int, float))
+        assert ans["latency_ms"] < 500, f"Latency {ans['latency_ms']} ms exceeds 500 ms limit"
+
+    # Check visit list
+    with open(visit_file, encoding="utf-8") as f:
+        visit_rows = list(csv.DictReader(f))
+    assert len(visit_rows) == 346, f"Expected 346 visit rows, got {len(visit_rows)}"
+    for row in visit_rows:
+        assert row["member_id"].startswith("M-")
+        assert len(row["due_item"]) > 0
+        assert row["priority"] in {"1", "2", "3"}
+
+    # Check footprint
+    footprint = json.loads(footprint_file.read_text(encoding="utf-8"))
+    assert footprint["offline"] is True
+    assert footprint["model_size_mb"] <= 25.0
+    assert footprint["peak_ram_mb"] <= 256.0
+
+

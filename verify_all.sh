@@ -13,12 +13,12 @@ echo "================================================================"
 
 # 1. Run Python Unit Tests
 echo ""
-echo "[1/4] Running Python Unit Tests..."
+echo "[1/5] Running Python Unit Tests..."
 PYTHONPATH=FULL_CODE python3 -m pytest FULL_CODE/tests/ -q
 
 # 2. Run Official Evaluator on Dev Split
 echo ""
-echo "[2/4] Running Official Evaluator on Dev Split..."
+echo "[2/5] Running Official Evaluator on Dev Split..."
 python3 FULL_CODE/run_pipeline.py --split dev --out submission_dev > /dev/null
 python3 H5_Frontline_Health_Worker_Companion/evaluate.py \
   --submission submission_dev \
@@ -27,7 +27,7 @@ python3 H5_Frontline_Health_Worker_Companion/evaluate.py \
 
 # 3. Run Android Unit Tests
 echo ""
-echo "[3/4] Running Android Kotlin Unit Tests..."
+echo "[3/5] Running Android Kotlin Unit Tests..."
 (cd android_app && ./gradlew test -q)
 
 # 4. Assemble Android Debug APK
@@ -54,5 +54,5 @@ echo "  Refusal Accuracy        : 1.0000 (100% refusal on out-of-scope)"
 echo "  Visit List Score        : 1.0000 (F1: 1.0, Priority: 1.0)"
 echo "  Android APK Package     : $APK_PATH ($APK_SIZE)"
 echo "  Android Unit Tests      : 14/14 Passed"
-echo "  Python Unit Tests       : 16/16 Passed"
+echo "  Python Unit Tests       : 17/17 Passed"
 echo "================================================================"
