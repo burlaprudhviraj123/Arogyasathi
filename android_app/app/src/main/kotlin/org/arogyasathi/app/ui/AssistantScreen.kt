@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.speech.tts.TextToSpeech
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.arogyasathi.app.data.ArogyasathiRepository
@@ -296,5 +298,62 @@ private fun dialEmergency(context: Context, number: String) {
         context.startActivity(intent)
     } catch (e: Exception) {
         e.printStackTrace()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AssistantDangerResultPreview() {
+    ArogyasathiTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "⚠️ DANGER SIGN — IMMEDIATE REFERRAL",
+                        color = EmergencyRed,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Convulsions (fits / jhatke): general danger sign, refer immediately to hospital (call 108/102). Give nothing by mouth (ESC-5.1, ESC-1.3).",
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = EmergencyRed.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = "Citation: ESC-5.1",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = EmergencyRed,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                        Button(
+                            onClick = {},
+                            colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Call 108 Now", color = Color.White, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

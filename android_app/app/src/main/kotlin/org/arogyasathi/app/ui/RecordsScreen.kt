@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.arogyasathi.app.core.ProtocolSection
@@ -387,6 +388,39 @@ fun ProtocolCorpusView(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SyncOutboxPreview() {
+    ArogyasathiTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            SyncOutboxView(
+                syncQueue = listOf(
+                    SyncItem(
+                        id = 1L,
+                        entityType = "VISIT_OUTCOME",
+                        entityId = "OUT-001",
+                        payloadJson = "{\"member_name\":\"Jamuna Devi\",\"due_item\":\"ANC-2\"}",
+                        status = SyncStatus.PENDING,
+                        retryCount = 0,
+                        createdAt = System.currentTimeMillis()
+                    ),
+                    SyncItem(
+                        id = 2L,
+                        entityType = "VISIT_OUTCOME",
+                        entityId = "OUT-002",
+                        payloadJson = "{\"member_name\":\"Manoj Paswan\",\"due_item\":\"BP-followup\"}",
+                        status = SyncStatus.SYNCED,
+                        retryCount = 0,
+                        createdAt = System.currentTimeMillis() - 3600000
+                    )
+                ),
+                pendingCount = 1,
+                onSyncNow = {}
+            )
         }
     }
 }
