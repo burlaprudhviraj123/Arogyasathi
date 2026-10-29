@@ -8,6 +8,7 @@ Provides:
 """
 
 from __future__ import annotations
+import os
 import time
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
@@ -22,6 +23,7 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT_DIR / "H5_Frontline_Health_Worker_Companion" / "data"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = FastAPI(
     title="Arogyasathi Edge Sync Gateway",
@@ -112,18 +114,58 @@ def clinical_query(req: QueryRequest):
     )
 
 
+def persist_to_neon_if_configured(worker_id: str, outcomes: list[dict]):
+    if not DATABASE_URL:
+        return
+    try:
+        import psycopg2
+        from psycopg2.extras import execute_values
+        with psycopg2.connect(DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                records = [
+                    (
+                        item["outcome_id"],
+                        item["household_id"],
+                        item["member_id"],
+                        item.get("member_name", ""),
+                        worker_id,
+                        item["due_item"],
+                        item["status"],
+                        item.get("notes", ""),
+                        item["timestamp"]
+                    )
+                    for item in outcomes
+                ]
+                query = """
+                    INSERT INTO visit_outcomes (
+                        outcome_id, household_id, member_id, member_name, asha_id,
+                        due_item, status, notes, recorded_at_epoch
+                    ) VALUES %s
+                    ON CONFLICT (outcome_id) DO UPDATE SET
+                        status = EXCLUDED.status,
+                        notes = EXCLUDED.notes;
+                """
+                execute_values(cur, query, records)
+    except Exception as e:
+        print(f"[Neon Sync Gateway Notice]: {e}")
+
+
 @app.post("/api/v1/sync/visit_outcomes", response_model=SyncResponse)
 def sync_visit_outcomes(req: SyncRequest):
     global SYNCED_OUTCOMES
     count = 0
     now_ts = int(time.time() * 1000)
+    batch_records = []
 
     for item in req.outcomes:
         record = item.model_dump()
         record["synced_at"] = now_ts
         record["worker_id"] = req.worker_id
         SYNCED_OUTCOMES.append(record)
+        batch_records.append(record)
         count += 1
+
+    persist_to_neon_if_configured(req.worker_id, batch_records)
 
     return SyncResponse(
         status="SUCCESS",
