@@ -36,6 +36,7 @@ rsync -av --exclude="build" --exclude=".gradle" --exclude=".idea" --exclude="*.a
 cp README.md "$BUNDLE_DIR/"
 cp docs/PROJECT_MANIFEST.md "$BUNDLE_DIR/"
 cp docs/presentation/01_HACKATHON_PITCH_AND_ARCHITECTURE_WALKTHROUGH.md "$BUNDLE_DIR/PITCH_AND_ARCHITECTURE.md"
+cp docs/presentation/02_JUDGES_SLIDE_DECK.md "$BUNDLE_DIR/JUDGES_SLIDE_DECK.md"
 
 # 5. Create ZIP archive
 ZIP_NAME="Arogyasathi_Track_H5_Submission.zip"
