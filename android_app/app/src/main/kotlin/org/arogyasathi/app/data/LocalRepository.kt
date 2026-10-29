@@ -16,7 +16,9 @@ data class AssistantResult(
     val citedSection: String,
     val isEscalation: Boolean,
     val isRefusal: Boolean,
-    val triageLevel: String // "EMERGENCY", "OUT_OF_SCOPE", "ROUTINE_PROTOCOL"
+    val triageLevel: String, // "EMERGENCY", "OUT_OF_SCOPE", "ROUTINE_PROTOCOL"
+    val answerHindi: String = "",
+    val patientContext: String? = null
 )
 
 data class SyncResult(
@@ -197,6 +199,20 @@ class ArogyasathiRepository(private val context: Context) {
             }
         }
         return list
+    }
+
+    fun getMemberById(memberId: String): Member? {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_MEMBERS,
+            null, "member_id = ?", arrayOf(memberId), null, null, null
+        )
+        cursor.use {
+            if (it.moveToNext()) {
+                return cursorToMember(it)
+            }
+        }
+        return null
     }
 
     fun getAllMembers(): List<Member> {
@@ -385,45 +401,68 @@ class ArogyasathiRepository(private val context: Context) {
         }
     }
 
-    fun askAssistant(query: String): AssistantResult {
+    private fun getDangerHindiMessage(citation: String): String {
+        return when (citation) {
+            "ESC-6.3" -> "मरीज बेहोश है: यह गंभीर आपातकाल है! तुरंत 108 पर एम्बुलेंस बुलाएं। मुंह से कुछ भी न दें (ESC-6.3)।"
+            "ESC-5.1" -> "दौरे या झटके (Convulsions) सामान्य खतरे का लक्षण है। तुरंत 108/102 बुलाकर नजदीकी अस्पताल ले जाएं। मुंह में कुछ न डालें (ESC-5.1)।"
+            "ESC-3.1" -> "प्रसव के बाद अत्यधिक रक्तस्राव (5 मिनट में पैड भीगना या दिन में 5 से अधिक पैड): तुरंत 108 बुलाएं (ESC-3.1)।"
+            "ESC-2.1" -> "गर्भावस्था में किसी भी प्रकार का योनि से रक्तस्राव खतरे की घंटी है: तुरंत 102/108 एम्बुलेंस से अस्पताल रेफर करें (ESC-2.1)।"
+            "ESC-2.3" -> "गर्भावस्था में चेहरे पर सूजन, तेज सिरदर्द या धुंधला दिखना प्री-एक्लेम्पसिया का लक्षण है। तुरंत अस्पताल रेफर करें (ESC-2.3)।"
+            "ESC-2.5" -> "गर्भावस्था में अत्यधिक पीलापन और सांस फूलना गंभीर एनीमिया का लक्षण है, तुरंत सीएचसी रेफर करें (ESC-2.5)।"
+            "ESC-5.2" -> "बच्चे की छाती धंसना (पसली चलना) या सांस में सीटी की आवाज गंभीर निमोनिया है, तुरंत अस्पताल भेजें (ESC-5.2)।"
+            "ESC-5.4" -> "7 दिन से अधिक तेज बुखार या गर्दन अकड़ना मस्तिष्क बुखार (मेनिनजाइटिस) का खतरा हो सकता है, तुरंत रेफर करें (ESC-5.4)।"
+            else -> "आपातकालीन खतरे का लक्षण पाया गया है! मरीज को तुरंत 108/102 एम्बुलेंस बुलाकर सामुदायिक स्वास्थ्य केंद्र (CHC) रेफर करें ($citation)।"
+        }
+    }
+
+    fun askAssistant(query: String, patient: Member? = null): AssistantResult {
         // Step 1: JEV Deterministic Escalation
         val escResult = JEVEscalate.evaluate(query)
         if (escResult != null) {
+            val hindiMsg = getDangerHindiMessage(escResult.first)
+            val ctx = if (patient != null) "Patient: ${patient.name} (${patient.village})" else null
             return AssistantResult(
                 answer = escResult.second,
                 citedSection = escResult.first,
                 isEscalation = true,
                 isRefusal = false,
-                triageLevel = "EMERGENCY"
+                triageLevel = "EMERGENCY",
+                answerHindi = hindiMsg,
+                patientContext = ctx
             )
         }
 
         // Step 2: JEV Scope Refusal
         val scpResult = JEVScope.evaluate(query)
         if (scpResult != null) {
+            val hindiMsg = "यह विषय मेरे प्रोटोकॉल से बाहर है। कृपया प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या अपनी एएनएम से परामर्श लें (SCP-1.2)।"
             return AssistantResult(
                 answer = scpResult.second,
                 citedSection = scpResult.first,
                 isEscalation = false,
                 isRefusal = true,
-                triageLevel = "OUT_OF_SCOPE"
+                triageLevel = "OUT_OF_SCOPE",
+                answerHindi = hindiMsg,
+                patientContext = if (patient != null) "Patient: ${patient.name}" else null
             )
         }
 
-        // Step 3: Laya Protocol Retrieval & Extractive Synthesis
+        // Step 3: Laya Protocol Retrieval & Intelligent Synthesis
         val protocols = getProtocols()
         val retriever = layaRetriever ?: LayaRetriever(protocols).also { layaRetriever = it }
         val topSections = retriever.retrieve(query, topK = 1)
 
         return if (topSections.isNotEmpty()) {
             val topSec = topSections.first()
-            val answer = LayaSynthesizer.synthesize(topSec, query)
+            val synth = LayaSynthesizer.synthesizeWithContext(topSec, query, patient)
             AssistantResult(
-                answer = answer,
-                citedSection = topSec.sectionId,
+                answer = synth.textEnglish,
+                citedSection = synth.citedSection,
                 isEscalation = false,
                 isRefusal = false,
-                triageLevel = "ROUTINE_PROTOCOL"
+                triageLevel = "ROUTINE_PROTOCOL",
+                answerHindi = synth.textHindi,
+                patientContext = if (patient != null) "Patient: ${patient.name} • ${patient.village}" else null
             )
         } else {
             AssistantResult(
@@ -431,9 +470,136 @@ class ArogyasathiRepository(private val context: Context) {
                 citedSection = "SCP-1.1",
                 isEscalation = false,
                 isRefusal = true,
-                triageLevel = "OUT_OF_SCOPE"
+                triageLevel = "OUT_OF_SCOPE",
+                answerHindi = "कृपया नियमित प्रोटोकॉल दिशा-निर्देशों का पालन करें और अपने पर्यवेक्षक से सलाह लें (SCP-1.1)।",
+                patientContext = if (patient != null) "Patient: ${patient.name}" else null
             )
         }
+    }
+
+    fun savePatientChatMessage(
+        patientId: String?,
+        patientName: String?,
+        sender: String,
+        queryText: String,
+        answerText: String,
+        answerHindi: String,
+        citedSections: List<String>,
+        isEscalation: Boolean,
+        isRefusal: Boolean,
+        triageLevel: String
+    ): PatientConsultation {
+        val db = dbHelper.writableDatabase
+        val record = PatientConsultation(
+            patientId = patientId,
+            patientName = patientName,
+            sender = sender,
+            queryText = queryText,
+            answerText = answerText,
+            answerHindi = answerHindi,
+            citedSections = citedSections,
+            isEscalation = isEscalation,
+            isRefusal = isRefusal,
+            triageLevel = triageLevel,
+            timestamp = System.currentTimeMillis()
+        )
+        val cv = ContentValues().apply {
+            put("id", record.id)
+            put("patient_id", record.patientId)
+            put("patient_name", record.patientName)
+            put("sender", record.sender)
+            put("query_text", record.queryText)
+            put("answer_text", record.answerText)
+            put("answer_hindi", record.answerHindi)
+            put("cited_sections", record.citedSections.joinToString(","))
+            put("is_escalation", if (record.isEscalation) 1 else 0)
+            put("is_refusal", if (record.isRefusal) 1 else 0)
+            put("triage_level", record.triageLevel)
+            put("timestamp", record.timestamp)
+        }
+        db.insertWithOnConflict(
+            ArogyasathiDbHelper.TABLE_PATIENT_CHAT,
+            null,
+            cv,
+            android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+        )
+        return record
+    }
+
+    fun getPatientChatHistory(patientId: String?): List<PatientConsultation> {
+        val list = mutableListOf<PatientConsultation>()
+        val db = dbHelper.readableDatabase
+        val selection = if (patientId == null) "patient_id IS NULL" else "patient_id = ?"
+        val selectionArgs = if (patientId == null) null else arrayOf(patientId)
+
+        val cursor = db.query(
+            ArogyasathiDbHelper.TABLE_PATIENT_CHAT,
+            null, selection, selectionArgs, null, null, "timestamp ASC"
+        )
+        cursor.use {
+            val idIdx = it.getColumnIndexOrThrow("id")
+            val pidIdx = it.getColumnIndexOrThrow("patient_id")
+            val pnameIdx = it.getColumnIndexOrThrow("patient_name")
+            val senderIdx = it.getColumnIndexOrThrow("sender")
+            val qIdx = it.getColumnIndexOrThrow("query_text")
+            val aIdx = it.getColumnIndexOrThrow("answer_text")
+            val ahIdx = it.getColumnIndexOrThrow("answer_hindi")
+            val csIdx = it.getColumnIndexOrThrow("cited_sections")
+            val escIdx = it.getColumnIndexOrThrow("is_escalation")
+            val refIdx = it.getColumnIndexOrThrow("is_refusal")
+            val tlIdx = it.getColumnIndexOrThrow("triage_level")
+            val tsIdx = it.getColumnIndexOrThrow("timestamp")
+
+            while (it.moveToNext()) {
+                val cs = it.getString(csIdx).split(",").map { s -> s.trim() }.filter { s -> s.isNotEmpty() }
+                list.add(
+                    PatientConsultation(
+                        id = it.getString(idIdx),
+                        patientId = if (it.isNull(pidIdx)) null else it.getString(pidIdx),
+                        patientName = if (it.isNull(pnameIdx)) null else it.getString(pnameIdx),
+                        sender = it.getString(senderIdx),
+                        queryText = it.getString(qIdx),
+                        answerText = it.getString(aIdx),
+                        answerHindi = it.getString(ahIdx) ?: "",
+                        citedSections = cs,
+                        isEscalation = it.getInt(escIdx) == 1,
+                        isRefusal = it.getInt(refIdx) == 1,
+                        triageLevel = it.getString(tlIdx) ?: "ROUTINE_PROTOCOL",
+                        timestamp = it.getLong(tsIdx)
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun saveReferralSlip(slip: ReferralSlip): SyncResult {
+        val payload = org.json.JSONObject().apply {
+            put("slip_id", slip.id)
+            put("patient_id", slip.patientId)
+            put("patient_name", slip.patientName)
+            put("age_gender", slip.ageGender)
+            put("village", slip.village)
+            put("danger_signs", org.json.JSONArray(slip.dangerSigns))
+            put("vitals", slip.vitalSigns)
+            put("citation", slip.protocolCitation)
+            put("referred_facility", slip.referredFacility)
+            put("immediate_action", slip.immediateActionTaken)
+            put("asha_name", slip.ashaName)
+            put("asha_phone", slip.ashaPhone)
+            put("timestamp", slip.timestamp)
+        }
+        val db = dbHelper.writableDatabase
+        val cv = ContentValues().apply {
+            put("entity_type", "REFERRAL_SLIP")
+            put("entity_id", slip.id)
+            put("payload_json", payload.toString())
+            put("status", SyncStatus.PENDING.name)
+            put("retry_count", 0)
+            put("created_at", System.currentTimeMillis())
+        }
+        db.insert(ArogyasathiDbHelper.TABLE_SYNC_QUEUE, null, cv)
+        return SyncResult(true, "Referral slip saved to outbox for ${slip.patientName}")
     }
 
     private fun getCompletedVisitKeys(): Set<String> {

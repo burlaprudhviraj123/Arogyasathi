@@ -124,3 +124,36 @@ data class Member(
     val lastRbsMgDl: Double? = null
 )
 
+data class PatientConsultation(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val patientId: String?,
+    val patientName: String?,
+    val sender: String, // "USER" or "ASSISTANT"
+    val queryText: String,
+    val answerText: String,
+    val answerHindi: String = "",
+    val citedSections: List<String> = emptyList(),
+    val isEscalation: Boolean = false,
+    val isRefusal: Boolean = false,
+    val triageLevel: String = "ROUTINE_PROTOCOL",
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+data class ReferralSlip(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val patientId: String,
+    val patientName: String,
+    val ageGender: String,
+    val village: String,
+    val householdId: String,
+    val suspectedCondition: String,
+    val dangerSigns: List<String>,
+    val vitalSigns: String,
+    val protocolCitation: String,
+    val referredFacility: String = "Chandrapuri Community Health Centre (CHC)",
+    val immediateActionTaken: String = "108 Emergency Ambulance Dispatched",
+    val ashaName: String = "Kalavati Kumari",
+    val ashaPhone: String = "+919876543220",
+    val timestamp: Long = System.currentTimeMillis()
+)
+

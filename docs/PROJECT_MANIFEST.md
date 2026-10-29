@@ -110,6 +110,14 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - On-Device Verified on `prudhvi_s_phone` emulator: live danger triage, 3-Key UI, prioritized visits, protocol browser
   - Unit tests: 100% pass via `./gradlew test`
 
+- [x] Phase 7B — Enhanced Laya Intelligence, Patient History, Referral Slips & Auto-Sync
+  - Laya Clinical Intelligence Generator: Conversational, empathetic, protocol-grounded answers with verbatim numbers and bilingual Hindi/English synthesis.
+  - Patient Context & Longitudinal Chat History: Per-patient SQLite consultation records (`patient_chat_history`), patient picker, and seamless navigation from Today / Families registers.
+  - Structured Clinical Referral Slips: Pre-formatted emergency slips with one-tap 108 dialing, SMS/WhatsApp clipboard copy, and outbox queuing.
+  - Polished Chat UX: Anchored input bar above floating navigation with `imePadding()`, dynamic clinical chips, and zero phantom gaps.
+  - Background `NetworkSyncManager`: Auto-detects connectivity restoration and syncs outbox queue to Neon central backend.
+  - Evaluator Score: **0.9735** (Escalation Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Visit Score: 1.0000).
+
 ---
 
 ## Mandatory Engineering Rules

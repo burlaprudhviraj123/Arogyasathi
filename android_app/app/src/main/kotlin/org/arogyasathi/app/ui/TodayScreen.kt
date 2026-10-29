@@ -29,7 +29,7 @@ import org.arogyasathi.app.data.ArogyasathiRepository
 @Composable
 fun TodayScreen(
     repository: ArogyasathiRepository,
-    onNavigateToAssistant: (String) -> Unit
+    onNavigateToAssistant: (String, String?) -> Unit
 ) {
     var selectedVillage by remember { mutableStateOf("All") }
     var selectedPriority by remember { mutableStateOf<Priority?>(null) }
@@ -237,7 +237,7 @@ fun TodayScreen(
                                 item.dueItem == "HRP-followup" -> "High risk pregnancy severe anaemia pre-eclampsia"
                                 else -> "Vaccine protocol for ${item.dueItem}"
                             }
-                            onNavigateToAssistant(prompt)
+                            onNavigateToAssistant(prompt, item.memberId)
                         }
                     )
                 }

@@ -30,6 +30,7 @@ fun MainScreen() {
     val repository = remember { ArogyasathiRepository(context) }
     var selectedTab by remember { mutableIntStateOf(0) }
     var assistantQuery by remember { mutableStateOf<String?>(null) }
+    var assistantPatient by remember { mutableStateOf<org.arogyasathi.app.core.Member?>(null) }
     var showProfileDialog by remember { mutableStateOf(false) }
     var activeProfile by remember { mutableStateOf(repository.getActiveProfile()) }
 
@@ -134,7 +135,8 @@ fun MainScreen() {
             when (selectedTab) {
                 0 -> TodayScreen(
                     repository = repository,
-                    onNavigateToAssistant = { prompt ->
+                    onNavigateToAssistant = { prompt, memberId ->
+                        assistantPatient = memberId?.let { repository.getMemberById(it) }
                         assistantQuery = prompt
                         selectedTab = 2 // Switch to Assistant tab
                     }
@@ -147,13 +149,19 @@ fun MainScreen() {
                             member.ncdCondition != null -> "NCD management protocol for ${member.ncdCondition}"
                             else -> "Clinical protocol guidance for ${member.name}"
                         }
+                        assistantPatient = member
                         assistantQuery = prompt
                         selectedTab = 2 // Switch to Assistant tab
                     }
                 )
                 2 -> AssistantScreen(
                     repository = repository,
-                    initialQuery = assistantQuery
+                    initialQuery = assistantQuery,
+                    initialPatient = assistantPatient,
+                    onClearInitialContext = {
+                        assistantQuery = null
+                        assistantPatient = null
+                    }
                 )
                 3 -> RecordsScreen(
                     repository = repository

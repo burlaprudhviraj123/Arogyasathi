@@ -14,13 +14,14 @@ class ArogyasathiDbHelper(private val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "arogyasathi.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
 
         const val TABLE_HOUSEHOLDS = "households"
         const val TABLE_MEMBERS = "members"
         const val TABLE_PROTOCOLS = "protocols"
         const val TABLE_VISIT_OUTCOMES = "visit_outcomes"
         const val TABLE_SYNC_QUEUE = "sync_queue"
+        const val TABLE_PATIENT_CHAT = "patient_chat_history"
 
         @Volatile
         private var instance: ArogyasathiDbHelper? = null
@@ -122,11 +123,31 @@ class ArogyasathiDbHelper(private val context: Context) :
             """.trimIndent()
         )
 
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_PATIENT_CHAT (
+                id TEXT PRIMARY KEY,
+                patient_id TEXT,
+                patient_name TEXT,
+                sender TEXT,
+                query_text TEXT,
+                answer_text TEXT,
+                answer_hindi TEXT,
+                cited_sections TEXT,
+                is_escalation INTEGER,
+                is_refusal INTEGER,
+                triage_level TEXT,
+                timestamp INTEGER
+            )
+            """.trimIndent()
+        )
+
         // Create indexes for sub-millisecond lookups on low-end hardware
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_members_hh ON $TABLE_MEMBERS (household_id)")
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_members_village ON $TABLE_MEMBERS (village)")
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_households_village ON $TABLE_HOUSEHOLDS (village)")
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON $TABLE_SYNC_QUEUE (status)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_chat_patient ON $TABLE_PATIENT_CHAT (patient_id, timestamp)")
 
         // Seed data in transaction
         seedInitialData(db)
@@ -138,6 +159,7 @@ class ArogyasathiDbHelper(private val context: Context) :
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PROTOCOLS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_VISIT_OUTCOMES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SYNC_QUEUE")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_PATIENT_CHAT")
         onCreate(db)
     }
 
