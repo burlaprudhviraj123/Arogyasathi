@@ -117,6 +117,7 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Patient Context & Longitudinal Chat History: Per-patient SQLite consultation records (`patient_chat_history`), patient picker across all 2,234 members, and seamless navigation from Today / Families registers.
   - Structured Clinical Referral Slips: Pre-formatted emergency slips with one-tap 108 dialing, SMS/WhatsApp clipboard copy, and outbox queuing.
   - Polished Chat UX: Anchored input bar flush above floating navigation with `imePadding()`, dynamic clinical chips, and zero phantom gaps.
+  - Minimal Connectivity Indicator: Simplified home card badge to live Online / Offline state (no technical SQLite terminology), driven by real-time network capability callbacks.
   - Background `NetworkSyncManager`: Auto-detects connectivity restoration and syncs outbox queue to Neon central backend.
   - Evaluator Score: **0.9735** (Escalation Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Visit Score: 1.0000). All 19 unit tests passing.
 
