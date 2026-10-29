@@ -31,6 +31,39 @@ fun TodayScreen(
     repository: ArogyasathiRepository,
     onNavigateToAssistant: (String, String?) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var isOnline by remember {
+        val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+        val active = cm?.activeNetwork
+        val caps = if (active != null) cm.getNetworkCapabilities(active) else null
+        mutableStateOf(caps?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) == true)
+    }
+
+    DisposableEffect(context) {
+        val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+        val callback = object : android.net.ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: android.net.Network) {
+                isOnline = true
+            }
+            override fun onLost(network: android.net.Network) {
+                isOnline = false
+            }
+        }
+        val request = android.net.NetworkRequest.Builder()
+            .addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        try {
+            cm?.registerNetworkCallback(request, callback)
+        } catch (_: Exception) {}
+
+        onDispose {
+            try {
+                cm?.unregisterNetworkCallback(callback)
+            } catch (_: Exception) {}
+        }
+    }
+
+    val activeProfile = remember { repository.getActiveProfile() }
     var selectedVillage by remember { mutableStateOf("All") }
     var selectedPriority by remember { mutableStateOf<Priority?>(null) }
     var visitList by remember { mutableStateOf<List<VisitItem>>(emptyList()) }
@@ -71,38 +104,38 @@ fun TodayScreen(
             ) {
                 Column {
                     Text(
-                        text = "Kalavati Kumari",
+                        text = activeProfile.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = TextPrimary
                     )
                     Text(
-                        text = "ASHA-RRR5 • Chandrapuri Block",
+                        text = "${activeProfile.ashaId} • Chandrapuri Block",
                         fontSize = 13.sp,
                         color = TextSecondary
                     )
                 }
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = Color(0xFFE6F4F1),
+                    color = if (isOnline) Color(0xFFE8F5E9) else Color(0xFFF1F5F9),
                     modifier = Modifier.padding(2.dp)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(PrimaryTeal)
+                                .background(if (isOnline) RoutineGreen else Color(0xFF64748B))
                         )
                         Text(
-                            text = "Offline SQLite",
+                            text = if (isOnline) "Online" else "Offline",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = PrimaryTeal
+                            color = if (isOnline) RoutineGreen else Color(0xFF475569)
                         )
                     }
                 }
