@@ -22,10 +22,10 @@ Arogyasathi implements a deterministic clinical governance and retrieval archite
 | **False Escalation Rate** | $\le 0.200$ (Binary Gate) | **`0.0000`** (0/30) | **PASS** |
 | **Escalation Gate** | Recall $== 1.0 \land \text{FER} \le 0.20$ | **`PASS`** | **PASS** |
 | **Refusal Accuracy** | $\ge 0.900$ | **`1.0000`** (30/30) | **PASS** |
-| **Citation Accuracy** | $\ge 0.850$ | **`0.9412`** | **PASS** |
-| **Key Fact Coverage** | $\ge 0.750$ | **`0.7941`** | **PASS** |
+| **Citation Accuracy** | $\ge 0.850$ | **`1.0000`** (100% accurate) | **PASS** |
+| **Key Fact Coverage** | $\ge 0.750$ | **`0.8235`** | **PASS** |
 | **Visit List Score** | $\ge 0.900$ | **`1.0000`** (F1: 1.0, Priority: 1.0) | **PASS** |
-| **Primary Evaluator Score** | $> 0.3068$ (Baseline) | **`0.9603`** | **PASS** |
+| **Primary Evaluator Score** | $> 0.3068$ (Baseline) | **`0.9735`** (+217% over BM25) | **PASS** |
 | **Peak RAM Footprint** | $\le 256\text{ MB}$ | **`102.86 MB`** | **PASS** |
 | **Median CPU Latency** | $\le 200\text{ ms}$ | **`0.452 ms`** | **PASS** |
 
@@ -82,11 +82,11 @@ cd android_app
 # Run 14 Kotlin unit tests
 ./gradlew test
 
-# Build 12 MB standalone debug APK
-./gradlew assembleDebug
+# Build 7.88 MB standalone release APK (or ./gradlew assembleDebug for debug)
+./gradlew assembleRelease
 
 # Install and launch on connected device or emulator
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/release/app-release.apk
 adb shell am start -n org.arogyasathi.app/.MainActivity
 ```
 
@@ -121,12 +121,12 @@ Arogyasathi/
 │   │       ├── RecordsScreen.kt          # Tab 3: Outcomes history, sync outbox with retry, protocol browser
 │   │       └── MainScreen.kt             # Root navigation container
 │   ├── app/src/test/kotlin/              # 14 automated unit tests (JEV, Laya, VisitEngine)
-│   └── app/build/outputs/apk/debug/      # app-debug.apk (12 MB standalone APK)
+│   └── app/build/outputs/apk/release/    # app-release.apk (7.88 MB release) / debug (12 MB)
 ├── docs/                                 # Complete documentation suite
 │   ├── PROJECT_MANIFEST.md               # Living single source of truth
 │   ├── architecture/                     # System & Android architectures + implementation reports
 │   └── research/                         # 6 audited reference research documents
-├── FULL_CODE/                            # Production Python core engine (Evaluator Score: 0.9603)
+├── FULL_CODE/                            # Production Python core engine (Evaluator Score: 0.9735)
 │   ├── arogyasathi/                      # Python JEV, Laya, VisitEngine, Protocols, Server
 │   │   ├── jev.py                        # JEV deterministic safety kernel
 │   │   ├── laya.py                       # Laya BM25 retrieval & synthesis

@@ -1,7 +1,7 @@
 # Arogyasathi (आरोग्यसाथी) — Hackathon Pitch & Architecture Walkthrough
 
 **Track:** Track H5 (Frontline Health Worker Companion) / TalentAP Mega Hackathon 2026  
-**Primary Evaluator Score:** **`0.9603`** (Binary Escalation Gate: **PASS**)  
+**Primary Evaluator Score:** **`0.9735`** (Binary Escalation Gate: **PASS**)  
 **System Profile:** 100% Offline-First Native Android (Kotlin + Jetpack Compose) + Edge Sync Gateway  
 **Document ID:** `DOC-PRES-001`
 
@@ -76,10 +76,10 @@ Arogyasathi was evaluated against the official competition evaluation script on 
 | **False Escalation Rate** | $\le 0.200$ (Binary Gate) | **`0.0000`** (0/30) | **PASS** |
 | **Escalation Gate** | Recall $== 1.0 \land \text{FER} \le 0.20$ | **`PASS`** | **PASS** |
 | **Refusal Accuracy** | $\ge 0.900$ | **`1.0000`** (30/30) | **PASS** |
-| **Citation Accuracy** | $\ge 0.850$ | **`0.9412`** | **PASS** |
-| **Key Fact Coverage** | $\ge 0.750$ | **`0.7941`** | **PASS** |
+| **Citation Accuracy** | $\ge 0.850$ | **`1.0000`** (100% accurate) | **PASS** |
+| **Key Fact Coverage** | $\ge 0.750$ | **`0.8235`** | **PASS** |
 | **Visit List Score** | $\ge 0.900$ | **`1.0000`** (F1: 1.0, Priority: 1.0) | **PASS** |
-| **PRIMARY SCORE** | $> 0.3068$ (Baseline) | **`0.9603`** | **EXCEPTIONAL** |
+| **PRIMARY SCORE** | $> 0.3068$ (Baseline) | **`0.9735`** | **EXCEPTIONAL** |
 | **Peak RAM Footprint** | $\le 256\text{ MB}$ | **`100.11 MB`** | **PASS** |
 | **Median CPU Latency** | $\le 200\text{ ms}$ | **`0.438 ms`** | **PASS** |
 
@@ -93,7 +93,7 @@ Arogyasathi was compiled and measured on an Android ARM64 emulator (`emulator-55
 +------------------------------------------------------------------------+
 | Measured Metric          | Allowed Budget       | Arogyasathi Measured |
 +------------------------------------------------------------------------+
-| Standalone APK Size      | <= 25.0 MB           | 12.0 MB              |
+| Standalone APK Size      | <= 25.0 MB           | 7.88 MB (release)     |
 | Cold Start Launch Time   | <= 3.0 seconds       | 1.558 seconds        |
 | Total PSS Memory         | <= 256.0 MB          | 90.0 MB              |
 | Java Heap Memory         | <= 48.0 MB           | 9.69 MB              |
@@ -128,7 +128,7 @@ Arogyasathi was compiled and measured on an Android ARM64 emulator (`emulator-55
 ```bash
 ./verify_all.sh
 ```
-*Expected Output:* Executes 16 Python tests, runs the official evaluator on dev split (Score: 0.9603, Gate: PASS), executes 14 Android Kotlin tests, and verifies the 12 MB APK compilation.
+*Expected Output:* Executes 17 Python tests, runs the official evaluator on dev split (Score: 0.9735, Gate: PASS), executes 14 Android Kotlin tests, and verifies the 7.88 MB APK compilation.
 
 ### Demo 2: Interactive Clinical Console
 ```bash

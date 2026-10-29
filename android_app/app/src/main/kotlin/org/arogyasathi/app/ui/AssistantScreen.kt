@@ -11,26 +11,43 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import org.arogyasathi.app.data.ArogyasathiRepository
 import org.arogyasathi.app.data.AssistantResult
 import java.util.Locale
+import java.util.UUID
+
+enum class MessageSender {
+    USER,
+    ASSISTANT
+}
+
+data class ChatMessage(
+    val id: String = UUID.randomUUID().toString(),
+    val sender: MessageSender,
+    val text: String,
+    val result: AssistantResult? = null,
+    val timestamp: Long = System.currentTimeMillis()
+)
 
 @Composable
 fun AssistantScreen(
@@ -38,11 +55,23 @@ fun AssistantScreen(
     initialQuery: String? = null
 ) {
     val context = LocalContext.current
-    var queryText by remember { mutableStateOf(initialQuery ?: "") }
-    var result by remember { mutableStateOf<AssistantResult?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    var queryText by remember { mutableStateOf("") }
     var isSpeaking by remember { mutableStateOf(false) }
 
-    // TextToSpeech setup
+    // Chat conversation history state
+    val messages = remember {
+        mutableStateListOf(
+            ChatMessage(
+                sender = MessageSender.ASSISTANT,
+                text = "Namaste Didi! 🙏 I am Arogyasathi (आरोग्यसाथी), your offline clinical protocol chatbot companion.\n\nAsk me any maternal, newborn, child health, or NCD question in Hindi, English, or Hinglish — or tap an emergency topic below."
+            )
+        )
+    }
+
+    // TextToSpeech setup for Hindi/English voice guidance
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     DisposableEffect(context) {
         var speech: TextToSpeech? = null
@@ -53,103 +82,200 @@ fun AssistantScreen(
         }
         tts = speech
         onDispose {
-            speech.stop()
-            speech.shutdown()
-        }
-    }
-
-    LaunchedEffect(initialQuery) {
-        if (!initialQuery.isNullOrBlank()) {
-            queryText = initialQuery
-            result = repository.askAssistant(initialQuery)
+            speech?.stop()
+            speech?.shutdown()
         }
     }
 
     fun submitQuery(q: String) {
         val trimmed = q.trim()
-        if (trimmed.isNotEmpty()) {
-            result = repository.askAssistant(trimmed)
-            if (isSpeaking) {
-                tts?.stop()
-                isSpeaking = false
-            }
+        if (trimmed.isEmpty()) return
+
+        // 1. Add user message
+        messages.add(
+            ChatMessage(
+                sender = MessageSender.USER,
+                text = trimmed
+            )
+        )
+        queryText = ""
+
+        // 2. Query clinical engine (JEV deterministic gate + Laya retrieval)
+        val assistantResult = repository.askAssistant(trimmed)
+
+        // 3. Add bot reply
+        messages.add(
+            ChatMessage(
+                sender = MessageSender.ASSISTANT,
+                text = assistantResult.answer,
+                result = assistantResult
+            )
+        )
+
+        // Stop previous speech if running
+        if (isSpeaking) {
+            tts?.stop()
+            isSpeaking = false
+        }
+
+        // Scroll to newest message
+        coroutineScope.launch {
+            listState.animateScrollToItem(messages.size - 1)
         }
     }
 
-    // Speech-to-Text Voice Input Launcher (Native Offline/Online Recognizer)
+    // Handle incoming initial queries from Today or Families screen
+    LaunchedEffect(initialQuery) {
+        if (!initialQuery.isNullOrBlank()) {
+            submitQuery(initialQuery)
+        }
+    }
+
+    // Speech-to-Text Voice Input Launcher
     val speechLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { res ->
         if (res.resultCode == Activity.RESULT_OK) {
             val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
             if (!spoken.isNullOrBlank()) {
-                queryText = spoken
                 submitQuery(spoken)
             }
         }
     }
 
+    val quickTopics = listOf(
+        "Sugar patient behosh pada hai",
+        "Bachche ko bukhar aur jhatke aa rahe hain",
+        "Delivery ke baad heavy bleeding ho rahi hai",
+        "6 weeks vaccination tika schedule",
+        "3rd ANC checkup kab hota hai",
+        "Paracetamol syrup dosage for 2yo"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(CanvasBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .padding(bottom = 80.dp) // Leave room for floating bottom nav
     ) {
-        // Red Emergency Dial 108 Card
-        Card(
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = EmergencyRed),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        // Top 108 Emergency Banner
+        Surface(
+            color = EmergencyRed,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "🚨 EMERGENCY AMBULANCE",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Direct hotline to CHC / 108 / 102",
-                        fontSize = 12.sp,
-                        color = Color(0xFFFFCDD2)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🚨", fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = "EMERGENCY HOTLINE 108 / 102",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Direct ambulance & CHC referral dispatch",
+                            fontSize = 11.sp,
+                            color = Color(0xFFFFCDD2)
+                        )
+                    }
                 }
                 Button(
                     onClick = { dialEmergency(context, "108") },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.semantics { contentDescription = "Call 108 emergency ambulance hotline" }
+                    modifier = Modifier.height(32.dp)
                 ) {
                     Text(
                         text = "CALL 108",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         color = EmergencyRed
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        // Quick Suggestion Chips Carousel
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(quickTopics) { topic ->
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                    onClick = { submitQuery(topic) }
+                ) {
+                    Text(
+                        text = topic,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
 
-        // Clinical Query Input Field with Hindi/English Speech Recognition
-        OutlinedTextField(
-            value = queryText,
-            onValueChange = { queryText = it },
-            placeholder = { Text("Ask clinical protocol question (Hindi, Hinglish, English)...") },
-            trailingIcon = {
+        Divider(color = BorderSubtle, thickness = 0.5.dp)
+
+        // Chat Message Stream
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            items(messages, key = { it.id }) { message ->
+                ChatBubble(
+                    message = message,
+                    onPlayTts = { text ->
+                        if (isSpeaking) {
+                            tts?.stop()
+                            isSpeaking = false
+                        } else {
+                            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts")
+                            isSpeaking = true
+                        }
+                    },
+                    onCall108 = { dialEmergency(context, "108") }
+                )
+            }
+        }
+
+        // Bottom Chat Input Bar
+        Surface(
+            color = Color.White,
+            shadowElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 76.dp) // Room for bottom nav bar
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Speech-to-Text Button
                 IconButton(
-                    modifier = Modifier.semantics { contentDescription = "Voice input in Hindi or English (बोलकर पूछें)" },
                     onClick = {
                         try {
                             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -161,167 +287,209 @@ fun AssistantScreen(
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
-                    }
+                    },
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(Color(0xFFE6F4F1), CircleShape)
+                        .semantics { contentDescription = "Voice input in Hindi or English (बोलकर पूछें)" }
                 ) {
                     Text("🎙️", fontSize = 18.sp)
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = SurfaceCrisp,
-                unfocusedContainerColor = SurfaceCrisp
-            ),
-            maxLines = 3
-        )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Button(
-            onClick = { submitQuery(queryText) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Text("Consult Arogyasathi Protocols", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Quick Clinical Questions Chips
-        Text(
-            text = "Frequently Checked Protocols",
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = TextSecondary
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        val promptPills = listOf(
-            "Bleeding in pregnancy" to "8 mahine ki pregnancy me bleeding ho rahi hai",
-            "Child fits / jhatke" to "bachche ko jhatke aa rahe hain aur behosh hai",
-            "Baby cold to touch" to "navjaat bachcha chhune pe thanda lag raha hai",
-            "Diarrhoea ORS dosage" to "1 saal ke bachche ko dast me kitna ORS dena hai",
-            "Pneumonia fast breathing" to "3 mahine ke bachche ki saans 55 per minute hai",
-            "High BP crisis" to "BP 185/115 aaya hai kya karein",
-            "Paracetamol syrup dose" to "bachche ko bukhar me kaun sa paracetamol syrup du"
-        )
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(promptPills) { (label, q) ->
-                SuggestionChip(
-                    onClick = {
-                        queryText = q
-                        submitQuery(q)
-                    },
-                    label = { Text(label, fontSize = 12.sp) },
-                    colors = SuggestionChipDefaults.suggestionChipColors(containerColor = SurfaceCrisp)
+                // Text Input Field
+                OutlinedTextField(
+                    value = queryText,
+                    onValueChange = { queryText = it },
+                    placeholder = { Text("Ask clinical protocol question...", fontSize = 13.sp) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = CanvasBackground,
+                        unfocusedContainerColor = CanvasBackground,
+                        focusedBorderColor = PrimaryTeal,
+                        unfocusedBorderColor = BorderSubtle
+                    ),
+                    maxLines = 3
                 )
+
+                // Send Button
+                IconButton(
+                    onClick = { submitQuery(queryText) },
+                    enabled = queryText.trim().isNotEmpty(),
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(
+                            if (queryText.trim().isNotEmpty()) PrimaryTeal else Color(0xFFCBD5E1),
+                            CircleShape
+                        )
+                        .semantics { contentDescription = "Send message to Arogyasathi chatbot" }
+                ) {
+                    Text("🚀", fontSize = 16.sp)
+                }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
+@Composable
+fun ChatBubble(
+    message: ChatMessage,
+    onPlayTts: (String) -> Unit,
+    onCall108: () -> Unit
+) {
+    val isUser = message.sender == MessageSender.USER
+    val res = message.result
 
-        // Result Card
-        result?.let { res ->
-            val cardBg = when (res.triageLevel) {
-                "EMERGENCY" -> Color(0xFFFFEBEE)
-                "OUT_OF_SCOPE" -> Color(0xFFFFF8E1)
-                else -> SurfaceCrisp
-            }
-            val accentColor = when (res.triageLevel) {
-                "EMERGENCY" -> EmergencyRed
-                "OUT_OF_SCOPE" -> HighPriorityOrange
-                else -> PrimaryTeal
-            }
-
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = cardBg),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+    ) {
+        if (!isUser) {
+            // Bot Avatar
+            Surface(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape),
+                color = PrimaryTeal
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // Header Banner
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("🩺", fontSize = 16.sp)
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
+        Column(
+            modifier = Modifier.widthIn(max = 310.dp),
+            horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
+        ) {
+            if (isUser) {
+                // User Message Bubble
+                Surface(
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                    color = PrimaryTeal,
+                    shadowElevation = 1.dp
+                ) {
+                    Text(
+                        text = message.text,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    )
+                }
+            } else {
+                // Assistant Message Bubble
+                val isEscalation = res?.isEscalation == true
+                val isRefusal = res?.isRefusal == true
+
+                val bubbleBg = when {
+                    isEscalation -> Color(0xFFFEF2F2)
+                    isRefusal -> Color(0xFFFFFBEB)
+                    else -> Color.White
+                }
+                val bubbleBorder = when {
+                    isEscalation -> EmergencyRed.copy(alpha = 0.5f)
+                    isRefusal -> HighPriorityOrange.copy(alpha = 0.5f)
+                    else -> BorderSubtle
+                }
+
+                Card(
+                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = bubbleBg),
+                    border = BorderStroke(1.dp, bubbleBorder),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        // Badge Strip
+                        if (isEscalation) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = EmergencyRed,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            ) {
+                                Text(
+                                    text = "⚠️ IMMEDIATE DANGER SIGN — REFER NOW",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else if (isRefusal) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = HighPriorityOrange,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            ) {
+                                Text(
+                                    text = "🛡️ OUT OF SCOPE — DOCTOR REFERRAL",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Clinical Text
                         Text(
-                            text = when (res.triageLevel) {
-                                "EMERGENCY" -> "⚠️ DANGER SIGN — IMMEDIATE REFERRAL"
-                                "OUT_OF_SCOPE" -> "🛡️ OUT OF PROTOCOL SCOPE"
-                                else -> "📋 VERIFIED CLINICAL PROTOCOL"
-                            },
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = accentColor
+                            text = message.text,
+                            fontSize = 14.sp,
+                            lineHeight = 21.sp,
+                            color = TextPrimary
                         )
 
-                        // TTS Audio Play/Stop Button
-                        IconButton(
-                            modifier = Modifier.semantics {
-                                contentDescription = if (isSpeaking) "Stop voice readout" else "Listen to clinical advice in Hindi (बोलकर सुनें)"
-                            },
-                            onClick = {
-                                if (isSpeaking) {
-                                    tts?.stop()
-                                    isSpeaking = false
-                                } else {
-                                    tts?.speak(res.answer, TextToSpeech.QUEUE_FLUSH, null, "ArogyasathiTTS")
-                                    isSpeaking = true
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Footer with Citation & Actions
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (res != null) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFE6F4F1)
+                                ) {
+                                    Text(
+                                        text = "Citation: ${res.citedSection}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = DarkTeal,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
                                 }
+                            } else {
+                                Spacer(modifier = Modifier.width(1.dp))
                             }
-                        ) {
-                            Text(
-                                text = if (isSpeaking) "⏹️ Stop" else "🔊 Listen",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = accentColor
-                            )
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Answer body text
-                    Text(
-                        text = res.answer,
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Citation Chip & Actions
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = accentColor.copy(alpha = 0.12f)
-                        ) {
-                            Text(
-                                text = "Citation: ${res.citedSection}",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = accentColor,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-
-                        if (res.isEscalation) {
-                            Button(
-                                onClick = { dialEmergency(context, "108") },
-                                colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                                shape = RoundedCornerShape(8.dp)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Call 108 Now", color = Color.White, fontSize = 12.sp)
+                                // Listen via TTS
+                                IconButton(
+                                    onClick = { onPlayTts(message.text) },
+                                    modifier = Modifier.size(30.dp)
+                                ) {
+                                    Text("🔊", fontSize = 14.sp)
+                                }
+
+                                // If Danger Sign: Immediate 108 Call Button
+                                if (isEscalation) {
+                                    Button(
+                                        onClick = onCall108,
+                                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                                        shape = RoundedCornerShape(6.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(28.dp)
+                                    ) {
+                                        Text("Call 108", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
@@ -345,57 +513,37 @@ private fun dialEmergency(context: Context, number: String) {
 
 @Preview(showBackground = true)
 @Composable
-fun AssistantDangerResultPreview() {
+fun AssistantChatScreenPreview() {
     ArogyasathiTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
-                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "⚠️ DANGER SIGN — IMMEDIATE REFERRAL",
-                        color = EmergencyRed,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            ChatBubble(
+                message = ChatMessage(
+                    sender = MessageSender.USER,
+                    text = "sugar patient behosh pada hai"
+                ),
+                onPlayTts = {},
+                onCall108 = {}
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            ChatBubble(
+                message = ChatMessage(
+                    sender = MessageSender.ASSISTANT,
+                    text = "Unconscious patient: refer immediately (call 108). Give nothing by mouth (ESC-6.3, ESC-1.3).",
+                    result = AssistantResult(
+                        answer = "Unconscious patient: refer immediately (call 108). Give nothing by mouth (ESC-6.3, ESC-1.3).",
+                        citedSection = "ESC-6.3",
+                        isEscalation = true,
+                        isRefusal = false,
+                        triageLevel = "EMERGENCY"
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Convulsions (fits / jhatke): general danger sign, refer immediately to hospital (call 108/102). Give nothing by mouth (ESC-5.1, ESC-1.3).",
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = EmergencyRed.copy(alpha = 0.12f)
-                        ) {
-                            Text(
-                                text = "Citation: ESC-5.1",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = EmergencyRed,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                        Button(
-                            onClick = {},
-                            colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text("Call 108 Now", color = Color.White, fontSize = 12.sp)
-                        }
-                    }
-                }
-            }
+                ),
+                onPlayTts = {},
+                onCall108 = {}
+            )
         }
     }
 }

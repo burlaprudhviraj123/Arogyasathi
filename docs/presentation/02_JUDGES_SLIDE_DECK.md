@@ -2,7 +2,7 @@
 
 > **Challenge:** TalentAP Mega Hackathon 2026 — Track H5 (Frontline Health Worker Companion)  
 > **Region:** Chandrapuri Block (500 Households, 2,234 Beneficiaries, 107 Leaf Protocols)  
-> **Official Evaluator Primary Score:** **`0.9603`** (Gate: **PASS**)  
+> **Official Evaluator Primary Score:** **`0.9735`** (Gate: **PASS**)  
 > **Platform:** 100% Offline-First Native Android (Kotlin + Jetpack Compose) + Edge Gateway
 
 ---
@@ -65,16 +65,16 @@
 
 ## Slide 4: Official Hackathon Evaluator Results (`evaluate.py`)
 
-### *Verified 0.9603 Primary Score with Hard Gate Passed*
+### *Verified 0.9735 Primary Score with Hard Gate Passed*
 
 | Metric | Official Target | Arogyasathi Score | Result |
 |:---|:---|:---|:---:|
-| **Primary Evaluator Score** | $> 0.3068$ (Baseline) | **`0.9603`** | **EXCEPTIONAL** |
+| **Primary Evaluator Score** | $> 0.3068$ (Baseline) | **`0.9735`** | **EXCEPTIONAL (+217%)** |
 | **Danger Escalation Recall** | $= 1.0000$ (Binary Gate) | **`1.0000`** (10/10) | **PASS** |
 | **False Escalation Rate** | $\le 0.2000$ (Binary Gate) | **`0.0000`** (0/30) | **PASS** |
 | **Scope Refusal Accuracy** | $\ge 0.9000$ | **`1.0000`** (30/30) | **PASS** |
-| **Citation Accuracy** | $\ge 0.8500$ | **`0.9412`** | **PASS** |
-| **Key Fact Coverage** | $\ge 0.7500$ | **`0.7941`** | **PASS** |
+| **Citation Accuracy** | $\ge 0.8500$ | **`1.0000`** (100% accurate) | **PASS** |
+| **Key Fact Coverage** | $\ge 0.7500$ | **`0.8235`** | **PASS** |
 | **Visit List Score** | $\ge 0.9000$ | **`1.0000`** ($F_1: 1.0$) | **PASS** |
 
 > **Evaluator Rule:** Failing the binary escalation gate halves the entire primary score. Arogyasathi achieved **100% recall** with **0% false alarms**.
@@ -87,7 +87,7 @@
 
 | Metric | Target Budget | Arogyasathi Result | Headroom |
 |:---|:---|:---|:---:|
-| **Standalone APK Size** | $\le 25\text{ MB}$ | **`12.0 MB`** | **52.0% under budget** |
+| **Standalone APK Size** | $\le 25\text{ MB}$ | **`7.88 MB`** (release) / `12.0 MB` (debug) | **68.5% under budget** |
 | **Cold Start Time** | $\le 3.0\text{ s}$ | **`1.424 s`** (`am start -W`) | **52.5% faster** |
 | **Peak PSS RAM Memory** | $\le 256\text{ MB}$ | **`107.3 MB`** (`dumpsys meminfo`) | **58.1% RAM headroom** |
 | **Java Heap Memory** | $\le 64\text{ MB}$ | **`21.7 MB`** | **66.1% under limit** |
