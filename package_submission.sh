@@ -20,10 +20,14 @@ cp submission/H5_visit_list.csv "$BUNDLE_DIR/submission/"
 cp submission/H5_footprint.json "$BUNDLE_DIR/submission/"
 
 # 2. Copy Android APK
-APK_SRC="android_app/app/build/outputs/apk/debug/app-debug.apk"
+APK_SRC="android_app/app/build/outputs/apk/release/app-release.apk"
+if [ ! -f "$APK_SRC" ]; then
+    APK_SRC="android_app/app/build/outputs/apk/debug/app-debug.apk"
+fi
 if [ ! -f "$APK_SRC" ]; then
     echo "Building Android APK..."
-    (cd android_app && ./gradlew assembleDebug -q)
+    (cd android_app && ./gradlew assembleRelease -q)
+    APK_SRC="android_app/app/build/outputs/apk/release/app-release.apk"
 fi
 cp "$APK_SRC" "$BUNDLE_DIR/Arogyasathi-v1.0-offline.apk"
 
