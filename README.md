@@ -48,10 +48,13 @@ python3 FULL_CODE/cli.py --demo
 python3 FULL_CODE/cli.py
 ```
 
-### C. Zero-Dependency Standalone Browser Showcase
+### C. Zero-Dependency Standalone Browser Showcase & Pitch Deck
 ```bash
 # Open the self-contained offline web demo in any browser:
 open web_demo.html
+
+# Open the interactive 10-slide pitch deck in any browser:
+open slides.html
 ```
 
 ### D. External Pre-Flight Certification Audit
@@ -82,6 +85,12 @@ cd android_app
 # Install and launch on connected device or emulator
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n org.arogyasathi.app/.MainActivity
+```
+
+### G. Automated Android UI Live Tour (ADB)
+```bash
+# Autonomously navigates all 4 workspaces, tests danger sign escalation & sync, and captures screenshots:
+python3 demo_android_tour.py
 ```
 
 ---
@@ -122,14 +131,16 @@ Arogyasathi/
 │   │   ├── qa_engine.py                  # Unified QA pipeline
 │   │   ├── visit_engine.py               # Chandrapuri visit scheduler (09_VIS)
 │   │   └── server.py                     # FastAPI Sub-Centre edge sync gateway
-│   ├── tests/                            # 16 automated test suites
+│   ├── tests/                            # 17 automated test suites
 │   ├── cli.py                            # Interactive console & judge simulation
 │   └── run_pipeline.py                   # Pipeline runner & submission generator
 ├── submission/                           # Scored test submission artifacts
 │   ├── H5_answers.jsonl                  # 200 answers mapped 1:1 to test questions
 │   ├── H5_visit_list.csv                 # 346 prioritized Chandrapuri visits
 │   └── H5_footprint.json                 # Benchmark footprint metadata
+├── slides.html                           # Interactive 10-slide pitch presentation viewer
 ├── web_demo.html                         # Zero-dependency browser showcase
+├── demo_android_tour.py                  # Automated live Android UI demonstration & screenshot tour
 ├── verify_all.sh                         # Unified 5-step verification pipeline
 ├── preflight_audit.py                    # External archive certification auditor
 └── README.md
