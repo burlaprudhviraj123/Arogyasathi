@@ -33,44 +33,54 @@ Arogyasathi implements a deterministic clinical governance and retrieval archite
 
 ## 3. Quick Start & Execution Instructions
 
-### A. Run Automated Unit & Integration Tests
+### A. One-Touch Unified Verification Pipeline
 ```bash
-# Run all 16 unit and integration tests across 5 test suites
-PYTHONPATH=FULL_CODE python3 -m pytest FULL_CODE/tests/
+# Runs Python tests, dev evaluator, Android unit tests, APK compilation, and pre-flight audit:
+./verify_all.sh
 ```
 
-### B. Generate Submissions via CLI
+### B. Automated Judge Simulation & Terminal CLI
 ```bash
-# Generate development submission
-python3 FULL_CODE/run_pipeline.py --split dev --out submission_dev
+# Non-interactive automated simulation for judges (<150 ms):
+python3 FULL_CODE/cli.py --demo
 
-# Generate final competition test submission
-python3 FULL_CODE/run_pipeline.py --split test --out submission
+# Interactive console interface:
+python3 FULL_CODE/cli.py
 ```
 
-### C. Run the Official Evaluator
+### C. Zero-Dependency Standalone Browser Showcase
 ```bash
-# Score the development submission
+# Open the self-contained offline web demo in any browser:
+open web_demo.html
+```
+
+### D. External Pre-Flight Certification Audit
+```bash
+# Audits the official submission ZIP archive in an isolated sandbox:
+python3 preflight_audit.py
+```
+
+### E. Run the Official Evaluator
+```bash
+# Score development submission against ground truth:
 python3 H5_Frontline_Health_Worker_Companion/evaluate.py \
   --submission submission_dev \
   --truth H5_Frontline_Health_Worker_Companion/data/dev_truth.jsonl \
-  --out score.json
+  --out score_dev.json
 ```
 
-### D. Native Android App (Build, Test & Install)
+### F. Native Android App (Build, Test & Install)
 ```bash
 cd android_app
 
-# Run all 14 Kotlin unit tests
+# Run 14 Kotlin unit tests
 ./gradlew test
 
-# Build debug APK (12 MB package size)
+# Build 12 MB standalone debug APK
 ./gradlew assembleDebug
 
-# Install on connected device or emulator
+# Install and launch on connected device or emulator
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-# Launch Arogyasathi on Android
 adb shell am start -n org.arogyasathi.app/.MainActivity
 ```
 
@@ -105,25 +115,23 @@ Arogyasathi/
 │   ├── architecture/                     # System & Android architectures + implementation reports
 │   └── research/                         # 6 audited reference research documents
 ├── FULL_CODE/                            # Production Python core engine (Evaluator Score: 0.9603)
-│   ├── arogyasathi/                      # Python JEV, Laya, VisitEngine, Protocols
-│   └── tests/                            # 9 comprehensive tests
-├── submission/                           # Final evaluated test submission
-│   ├── H5_answers.jsonl
-│   ├── H5_visit_list.csv
-│   └── H5_footprint.json
-└── README.md
-│   │   ├── jev.py                        # JEV governance kernel
-│   │   ├── laya.py                       # Laya retrieval & synthesis
-│   │   ├── protocols.py                  # Protocol leaf parser
+│   ├── arogyasathi/                      # Python JEV, Laya, VisitEngine, Protocols, Server
+│   │   ├── jev.py                        # JEV deterministic safety kernel
+│   │   ├── laya.py                       # Laya BM25 retrieval & synthesis
+│   │   ├── protocols.py                  # Protocol leaf parser (107 sections)
 │   │   ├── qa_engine.py                  # Unified QA pipeline
-│   │   ├── visit_engine.py               # Chandrapuri visit engine
-│   │   └── pipeline.py                   # Submission generator
-│   ├── tests/                            # 9 comprehensive tests
-│   └── run_pipeline.py                   # CLI entrypoint
-├── submission/                           # Final evaluated test submission
-│   ├── H5_answers.jsonl
-│   ├── H5_visit_list.csv
-│   └── H5_footprint.json
+│   │   ├── visit_engine.py               # Chandrapuri visit scheduler (09_VIS)
+│   │   └── server.py                     # FastAPI Sub-Centre edge sync gateway
+│   ├── tests/                            # 16 automated test suites
+│   ├── cli.py                            # Interactive console & judge simulation
+│   └── run_pipeline.py                   # Pipeline runner & submission generator
+├── submission/                           # Scored test submission artifacts
+│   ├── H5_answers.jsonl                  # 200 answers mapped 1:1 to test questions
+│   ├── H5_visit_list.csv                 # 346 prioritized Chandrapuri visits
+│   └── H5_footprint.json                 # Benchmark footprint metadata
+├── web_demo.html                         # Zero-dependency browser showcase
+├── verify_all.sh                         # Unified 5-step verification pipeline
+├── preflight_audit.py                    # External archive certification auditor
 └── README.md
 ```
 
