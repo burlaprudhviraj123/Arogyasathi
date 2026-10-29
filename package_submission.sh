@@ -51,6 +51,12 @@ ZIP_NAME="Arogyasathi_Track_H5_Submission.zip"
 rm -f "$ZIP_NAME"
 (cd "$BUNDLE_DIR" && zip -r "../$ZIP_NAME" .)
 
+if [ -n "$1" ]; then
+    TEAM_ZIP="${1}_H5.zip"
+    cp "$ZIP_NAME" "$TEAM_ZIP"
+    echo "Also generated official team submission: $TEAM_ZIP"
+fi
+
 ZIP_SIZE=$(ls -lh "$ZIP_NAME" | awk '{print $5}')
 
 echo ""
