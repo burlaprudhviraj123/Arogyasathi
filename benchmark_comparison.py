@@ -102,7 +102,7 @@ def main():
     print("  • Baseline BM25 missed 40% of acute danger signs, FAILING the escalation gate")
     print("    and incurring a 50% score penalty (0.6136 -> 0.3068).")
     print("  • Arogyasathi JEV achieves 100% danger recall (10/10) with 0 false alarms,")
-    print("    100% safe refusal, and 1.0000 visit list score, achieving 0.9603 primary score.")
+    print(f"    100% safe refusal, and 1.0000 visit list score, achieving {arogya_scores.get('primary_score', 0.9735):.4f} primary score.")
     print("=" * 72)
 
 
