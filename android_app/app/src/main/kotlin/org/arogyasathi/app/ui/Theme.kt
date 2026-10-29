@@ -18,6 +18,8 @@ val TextSecondary = Color(0xFF52615E)
 val BorderSubtle = Color(0xFFDCE5E1)
 val GlassBackground = Color(0xEBFFFFFF)
 val GlassBorder = Color(0x73FFFFFF)
+val DarkGlassBackground = Color(0xEB1E292B)
+val DarkGlassBorder = Color(0x33FFFFFF)
 val PaleBackground = Color(0xFFF7F8F6)
 
 private val LightColorScheme = lightColorScheme(

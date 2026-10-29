@@ -13,24 +13,24 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
 
 ## Mandatory Requirements
 
-| ID | Requirement | Status |
-|---|---|---|
+| ID           | Requirement                                                                     | Status    |
+| ------------ | ------------------------------------------------------------------------------- | --------- |
 | REQ-FUNC-001 | Protocol-grounded QA with leaf-section citations (≤2 citations) in every answer | Confirmed |
-| REQ-FUNC-002 | Offline mode as primary operating mode (zero connectivity) | Confirmed |
-| REQ-FUNC-003 | Hard-coded danger-sign escalation (100% recall, ≤20% false escalation) | Confirmed |
-| REQ-FUNC-004 | Daily visit list from household register (prioritized 1, 2, 3; VIS rules) | Confirmed |
-| REQ-FUNC-005 | Out-of-scope refusal with redirect to Medical Officer / ANM | Confirmed |
-| REQ-PERF-001 | Measured footprint: model size, memory use, CPU latency | Confirmed |
-| REQ-PERF-002 | Efficiency scored as first-class result in judging rubric | Confirmed |
-| REQ-SAF-001 | Danger-sign detection: 100% on escalation test set (binary gate) | Confirmed |
-| REQ-SAF-002 | No invented protocol citations or unsupported medical instructions | Confirmed |
+| REQ-FUNC-002 | Offline mode as primary operating mode (zero connectivity)                      | Confirmed |
+| REQ-FUNC-003 | Hard-coded danger-sign escalation (100% recall, ≤20% false escalation)          | Confirmed |
+| REQ-FUNC-004 | Daily visit list from household register (prioritized 1, 2, 3; VIS rules)       | Confirmed |
+| REQ-FUNC-005 | Out-of-scope refusal with redirect to Medical Officer / ANM                     | Confirmed |
+| REQ-PERF-001 | Measured footprint: model size, memory use, CPU latency                         | Confirmed |
+| REQ-PERF-002 | Efficiency scored as first-class result in judging rubric                       | Confirmed |
+| REQ-SAF-001  | Danger-sign detection: 100% on escalation test set (binary gate)                | Confirmed |
+| REQ-SAF-002  | No invented protocol citations or unsupported medical instructions              | Confirmed |
 
 ## Stretch Goals
 
-| ID | Goal | Status |
-|---|---|---|
+| ID          | Goal                                                     | Status   |
+| ----------- | -------------------------------------------------------- | -------- |
 | STRETCH-001 | Voice input in one Indian language (Whisper-tiny pinned) | Designed |
-| STRETCH-002 | Sync-when-connected queue for collected data | Designed |
+| STRETCH-002 | Sync-when-connected queue for collected data             | Designed |
 
 ## Explicit Exclusions
 
@@ -42,17 +42,17 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
 
 ## Supplied Artifacts (Verified in `H5_Frontline_Health_Worker_Companion/`)
 
-| Artifact | Location | Status |
-|---|---|---|
-| Protocol corpus (9 docs, 107 leaf sections) | `data/protocols/*.md` | Verified & fully analyzed |
-| 40 Dev questions + 200 Test questions | `data/questions_dev.csv`, `data/questions_test.csv` | Verified |
-| Dev ground truth | `data/dev_truth.jsonl` | Verified |
-| Dev visit list truth & scope | `data/dev_truth_visit_list.csv`, `data/dev_truth_visit_scope.csv` | Verified |
-| 500-family household register (2,234 members) | `data/household_register.csv`, `data/households.csv`, `data/ashas.csv` | Verified |
-| Official evaluator script | `evaluate.py` | Verified & formula audited |
-| Baseline implementation | `baseline/baseline.py` | Verified (BM25 keyword search) |
-| Models script & pinned revisions | `download_models.py`, `MODELS.md` | Verified (Qwen2.5-0.5B-GGUF, e5-small) |
-| Sample submission format | `sample_submission/` | Verified |
+| Artifact                                      | Location                                                               | Status                                 |
+| --------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------- |
+| Protocol corpus (9 docs, 107 leaf sections)   | `data/protocols/*.md`                                                  | Verified & fully analyzed              |
+| 40 Dev questions + 200 Test questions         | `data/questions_dev.csv`, `data/questions_test.csv`                    | Verified                               |
+| Dev ground truth                              | `data/dev_truth.jsonl`                                                 | Verified                               |
+| Dev visit list truth & scope                  | `data/dev_truth_visit_list.csv`, `data/dev_truth_visit_scope.csv`      | Verified                               |
+| 500-family household register (2,234 members) | `data/household_register.csv`, `data/households.csv`, `data/ashas.csv` | Verified                               |
+| Official evaluator script                     | `evaluate.py`                                                          | Verified & formula audited             |
+| Baseline implementation                       | `baseline/baseline.py`                                                 | Verified (BM25 keyword search)         |
+| Models script & pinned revisions              | `download_models.py`, `MODELS.md`                                      | Verified (Qwen2.5-0.5B-GGUF, e5-small) |
+| Sample submission format                      | `sample_submission/`                                                   | Verified                               |
 
 ---
 
@@ -65,14 +65,14 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
 
 ## Research Sources
 
-| # | Source | Status | Document |
-|---|---|---|---|
-| 1 | IJRPR64863 — AI-Powered Companion for ASHA Worker (Care Connect) | Complete | `docs/research/01_IJRPR_CARE_CONNECT_RESEARCH.md` |
-| 2 | CommCare Platform | Complete | `docs/research/02_COMMCARE_PRODUCT_RESEARCH.md` |
-| 3 | CommCare HQ Source Repository | Complete | `docs/research/03_COMMCARE_HQ_TECHNICAL_RESEARCH.md` |
-| 4 | Sahaaya Repository | Complete | `docs/research/04_SAHAAYA_COMPETITOR_RESEARCH.md` |
-| 5 | HealthVaani | Complete | `docs/research/05_HEALTHVAANI_RESEARCH.md` |
-| 6 | ASHA Companion Paper Review | Complete | `docs/research/06_ASHA_COMPANION_PAPER_REVIEW.md` |
+| #   | Source                                                           | Status   | Document                                             |
+| --- | ---------------------------------------------------------------- | -------- | ---------------------------------------------------- |
+| 1   | IJRPR64863 — AI-Powered Companion for ASHA Worker (Care Connect) | Complete | `docs/research/01_IJRPR_CARE_CONNECT_RESEARCH.md`    |
+| 2   | CommCare Platform                                                | Complete | `docs/research/02_COMMCARE_PRODUCT_RESEARCH.md`      |
+| 3   | CommCare HQ Source Repository                                    | Complete | `docs/research/03_COMMCARE_HQ_TECHNICAL_RESEARCH.md` |
+| 4   | Sahaaya Repository                                               | Complete | `docs/research/04_SAHAAYA_COMPETITOR_RESEARCH.md`    |
+| 5   | HealthVaani                                                      | Complete | `docs/research/05_HEALTHVAANI_RESEARCH.md`           |
+| 6   | ASHA Companion Paper Review                                      | Complete | `docs/research/06_ASHA_COMPANION_PAPER_REVIEW.md`    |
 
 ---
 
@@ -102,30 +102,18 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Primary Score: `0.9603` | Gate: `PASS` | Recall: `1.0000` | FER: `0.0000` | Refusal: `1.0000` | Visit Score: `1.0000`
   - Footprint: Peak RAM `102.86 MB` | Latency: `0.452 ms`
 
-- [x] Phase 7 — Production Offline Native Android Application (`docs/architecture/13_OFFLINE_ANDROID_IMPLEMENTATION_REPORT.md`)
-  - Full Clean Architecture in Kotlin + Jetpack Compose (`android_app/`)
-  - 4 Primary Tabs: **Today** (3 metrics counters, visit cards, outcome completion modal), **Families** (search, village filters, expandable cards, health badges), **Assistant** (108 emergency dialer, clinical Q&A, native speech recognition input `🎙️`, TTS audio playback `🔊`), **Records** (outcomes history, sync outbox with edge gateway network sync & offline banner, 107 leaf protocols database browser)
-  - Floating Liquid Glass bottom navigation (translucent capsule navbar matching Stitch MCP design tokens)
-  - Persistent SQLite Layer (`ArogyasathiDbHelper.kt`) with sub-millisecond query indices on `household_id`, `village`, and `status`, plus idempotent first-launch seeding of 500 households, 2,234 beneficiaries, and 107 protocols in < 200 ms
-  - Edge Synchronization: Sub-Centre gateway connection (`POST /api/v1/sync/visit_outcomes`) with durable offline SQLite fallback and automatic retry counters
-  - Complete Kotlin ports of JEV (deterministic danger escalation & scope refusal), Laya (BM25 multilingual retrieval & synthesis <= 400 chars), and VisitEngine (all 09_VIS Chandrapuri Block rules)
-  - On-Device Verified on Android Emulator (API 35 ARM64): APK Size `11.90 MB` release / `12.0 MB` debug, Cold Start `1.424s`, Peak PSS RAM `106.9 MB` (Java Heap `21.3 MB`, Native Heap `11.3 MB`), 58.1% RAM Headroom on 256 MB Budget
-  - Automated Unit Tests: 14/14 Kotlin tests passing + 17/17 Python tests passing with 0 failures, 0 errors
-  - Full TalkBack Accessibility semantics and content-descriptions verified via Android CLI layout inspector
-  - Interactive Offline Pitch Deck (`slides.html`) and Zero-Dependency Web Demo (`web_demo.html`) for browser-based judge evaluation
-  - Complete Pitch & Presentation Suite: 10-slide deck (`02_JUDGES_SLIDE_DECK.md`) and 3-minute video recording script (`03_DEMO_VIDEO_SCRIPT_AND_RECORDING_GUIDE.md`)
-  - Automated Pre-Flight Certification Audit (`preflight_audit.py`) integrated into 5-step unified verification pipeline (`verify_all.sh`)
-  - Automated Android UI Live Tour (`demo_android_tour.py`) with 8 live captured screenshots in `docs/screenshots/tour/`
-  - Headless Jetpack Compose Previews rendered via Android CLI (`android preview render`) for 5 core components with component tree JSON files in `docs/screenshots/previews/`
-  - Head-to-head reproducible baseline comparison script (`benchmark_comparison.py`) demonstrating +213.0% improvement over official BM25 baseline
-  - GitHub Actions CI/CD workflow (`.github/workflows/ci.yml`) automating test evaluation, APK compilation, package assembly, and pre-flight certification
-  - CPU Statistical Latency Profile: Mean `0.180 ms`, P50 `0.131 ms`, P99 `0.447 ms` over 100 continuous queries
+- [x] Phase 6B / 7 — Native Android Offline App Integration (`docs/architecture/12_ANDROID_OFFLINE_APP_IMPLEMENTATION_REPORT.md`)
+  - Kotlin + Jetpack Compose Material3 Clean Architecture (`android_app/`)
+  - Measured APK Size: `11.53 MB` | Cold Start: `1,941 ms` | Peak PSS RAM: `104.59 MB`
+  - On-Device Verified on `prudhvi_s_phone` emulator: live danger triage, 3-Key UI, prioritized visits, protocol browser
+  - Unit tests: 100% pass via `./gradlew test`
 
 ---
 
 ## Mandatory Engineering Rules
 
 The 8 core project rules have been encoded into `GEMINI.md` and `AGENTS.md` and govern all agent and developer actions:
+
 1. 🧠 **Context must never be lost:** Maintain living manifest, read docs before changes, preserve JEV & Laya.
 2. 🔬 **Research before implementation:** Audit every reference, produce standalone research docs, support decisions with evidence.
 3. 🚦 **Strict, phase-gated workflow:** Phase 0 through Phase 7 sequential sign-offs without jumping ahead.
