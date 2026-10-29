@@ -75,3 +75,4 @@ export async function getEmergencyEscalations() {
     LIMIT 20;
   `;
 }
+

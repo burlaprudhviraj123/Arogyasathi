@@ -39,14 +39,19 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- -----------------------------------------------------------------------------
 -- 2. ASHAS (Frontline Workers in Chandrapuri Block)
+-- Primary Auth: Registered Phone Number + OTP (App) / Caller ID + DTMF (Call IVR)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS ashas (
     asha_id VARCHAR(50) PRIMARY KEY,
     asha_name VARCHAR(255) NOT NULL,
     villages TEXT NOT NULL,
-    phone VARCHAR(20),
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    sub_centre VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_ashas_phone ON ashas(phone);
 
 -- -----------------------------------------------------------------------------
 -- 3. HOUSEHOLDS (500 Households across Chandrapuri Villages)

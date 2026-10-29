@@ -58,18 +58,32 @@ def main():
     ashas_file = DATA_DIR / "ashas.csv"
     if ashas_file.exists():
         print("Seeding ASHAs from ashas.csv...")
+        # Registered mobile numbers and sub-centres for Chandrapuri ASHA workers
+        ASHA_METADATA = {
+            "ASHA-RRR5": ("+919876543220", "Belwadi Tola Sub-Centre"),
+            "ASHA-096P": ("+919876543221", "Amrapur Sub-Centre"),
+            "ASHA-YFK5": ("+919876543222", "Kesarganj Sub-Centre"),
+            "ASHA-L9R8": ("+919876543223", "Dhanpura Sub-Centre"),
+            "ASHA-KQXR": ("+919876543224", "Navagaon Khurd Sub-Centre"),
+        }
         with open(ashas_file, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            records = [(r["asha_id"].strip(), r["asha_name"].strip(), r["villages"].strip()) for r in reader]
+            records = []
+            for r in reader:
+                aid = r["asha_id"].strip()
+                phone, sub_centre = ASHA_METADATA.get(aid, ("+919876500000", "Chandrapuri PHC"))
+                records.append((aid, r["asha_name"].strip(), r["villages"].strip(), phone, sub_centre))
         query = """
-            INSERT INTO ashas (asha_id, asha_name, villages)
+            INSERT INTO ashas (asha_id, asha_name, villages, phone, sub_centre)
             VALUES %s
             ON CONFLICT (asha_id) DO UPDATE SET 
                 asha_name = EXCLUDED.asha_name,
-                villages = EXCLUDED.villages;
+                villages = EXCLUDED.villages,
+                phone = EXCLUDED.phone,
+                sub_centre = EXCLUDED.sub_centre;
         """
         execute_values(cursor, query, records)
-        print(f"✓ Seeded {len(records)} ASHAs.\n")
+        print(f"✓ Seeded {len(records)} ASHAs with registered mobile numbers.\n")
 
     # Step 3: Seed Households
     hh_file = DATA_DIR / "households.csv"

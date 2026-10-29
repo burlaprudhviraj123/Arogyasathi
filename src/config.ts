@@ -28,3 +28,4 @@ export const config = {
     secret: process.env.NEON_REALTIME_SECRET || "",
   },
 };
+

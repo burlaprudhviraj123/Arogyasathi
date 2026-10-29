@@ -68,7 +68,7 @@ In Chandrapuri Block, an ASHA visits rural households across 6 villages (Amrapur
 flowchart TD
     Start["Worker Initiates Action"] --> DeviceType{"Device Type?"}
     
-    DeviceType -- "Keypad Feature Phone" --> CallMode["MODE 3: CALL MODE (Twilio Voice IVR)<br/>- 2G Voice Call to Dedicated Number<br/>- DTMF ASHA ID Authentication<br/>- IndicConformer Server STT + IndicTTS<br/>- Server Jev + Strong LLM"]
+    DeviceType -- "Keypad Feature Phone" --> CallMode["MODE 3: CALL MODE (Twilio Voice IVR)<br/>- 2G Voice Call to Dedicated Number<br/>- Caller ID Auto-Verification (Database Lookup)<br/>- DTMF 10-Digit Mobile Fallback Prompt<br/>- IndicConformer Server STT + IndicTTS<br/>- Server Jev + Strong LLM"]
     
     DeviceType -- "Android Smartphone" --> CheckPing{"Ping Health Endpoint<br/>(Latency < 800 ms?)"}
     
@@ -83,10 +83,17 @@ flowchart TD
 
 | Role | Target User | Capabilities | Explicit Restrictions | Authentication Mechanism |
 |---|---|---|---|---|
-| **ASHA / ANM Worker** | Frontline field health worker | Ask protocol queries, view own assigned households, generate daily visit agenda, mark visit outcomes, trigger danger escalations. | Cannot access other workers' households; cannot modify protocols; cannot approve model updates. | ASHA ID + PIN (App JWT or Call DTMF) |
+| **ASHA / ANM Worker** | Frontline field health worker | Ask protocol queries, view own assigned households, generate daily visit agenda, mark visit outcomes, trigger danger escalations. | Cannot access other workers' households; cannot modify protocols; cannot approve model updates. | Registered Mobile Number + OTP (App) / Caller ID Auto-Verification with Keypad Fallback (Call IVR) |
 | **Supervisor (PHC Staff)** | Sub-centre / PHC coordinator | View aggregated village visit logs, receive real-time referral alerts, curate feedback queue for fine-tuning. | Cannot edit protocols or push model updates directly. | Supervisor Portal JWT |
 | **Medical Officer (Doctor)** | Primary Care Physician / Specialist | Review structured referral slips, audit protocol accuracy, flag clinical misclassifications. | Cannot access raw server infrastructure. | Doctor Portal JWT |
 | **Admin** | Central Health Tech Team | Manage user accounts, update protocol documents, approve Laya fine-tuning checkpoints, push OTA updates. | Bound by clinical safety audit before deploying models. | Admin MFA + Signed Certificates |
+
+### Frontline Worker Authentication & Voice IVR Flow
+1. **Mobile Application (Smartphone)**: ASHA workers log in using their **10-digit registered mobile number + OTP**. No alphanumeric worker IDs or complex passwords are required from frontline workers. Once verified, the worker's active profile (name, assigned beat villages, sub-centre, and household quota) is loaded into local encrypted preferences.
+2. **Phone Call Mode (2G Keypad / Feature Phone)**:
+   - When an incoming call arrives via Twilio IVR, the server performs an immediate database lookup on the incoming caller ID (`From` E.164 number against `ashas.phone`).
+   - **Registered Number Match**: If recognized as an official ASHA worker, the call is accepted immediately with zero friction ("Welcome Kalavati-ji...").
+   - **Unrecognized / Borrowed Phone**: If the caller ID does not match, the IVR prompts the caller: *"This phone number is not recognized. Please enter your 10-digit registered ASHA mobile number using the keypad."* If the entered digits match an active registered ASHA, the session is authenticated; if not, access is politely refused and redirected to the PHC supervisor.
 
 ---
 

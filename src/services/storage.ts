@@ -66,3 +66,4 @@ export async function testObjectStorage() {
     totalObjectsInBucket: listRes.KeyCount || 0,
   };
 }
+

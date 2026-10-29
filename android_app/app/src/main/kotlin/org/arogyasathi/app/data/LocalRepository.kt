@@ -33,6 +33,75 @@ class ArogyasathiRepository(private val context: Context) {
     @Volatile
     private var layaRetriever: LayaRetriever? = null
 
+    private var activeAshaId: String = "ASHA-RRR5" // Default: Kalavati Kumari (Belwadi Tola)
+
+    private val allProfiles = listOf(
+        AshaProfile(
+            ashaId = "ASHA-RRR5",
+            name = "Kalavati Kumari",
+            phone = "+91 98765 43220",
+            villages = listOf("Belwadi Tola"),
+            subCentre = "Belwadi Tola Sub-Centre",
+            assignedHouseholdsCount = 100,
+            isVerified = true
+        ),
+        AshaProfile(
+            ashaId = "ASHA-096P",
+            name = "Sunaina Devi",
+            phone = "+91 98765 43221",
+            villages = listOf("Amrapur"),
+            subCentre = "Amrapur Sub-Centre",
+            assignedHouseholdsCount = 100,
+            isVerified = true
+        ),
+        AshaProfile(
+            ashaId = "ASHA-YFK5",
+            name = "Rinku Devi",
+            phone = "+91 98765 43222",
+            villages = listOf("Kesarganj"),
+            subCentre = "Kesarganj Sub-Centre",
+            assignedHouseholdsCount = 100,
+            isVerified = true
+        ),
+        AshaProfile(
+            ashaId = "ASHA-L9R8",
+            name = "Shabnam Khatoon",
+            phone = "+91 98765 43223",
+            villages = listOf("Dhanpura"),
+            subCentre = "Dhanpura Sub-Centre",
+            assignedHouseholdsCount = 100,
+            isVerified = true
+        ),
+        AshaProfile(
+            ashaId = "ASHA-KQXR",
+            name = "Malti Devi",
+            phone = "+91 98765 43224",
+            villages = listOf("Navagaon Khurd", "Sitapahari"),
+            subCentre = "Navagaon Khurd Sub-Centre",
+            assignedHouseholdsCount = 100,
+            isVerified = true
+        )
+    )
+
+    fun getActiveProfile(): AshaProfile {
+        return allProfiles.find { it.ashaId == activeAshaId } ?: allProfiles.first()
+    }
+
+    fun setActiveWorker(ashaId: String) {
+        if (allProfiles.any { it.ashaId == ashaId }) {
+            activeAshaId = ashaId
+        }
+    }
+
+    fun getAllAshaProfiles(): List<AshaProfile> = allProfiles
+
+    fun verifyPhoneNumber(rawPhone: String): AshaProfile? {
+        val clean = rawPhone.replace(Regex("[^0-9]"), "")
+        return allProfiles.find {
+            it.phone.replace(Regex("[^0-9]"), "").endsWith(clean.takeLast(10))
+        }
+    }
+
     fun getProtocols(): List<ProtocolSection> {
         cachedProtocols?.let { return it }
         val list = mutableListOf<ProtocolSection>()

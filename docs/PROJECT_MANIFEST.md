@@ -60,6 +60,8 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
 
 - JEV (Judicial Evidence Validator): Formally adopted as the deterministic clinical governance kernel (JEV-Escalate, JEV-Scope, JEV-Verify).
 - Laya: Formally adopted as the edge language adaptation and retrieval engine (Laya-Lexicon, Laya-Retriever, Laya-Generator).
+- Frontline Authentication: Streamlined to **Registered Mobile Number + OTP** on the Android app, and **Caller ID Auto-Verification with Keypad Fallback** for 2G Twilio voice IVR calls. Frontline workers are never burdened with alphanumeric IDs or passwords. Profile screen and beat switcher embedded in native Android UI.
+- Central Database & Team Roles: Neon Serverless Postgres with dedicated roles (ASHA, Supervisor, Medical Officer, Admin), live sync tables, feedback curation queue, and object storage for protocol artifacts.
 
 ---
 

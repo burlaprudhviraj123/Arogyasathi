@@ -21,7 +21,19 @@ enum class SyncStatus {
 data class Asha(
     val ashaId: String,
     val ashaName: String,
-    val villages: List<String>
+    val villages: List<String>,
+    val phone: String = "+919876543220",
+    val subCentre: String = "Chandrapuri CHC"
+)
+
+data class AshaProfile(
+    val ashaId: String,
+    val name: String,
+    val phone: String,
+    val villages: List<String>,
+    val subCentre: String,
+    val assignedHouseholdsCount: Int = 100,
+    val isVerified: Boolean = true
 )
 
 data class Household(
