@@ -154,19 +154,6 @@ fun AssistantScreen(
         }
     }
 
-    // React to initial patient changes
-    LaunchedEffect(initialPatient) {
-        if (initialPatient != null && initialPatient != activePatient) {
-            activePatient = initialPatient
-            reloadMessages(initialPatient)
-        }
-    }
-
-    // Initial load
-    LaunchedEffect(activePatient) {
-        reloadMessages(activePatient)
-    }
-
     fun submitQuery(q: String) {
         val trimmed = q.trim()
         if (trimmed.isEmpty()) return
@@ -238,12 +225,21 @@ fun AssistantScreen(
         }
     }
 
-    // Handle incoming initial query
-    LaunchedEffect(initialQuery) {
+    // React to initial patient and query changes from navigation
+    LaunchedEffect(initialPatient, initialQuery) {
+        if (initialPatient != null && initialPatient != activePatient) {
+            activePatient = initialPatient
+            reloadMessages(initialPatient)
+        }
         if (!initialQuery.isNullOrBlank()) {
             submitQuery(initialQuery)
             onClearInitialContext()
         }
+    }
+
+    // Initial load
+    LaunchedEffect(activePatient) {
+        reloadMessages(activePatient)
     }
 
     // Speech-to-Text Voice Input Launcher
@@ -271,13 +267,25 @@ fun AssistantScreen(
             "Random blood sugar >=200 guidelines",
             "Salt reduction and exercise counselling"
         )
+        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isChildUnderFive == true -> listOf(
+            "Motions avthunnai (ORS and Zinc dose)",
+            "Fast breathing and chest indrawing",
+            "Next due vaccine schedule",
+            "MUAC malnutrition screening"
+        )
+        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isNewbornUnderTwoMonths == true -> listOf(
+            "Baby unable to suck or feed",
+            "Baby cold to touch hypothermia",
+            "Cord care and delayed bathing",
+            "HBNC home visit schedule"
+        )
         else -> listOf(
-            "Sugar patient behosh pada hai",
-            "Bachche ko bukhar aur jhatke aa rahe hain",
-            "Delivery ke baad heavy bleeding ho rahi hai",
+            "Diarrhoea ORS and Zinc dose",
             "6 weeks vaccination tika schedule",
             "3rd ANC checkup kab hota hai",
-            "Diarrhoea ORS and Zinc dose"
+            "Sugar patient behosh pada hai",
+            "Bachche ko bukhar aur jhatke aa rahe hain",
+            "Delivery ke baad heavy bleeding ho rahi hai"
         )
     }
 
@@ -583,7 +591,7 @@ fun AssistantScreen(
                             }
                             speechLauncher.launch(intent)
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            Toast.makeText(context, "Voice input not supported on this device. Please type your query.", Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier
@@ -865,12 +873,20 @@ fun ChatBubble(
                                             val slip = ReferralSlip(
                                                 patientId = activePatient?.memberId ?: "M-EMERGENCY",
                                                 patientName = activePatient?.name ?: message.patientName ?: "Emergency Patient",
-                                                ageGender = if (activePatient != null) "${activePatient.dob} / ${activePatient.sex}" else "Female",
+                                                ageGender = if (activePatient != null) {
+                                                    val age = org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient.dob)?.ageDisplay ?: activePatient.dob
+                                                    "$age / ${if (activePatient.sex == "M") "Male" else "Female"}"
+                                                } else "Adult / Female",
                                                 village = activePatient?.village ?: "Chandrapuri Block",
                                                 householdId = activePatient?.householdId ?: "HH-EMERGENCY",
                                                 suspectedCondition = "Acute Danger Sign",
                                                 dangerSigns = listOf(res.citedSection),
-                                                vitalSigns = if (activePatient?.isPregnant == true) "BP: ${activePatient.lastAncBp ?: "Check Urgently"}, Hb: ${activePatient.lastHbGdl ?: "Check"}" else "Critical Evaluation",
+                                                vitalSigns = when {
+                                                    activePatient?.isPregnant == true -> "BP: ${activePatient.lastAncBp ?: "Check Urgently"}, Hb: ${activePatient.lastHbGdl ?: "Check"} g/dL"
+                                                    activePatient?.lastBpReading != null -> "BP: ${activePatient.lastBpReading}"
+                                                    activePatient?.lastMuacCm != null -> "MUAC: ${activePatient.lastMuacCm} cm"
+                                                    else -> "Critical Triage"
+                                                },
                                                 protocolCitation = res.citedSection
                                             )
                                             onOpenReferralSlip(slip)

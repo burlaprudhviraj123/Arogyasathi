@@ -149,4 +149,82 @@ class LayaTest {
         assertNotNull("Must detect Telugu unconsciousness as emergency", res3)
         assertEquals("ESC-6.3", res3?.first)
     }
+
+    @Test
+    fun testBilateralPittingOedemaTriggersSamReferral() {
+        val section = ProtocolSection(
+            sectionId = "NUT-1.1",
+            title = "MUAC screening",
+            body = "Measure MUAC. Check both feet for bilateral pitting oedema. Refer SAM to NRC.",
+            category = "NUT"
+        )
+        val oedemaChild = org.arogyasathi.app.core.Member(
+            memberId = "M-OEDEMA01",
+            householdId = "HH-01",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Aarav Kumar",
+            relation = "Son",
+            sex = "M",
+            dob = "2024-02-10",
+            lastMuacCm = 12.8, // Normal green MUAC, but has oedema
+            bilateralPittingOedema = true
+        )
+        val synth = LayaSynthesizer.synthesizeWithContext(section, "check malnutrition and muac", oedemaChild)
+        assertTrue("Must detect bilateral pitting oedema", synth.textEnglish.contains("oedema") || synth.textEnglish.contains("Oedema"))
+        assertTrue("Must identify SAM with complications", synth.textEnglish.contains("SAM"))
+        assertTrue("Must refer immediately to NRC", synth.textEnglish.contains("NRC"))
+        assertTrue("Must cite GoI protocol", synth.textEnglish.contains("NUT-1.1") || synth.textEnglish.contains("ESC-5.3"))
+    }
+
+    @Test
+    fun testSevereAnaemiaInPregnancyGuidance() {
+        val section = ProtocolSection(
+            sectionId = "ANC-1.2",
+            title = "ANC Vitals and Examination",
+            body = "Check Hb at every visit. If Hb < 7.0 g/dL refer for severe anaemia.",
+            category = "ANC"
+        )
+        val anaemicMother = org.arogyasathi.app.core.Member(
+            memberId = "M-ANAEMIA01",
+            householdId = "HH-02",
+            village = "Belwadi Tola",
+            ashaId = "ASHA-RRR5",
+            name = "Meera Bai",
+            relation = "Self",
+            sex = "F",
+            dob = "2000-01-15",
+            isPregnant = true,
+            edd = "2026-12-05",
+            lastAncBp = "118/76",
+            lastHbGdl = 6.4 // Severe Anaemia < 7.0
+        )
+        val synth = LayaSynthesizer.synthesizeWithContext(section, "ANC follow up vitals check", anaemicMother)
+        assertTrue("Must identify severe anaemia", synth.textEnglish.contains("Severe Anaemia") || synth.textEnglish.contains("severe anaemia"))
+        assertTrue("Must recommend parenteral iron or blood transfusion referral", synth.textEnglish.contains("refer") || synth.textEnglish.contains("CHC"))
+        assertTrue("Must cite ANC-3.1", synth.textEnglish.contains("ANC-3.1"))
+    }
+
+    @Test
+    fun testAgeCalculatorCategories() {
+        // 1. Newborn 15 days old
+        val newborn = org.arogyasathi.app.laya.PatientAgeCalculator.calculate("2026-10-11", "2026-10-26")
+        assertNotNull(newborn)
+        assertTrue("Must be newborn", newborn!!.isNewbornUnderTwoMonths)
+        assertTrue("Must be infant under 1", newborn.isInfantUnderOne)
+
+        // 2. Child 4 years 6 months old
+        val child = org.arogyasathi.app.laya.PatientAgeCalculator.calculate("2022-04-12", "2026-10-26")
+        assertNotNull(child)
+        assertTrue("Must be child 2 to 5", child!!.isChildTwoToFive)
+        assertTrue("Must be child under 5", child.isChildUnderFive)
+        assertEquals(4, child.years)
+        assertEquals(6, child.months)
+
+        // 3. Adult 28 years old
+        val adult = org.arogyasathi.app.laya.PatientAgeCalculator.calculate("1998-05-12", "2026-10-26")
+        assertNotNull(adult)
+        assertTrue("Must be adult", adult!!.isAdult)
+        assertFalse("Must not be child under 5", adult.isChildUnderFive)
+    }
 }

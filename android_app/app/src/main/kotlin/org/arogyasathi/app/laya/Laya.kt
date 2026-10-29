@@ -13,6 +13,7 @@ data class PatientAgeInfo(
     val ageDisplay: String,
     val isChildUnderTwo: Boolean,
     val isChildTwoToFive: Boolean,
+    val isChildUnderFive: Boolean,
     val isInfantUnderOne: Boolean,
     val isUnderSixMonths: Boolean,
     val isNewbornUnderTwoMonths: Boolean,
@@ -57,6 +58,7 @@ object PatientAgeCalculator {
                 ageDisplay = ageDisplay,
                 isChildUnderTwo = totalMonths < 24,
                 isChildTwoToFive = totalMonths in 24..60,
+                isChildUnderFive = y < 5,
                 isInfantUnderOne = totalMonths < 12,
                 isUnderSixMonths = totalMonths < 6,
                 isNewbornUnderTwoMonths = totalDays <= 60,
@@ -382,14 +384,18 @@ object LayaSynthesizer {
                     val bp = patient.lastAncBp ?: "Check BP"
                     val hb = patient.lastHbGdl?.let { "$it g/dL" } ?: "Check Hb"
 
-                    if (qLower.contains("ifa") || qLower.contains("iron") || qLower.contains("lal goli")) {
-                        primaryCitation = "ANC-2.2"
-                        enBody = "For ${patient.name} (Pregnant, EDD: $edd, Last Hb: $hb): Provide 1 red IFA tablet daily (100 mg elemental iron + 500 mcg folic acid) for 180 days starting at 14 weeks. Do not take with tea or milk. If severe anaemia (Hb <7.0 g/dL), refer to CHC for parenteral iron (ANC-2.2)."
-                        hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन: $hb): 14 सप्ताह से रोजाना 1 लाल आईएफए की गोली 180 दिनों तक दें। इसे चाय या दूध के साथ न लें।"
-                    } else if (qLower.contains("calcium")) {
+                    if (qLower.contains("calcium")) {
                         primaryCitation = "ANC-2.3"
                         enBody = "For ${patient.name} (Pregnant, EDD: $edd): Give 2 Calcium tablets daily (500 mg elemental calcium each = 1000 mg/day) starting from 14 weeks until 6 months postpartum. Take Calcium separately from IFA by at least 2 hours (ANC-2.3)."
                         hiBody = "${patient.name} (गर्भवती): 14 हफ्ते से रोजाना 2 कैल्शियम की गोलियां (1000 मिग्रा) दें। कैल्शियम और आयरन की गोली के बीच कम से कम 2 घंटे का अंतर रखें।"
+                    } else if (qLower.contains("ifa") || qLower.contains("iron") || qLower.contains("lal goli")) {
+                        primaryCitation = "ANC-2.2"
+                        enBody = "For ${patient.name} (Pregnant, EDD: $edd, Last Hb: $hb): Provide 1 red IFA tablet daily (100 mg elemental iron + 500 mcg folic acid) for 180 days starting at 14 weeks. Do not take with tea or milk. If severe anaemia (Hb <7.0 g/dL), refer to CHC for parenteral iron (ANC-2.2)."
+                        hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन: $hb): 14 सप्ताह से रोजाना 1 लाल आईएफए की गोली 180 दिनों तक दें। इसे चाय या दूध के साथ न लें।"
+                    } else if (patient.lastHbGdl != null && patient.lastHbGdl < 7.0) {
+                        primaryCitation = "ANC-3.1"
+                        enBody = "For ${patient.name} (Pregnant, EDD: $edd, Severe Anaemia: Hb $hb): Haemoglobin is below 7.0 g/dL. This is severe anaemia—refer immediately to CHC/FRU for parenteral iron therapy or blood transfusion (ANC-3.1, ESC-2.5)."
+                        hiBody = "${patient.name} (गर्भवती, हीमोग्लोबिन $hb): 7.0 से कम गंभीर एनीमिया है। तुरंत सीएचसी रेफर करें।"
                     } else {
                         enBody = "For ${patient.name} (Pregnant, EDD: $edd): 1. Ensure all 4 mandatory ANC checkups are completed (ANC-1: <=12w, ANC-2: 14-26w, ANC-3: 28-34w, ANC-4: 36-40w). 2. Vitals check: Last BP $bp, Hb $hb. If BP >=140/90, severe headache, face swelling, or bleeding occurs, refer immediately to CHC (ANC-1.2, ESC-2.3)."
                         hiBody = "${patient.name} (गर्भवती, ईडीडी: $edd): कम से कम 4 एएनसी जांच समय पर कराएं। हर महीने की 9 तारीख को पीएमएसएमए में डॉक्टर से जांच कराएं। बीपी $bp, हीमोग्लोबिन $hb है।"
@@ -410,24 +416,22 @@ object LayaSynthesizer {
 
                 if (patient != null && patient.lastMuacCm != null) {
                     val muac = patient.lastMuacCm
+                    val isOedema = patient.bilateralPittingOedema
                     val band = when {
                         muac < 11.5 -> "Red band (<11.5 cm, Severe Acute Malnutrition - SAM)"
                         muac < 12.5 -> "Yellow band (11.5-12.4 cm, Moderate Acute Malnutrition - MAM)"
                         else -> "Green band (>=12.5 cm, Normal)"
                     }
-                    enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Last recorded MUAC is $muac cm ($band). " +
-                        if (muac < 11.5) {
-                            "Check for bilateral pitting oedema. Because MUAC < 11.5 cm, child has SAM—refer immediately to Nutrition Rehabilitation Centre (NRC) (NUT-1.1, NUT-2.1)."
-                        } else {
-                            "Maintain healthy growth with energy-dense home feeds (khichdi with ghee, pulses, eggs, vegetables) 4-5 times daily (NUT-1.1)."
-                        }
-
-                    hiBody = "${patient.name}: पिछली एमयूएसी (MUAC) $muac सेमी ($band) है। " +
-                        if (muac < 11.5) {
-                            "यह गंभीर कुपोषण (SAM) है, बच्चे को तुरंत पोषण पुनर्वास केंद्र (NRC) रेफर करें।"
-                        } else {
-                            "पोषण सामान्य है। रोजाना पौष्टिक आहार और मौसमी फल-सब्जियां दें।"
-                        }
+                    if (isOedema) {
+                        enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Bilateral pitting oedema detected on both feet. Regardless of MUAC ($muac cm), oedema indicates SAM with complications—refer immediately to NRC (NUT-1.1, NUT-2.1, ESC-5.3)."
+                        hiBody = "${patient.name}: दोनों पैरों में गड्ढे पड़ने वाली सूजन गंभीर कुपोषण (SAM) है—तुरंत पोषण पुनर्वास केंद्र (NRC) रेफर करें।"
+                    } else if (muac < 11.5) {
+                        enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Last recorded MUAC is $muac cm ($band). Child has SAM—refer immediately to Nutrition Rehabilitation Centre (NRC) (NUT-1.1, NUT-2.1)."
+                        hiBody = "${patient.name}: पिछली एमयूएसी $muac सेमी (लाल पट्टी) गंभीर कुपोषण (SAM) है, तुरंत एनआरसी रेफर करें।"
+                    } else {
+                        enBody = "For ${patient.name} (${ageInfo?.ageDisplay ?: "Child"}): Last recorded MUAC is $muac cm ($band). Maintain healthy growth with energy-dense home feeds (khichdi with ghee, pulses, eggs) 4-5 times daily (NUT-1.1)."
+                        hiBody = "${patient.name}: पिछली एमयूएसी $muac सेमी सामान्य है। रोजाना पौष्टिक आहार और मौसमी फल-सब्जियां दें।"
+                    }
                 } else {
                     enBody = "Measure MUAC on left mid-upper arm for children 6-59 months: Red (<11.5 cm) indicates Severe Acute Malnutrition (SAM); Yellow (11.5-12.4 cm) indicates MAM; Green (>=12.5 cm) normal. Check both feet for bilateral pitting oedema. Refer SAM children with complications to NRC. Cites: NUT-1.1, NUT-2.1."
                     hiBody = "6-59 माह के बच्चों में बाईं बांह पर MUAC टेप से नापें: 11.5 सेमी से कम (लाल) या दोनों पैरों में गड्ढे पड़ने वाली सूजन गंभीर कुपोषण (SAM) है। ऐसे बच्चे को तुरंत पोषण पुनर्वास केंद्र (NRC) रेफर करें।"

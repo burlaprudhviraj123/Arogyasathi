@@ -2,9 +2,11 @@ package org.arogyasathi.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -29,6 +31,7 @@ import org.arogyasathi.app.data.ArogyasathiRepository
 @Composable
 fun TodayScreen(
     repository: ArogyasathiRepository,
+    activeProfile: org.arogyasathi.app.core.AshaProfile = repository.getActiveProfile(),
     onNavigateToAssistant: (String, String?) -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -63,7 +66,6 @@ fun TodayScreen(
         }
     }
 
-    val activeProfile = remember { repository.getActiveProfile() }
     var selectedVillage by remember { mutableStateOf("All") }
     var selectedPriority by remember { mutableStateOf<Priority?>(null) }
     var visitList by remember { mutableStateOf<List<VisitItem>>(emptyList()) }
@@ -75,7 +77,7 @@ fun TodayScreen(
         completedCount = repository.getCompletedVisits().size
     }
 
-    LaunchedEffect(selectedVillage, selectedPriority) {
+    LaunchedEffect(selectedVillage, selectedPriority, activeProfile.ashaId) {
         refreshVisits()
     }
 
@@ -171,12 +173,17 @@ fun TodayScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Village Filter Chips
+        // Village Filter Chips (Scrollable across all block villages & beat)
+        val villageOptions = remember(activeProfile) {
+            listOf("All", "My Beat") + repository.getAllVillages()
+        }
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            listOf("All", "Belwadi Tola", "Amrapur", "Kesarganj").forEach { village ->
+            villageOptions.forEach { village ->
                 FilterChip(
                     selected = selectedVillage == village,
                     onClick = { selectedVillage = village },

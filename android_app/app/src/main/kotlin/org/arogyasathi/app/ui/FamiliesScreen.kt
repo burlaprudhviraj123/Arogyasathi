@@ -3,9 +3,11 @@ package org.arogyasathi.app.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -58,12 +60,17 @@ fun FamiliesScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Village Filter Chips
+        // Village Filter Chips (Scrollable across all villages and beat)
+        val villageOptions = remember {
+            listOf("All", "My Beat") + repository.getAllVillages()
+        }
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            listOf("All", "Belwadi Tola", "Amrapur", "Kesarganj").forEach { village ->
+            villageOptions.forEach { village ->
                 FilterChip(
                     selected = selectedVillage == village,
                     onClick = { selectedVillage = village },
@@ -200,8 +207,9 @@ fun MemberRowItem(
                         fontSize = 14.sp,
                         color = TextPrimary
                     )
+                    val ageDisplay = org.arogyasathi.app.laya.PatientAgeCalculator.calculate(member.dob)?.ageDisplay ?: member.dob
                     Text(
-                        text = "Sex: ${member.sex} • DOB: ${member.dob}",
+                        text = "Age: $ageDisplay • ${member.sex} (${member.dob})",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )

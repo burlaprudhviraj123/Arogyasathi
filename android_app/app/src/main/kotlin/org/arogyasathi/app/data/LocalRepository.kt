@@ -97,6 +97,10 @@ class ArogyasathiRepository(private val context: Context) {
 
     fun getAllAshaProfiles(): List<AshaProfile> = allProfiles
 
+    fun getAllVillages(): List<String> = listOf(
+        "Belwadi Tola", "Amrapur", "Kesarganj", "Dhanpura", "Navagaon Khurd", "Sitapahari"
+    )
+
     fun verifyPhoneNumber(rawPhone: String): AshaProfile? {
         val clean = rawPhone.replace(Regex("[^0-9]"), "")
         return allProfiles.find {
@@ -142,8 +146,15 @@ class ArogyasathiRepository(private val context: Context) {
         val selectionArgs = mutableListOf<String>()
 
         if (!villageFilter.isNullOrBlank() && villageFilter != "All") {
-            selection.add("village = ?")
-            selectionArgs.add(villageFilter.trim())
+            if (villageFilter == "My Beat") {
+                val activeVillages = getActiveProfile().villages
+                val placeholders = activeVillages.joinToString(",") { "?" }
+                selection.add("village IN ($placeholders)")
+                selectionArgs.addAll(activeVillages)
+            } else {
+                selection.add("village = ?")
+                selectionArgs.add(villageFilter.trim())
+            }
         }
         if (!searchQuery.isNullOrBlank()) {
             selection.add("(head_name LIKE ? OR house_no LIKE ? OR household_id LIKE ?)")
@@ -234,10 +245,17 @@ class ArogyasathiRepository(private val context: Context) {
         val members = getAllMembers()
         val allVisits = VisitEngine.generateVisits(members)
         val completedIds = getCompletedVisitKeys()
+        val activeVillages = getActiveProfile().villages
 
         return allVisits
             .filter { !completedIds.contains("${it.memberId}_${it.dueItem}") }
-            .filter { villageFilter.isNullOrBlank() || villageFilter == "All" || it.village == villageFilter }
+            .filter {
+                when {
+                    villageFilter.isNullOrBlank() || villageFilter == "All" -> true
+                    villageFilter == "My Beat" -> it.village in activeVillages
+                    else -> it.village == villageFilter
+                }
+            }
             .filter { priorityFilter == null || it.priority == priorityFilter }
     }
 

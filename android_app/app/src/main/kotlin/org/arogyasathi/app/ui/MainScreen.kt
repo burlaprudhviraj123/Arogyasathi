@@ -114,6 +114,7 @@ fun MainScreen() {
             when (selectedTab) {
                 0 -> TodayScreen(
                     repository = repository,
+                    activeProfile = activeProfile,
                     onNavigateToAssistant = { prompt, memberId ->
                         assistantPatient = memberId?.let { repository.getMemberById(it) }
                         assistantQuery = prompt
