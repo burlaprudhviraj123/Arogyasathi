@@ -54,7 +54,7 @@ DANGER_RULES = [
     ),
     # 7. Bleeding in pregnancy (ESC-2.1)
     (
-        r"bleeding in (?:first|second|third|pregnancy)|garbh.*khoon|pregnant.*khoon|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya",
+        r"bleeding in (?:first|second|third|pregnancy)|garbh.*(?:khoon|bleeding)|pregnant.*(?:khoon|bleeding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(?:mahila|aurat|garbhwati).*(?:bleeding|khoon aa raha|khoon beh).*(?:\d+.*mahine|pregnancy|garbh)|(?:bleeding|khoon aa raha|khoon beh).*(?:\d+.*mahine|pregnant|garbh)",
         "ESC-2.1",
         "Any vaginal bleeding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2)."
     ),

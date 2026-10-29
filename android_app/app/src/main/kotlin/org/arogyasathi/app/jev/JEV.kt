@@ -36,7 +36,7 @@ object JEVEscalate {
         ),
         // 7. Vaginal bleeding in pregnancy
         Pair(
-            Regex("(bleeding in (first|second|third|pregnancy)|garbh.*khoon|pregnant.*khoon|subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag)", RegexOption.IGNORE_CASE),
+            Regex("(bleeding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|bleeding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati).*(bleeding|khoon aa raha|khoon beh).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh).*(\\d+.*mahine|pregnant|garbh))", RegexOption.IGNORE_CASE),
             Pair("ESC-2.1", "Any vaginal bleeding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2).")
         ),
         // 8. Pre-eclampsia
