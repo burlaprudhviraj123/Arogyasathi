@@ -32,11 +32,16 @@ echo "[3/4] Running Android Kotlin Unit Tests..."
 
 # 4. Assemble Android Debug APK
 echo ""
-echo "[4/4] Building Android Debug APK..."
+echo "[4/5] Building Android Debug APK..."
 (cd android_app && ./gradlew assembleDebug -q)
 
 APK_PATH="android_app/app/build/outputs/apk/debug/app-debug.apk"
 APK_SIZE=$(ls -lh "$APK_PATH" | awk '{print $5}')
+
+# 5. Run Pre-Flight Certification Audit on Submission ZIP
+echo ""
+echo "[5/5] Running Pre-Flight Certification Audit..."
+python3 preflight_audit.py
 
 echo ""
 echo "================================================================"
