@@ -58,23 +58,74 @@ data class ChatMessage(
     val sender: MessageSender,
     val text: String,
     val textHindi: String = "",
+    val textTelugu: String = "",
+    val textTamil: String = "",
+    val textKannada: String = "",
+    val textMalayalam: String = "",
     val result: AssistantResult? = null,
     val patientName: String? = null,
     val timestamp: Long = System.currentTimeMillis()
-)
+) {
+    fun getDisplayText(lang: VoiceLanguage): String {
+        if (sender == MessageSender.USER) return text
+        if (result != null) {
+            return result.getAnswerForLanguage(lang.code)
+        }
+        return when (lang) {
+            VoiceLanguage.HINDI -> if (textHindi.isNotBlank()) textHindi else text
+            VoiceLanguage.TELUGU -> if (textTelugu.isNotBlank()) textTelugu else "గమనిక: $text"
+            VoiceLanguage.TAMIL -> if (textTamil.isNotBlank()) textTamil else "குறிப்பு: $text"
+            VoiceLanguage.KANNADA -> if (textKannada.isNotBlank()) textKannada else "ಸೂಚನೆ: $text"
+            VoiceLanguage.MALAYALAM -> if (textMalayalam.isNotBlank()) textMalayalam else "ശ്രദ്ധിക്കുക: $text"
+            VoiceLanguage.ENGLISH -> text
+        }
+    }
+}
 
 enum class VoiceLanguage(
     val code: String,
     val nativeLabel: String,
     val shortCode: String,
-    val prompt: String
+    val prompt: String,
+    val inputPlaceholder: String,
+    val offlineVoiceNotice: String
 ) {
-    ENGLISH("en-IN", "English", "EN", "Speak clinical query (English)"),
-    HINDI("hi-IN", "हिन्दी", "HI", "बोलें — नैदानिक प्रश्न पूछें (Hindi)"),
-    TELUGU("te-IN", "తెలుగు", "TE", "మాట్లాడండి — క్లినికల్ ప్రశ్న (Telugu)"),
-    TAMIL("ta-IN", "தமிழ்", "TA", "பேசுங்கள் — மருத்துவ கேள்வி (Tamil)"),
-    KANNADA("kn-IN", "ಕನ್ನಡ", "KN", "ಮಾತನಾಡಿ — ಕ್ಲಿನಿಕಲ್ ಪ್ರಶ್ನೆ (Kannada)"),
-    MALAYALAM("ml-IN", "മലയാളം", "ML", "സംസാരിക്കൂ — ക്ലിനിക്കൽ ചോദ്യം (Malayalam)")
+    ENGLISH(
+        "en-IN", "English", "EN",
+        "Speak clinical query (English)",
+        "Ask clinical protocol question...",
+        "English offline voice recognition is supported on this device."
+    ),
+    HINDI(
+        "hi-IN", "हिन्दी", "HI",
+        "बोलें — नैदानिक प्रश्न पूछें (Hindi)",
+        "नैदानिक प्रोटोकॉल प्रश्न पूछें...",
+        "हिन्दी ऑफ़लाइन वॉयस पैक सेटिंग्स में डाउनलोड करें।"
+    ),
+    TELUGU(
+        "te-IN", "తెలుగు", "TE",
+        "మాట్లాడండి — క్లినికల్ ప్రశ్న (Telugu)",
+        "క్లినికల్ ప్రోటోకాల్ ప్రశ్న అడగండి...",
+        "తెలుగు ఆఫ్‌లైన్ వాయిస్ ప్యాక్ సెట్టింగ్స్‌లో డౌన్‌లోడ్ చేసుకోండి."
+    ),
+    TAMIL(
+        "ta-IN", "தமிழ்", "TA",
+        "பேசுங்கள் — மருத்துவ கேள்வி (Tamil)",
+        "மருத்துவ நெறிமுறை கேள்வி கேட்கவும்...",
+        "தமிழ் ஆஃப்லைன் குரல் தொகுப்பை அமைப்புகளில் பதிவிறக்கவும்."
+    ),
+    KANNADA(
+        "kn-IN", "ಕನ್ನಡ", "KN",
+        "ಮಾತನಾಡಿ — ಕ್ಲಿನಿಕಲ್ ಪ್ರಶ್ನೆ (Kannada)",
+        "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ ಪ್ರಶ್ನೆ ಕೇಳಿ...",
+        "ಕನ್ನಡ ಆಫ್‌ಲೈನ್ ಧ್ವನಿ ಪ್ಯಾಕ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ."
+    ),
+    MALAYALAM(
+        "ml-IN", "മലയാളം", "ML",
+        "സംസാരിക്കൂ — ക്ലിനിക്കൽ ചോദ്യം (Malayalam)",
+        "ക്ലിനിക്കൽ പ്രോട്ടോക്കോൾ ചോദ്യം ചോദിക്കൂ...",
+        "മലയാളം ഓഫ്‌ലൈൻ വോയ്‌സ് പായ്ക്ക് ക്രമീകരണങ്ങളിൽ ഡൗൺലോഡ് ചെയ്യുക."
+    )
 }
 
 @Composable
@@ -163,11 +214,39 @@ fun AssistantScreen(
                 "नमस्ते दीदी! मैं आरोग्यसाथी हूँ। मातृ, नवजात, बाल स्वास्थ्य या गैर-संचारी रोग (NCD) पर कोई भी सवाल पूछें।"
             }
 
+            val welcomeTelugu = if (patient != null) {
+                "నమస్తే అక్క! ${patient.name} (${patient.village}) కోసం క్లినికల్ సంప్రదింపు ప్రారంభించబడింది. దయచేసి ఏదైనా ప్రోటోకాల్ ప్రశ్న అడగండి."
+            } else {
+                "నమస్తే అక్క! నేను ఆరోగ్యసాథి, మీ ఆఫ్‌లైన్ క్లినికల్ ప్రోటోకాల్ సహచరుడిని. మాతా, శిశు లేదా ఎన్‌సీడీ గురించి ఏదైనా ప్రశ్న అడగండి."
+            }
+
+            val welcomeTamil = if (patient != null) {
+                "வணக்கம் சகோதரி! ${patient.name} (${patient.village}) மருத்துவ ஆலோசனை தொடங்கப்பட்டது. ஏதேனும் நெறிமுறை கேள்வி கேட்கவும்."
+            } else {
+                "வணக்கம் சகோதரி! நான் ஆரோக்கியசாதி, உங்கள் ஆஃப்லைன் மருத்துவ நெறிமுறை துணைவன்."
+            }
+
+            val welcomeKannada = if (patient != null) {
+                "ನಮಸ್ಕಾರ ಅಕ್ಕ! ${patient.name} (${patient.village}) ರವರ ಕ್ಲಿನಿಕಲ್ ಸಮಾಲೋಚನೆ ತೆರೆದಿದೆ. ಯಾವುದೇ ಪ್ರೋಟೋಕಾಲ್ ಪ್ರಶ್ನೆ ಕೇಳಿ."
+            } else {
+                "ನಮಸ್ಕಾರ ಅಕ್ಕ! ನಾನು ಆರೋಗ್ಯಸಾಥಿ, ನಿಮ್ಮ ಆಫ್‌ಲೈನ್ ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ ಸಹಾಯಕ."
+            }
+
+            val welcomeMalayalam = if (patient != null) {
+                "നമസ്കാരം ചേച്ചി! ${patient.name} (${patient.village}) ക്ലിനിക്കൽ കൺസൾട്ടേഷൻ ആരംഭിച്ചു. ചോദ്യങ്ങൾ ചോദിക്കാം."
+            } else {
+                "നമസ്കാരം ചേച്ചി! ഞാൻ ആരോഗ്യസാഥി, നിങ്ങളുടെ ഓഫ്‌ലൈൻ ക്ലിനിക്കൽ പ്രോട്ടോക്കോൾ കൂട്ടുകാരൻ."
+            }
+
             messages.add(
                 ChatMessage(
                     sender = MessageSender.ASSISTANT,
                     text = welcomeText,
                     textHindi = welcomeHindi,
+                    textTelugu = welcomeTelugu,
+                    textTamil = welcomeTamil,
+                    textKannada = welcomeKannada,
+                    textMalayalam = welcomeMalayalam,
                     patientName = patient?.name
                 )
             )
@@ -235,6 +314,10 @@ fun AssistantScreen(
                 sender = MessageSender.ASSISTANT,
                 text = assistantResult.answer,
                 textHindi = assistantResult.answerHindi,
+                textTelugu = assistantResult.answerTelugu,
+                textTamil = assistantResult.answerTamil,
+                textKannada = assistantResult.answerKannada,
+                textMalayalam = assistantResult.answerMalayalam,
                 result = assistantResult,
                 patientName = p?.name
             )
@@ -311,14 +394,47 @@ fun AssistantScreen(
             "Cord care and delayed bathing",
             "HBNC home visit schedule"
         )
-        else -> listOf(
-            "Diarrhoea ORS and Zinc dose",
-            "6 weeks vaccination tika schedule",
-            "3rd ANC checkup kab hota hai",
-            "Sugar patient behosh pada hai",
-            "Bachche ko bukhar aur jhatke aa rahe hain",
-            "Delivery ke baad heavy bleeding ho rahi hai"
-        )
+        else -> when (selectedLanguage) {
+            VoiceLanguage.HINDI -> listOf(
+                "दस्त में ओआरएस और जिंक की खुराक",
+                "तेज सांस और छाती धंसना (निमोनिया)",
+                "गर्भावस्था में 4 एएनसी जांच की समय-सारणी",
+                "बीपी 140/90 और नमक कम करने की सलाह",
+                "डिलीवरी के बाद तेज रक्तस्राव (108)"
+            )
+            VoiceLanguage.TELUGU -> listOf(
+                "విరేచనాలకు ఓఆర్ఎస్ మరియు జింక్ మోతాదు",
+                "వేగంగా శ్వాస మరియు ఛాతీ లోపలికి లాగడం",
+                "గర్భధారణలో 4 ఏఎన్‌సీ తనిఖీలు",
+                "బీపీ 140/90 రక్తపోటు నియంత్రణ",
+                "ప్రసవం తర్వాత తీవ్ర రక్తస్రావం (108)"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "வயிற்றுப்போக்கு ORS மற்றும் ஜிங்க் அளவு",
+                "வேகமான மூச்சு மற்றும் நிமோனியா",
+                "கர்ப்பகால 4 பரிசோதனைகள் (ANC)",
+                "உயர் ரத்த அழுத்தம் 140/90 கட்டுப்பாடு"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ ಮತ್ತು ಜಿಂಕ್ ಪ್ರಮಾಣ",
+                "ವೇಗದ ಉಸಿರಾಟ ಮತ್ತು ನ್ಯುಮೋನಿಯಾ",
+                "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ 4 ಎಎನ್‌ಸಿ ತಪಾಸಣೆಗಳು",
+                "ಬಿಪಿ 140/90 ರಕ್ತದೊತ್ತಡ ನಿಯಂತ್ರಣ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "വയറിളക്കത്തിന് ഒആർഎസും സിങ്കും",
+                "വേഗതയേറിയ ശ്വാസോച്ഛ്വാസം ന്യുമോണിയ",
+                "ഗർഭകാലത്തെ 4 ANC പരിശോധനകൾ",
+                "രക്താതിമർദ്ദം 140/90 നിയന്ത്രണം"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Diarrhoea ORS and Zinc dose",
+                "Fast breathing and pneumonia thresholds",
+                "Mandatory 4 ANC checkup timeline",
+                "Hypertension BP 140/90 guidelines",
+                "Severe bleeding after delivery (108)"
+            )
+        }
     }
 
     Column(
@@ -655,6 +771,7 @@ fun AssistantScreen(
             items(messages, key = { it.id }) { message ->
                 ChatBubble(
                     message = message,
+                    selectedLanguage = selectedLanguage,
                     isHindiMode = isHindiMode,
                     activePatient = activePatient,
                     activeProfile = activeProfile,
@@ -738,7 +855,7 @@ fun AssistantScreen(
                     onValueChange = { queryText = it },
                     placeholder = {
                         Text(
-                            text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else "Ask clinical protocol question...",
+                            text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
                             fontSize = 12.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -886,14 +1003,25 @@ fun AssistantScreen(
                 TextButton(
                     onClick = {
                         try {
-                            val settingsIntent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+                            val settingsIntent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
                             context.startActivity(settingsIntent)
                         } catch (e: Exception) {
                             try {
-                                val localeIntent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                                val localeIntent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
                                 context.startActivity(localeIntent)
                             } catch (e2: Exception) {
-                                Toast.makeText(context, "Please open phone Settings > Voice to configure offline speech.", Toast.LENGTH_LONG).show()
+                                try {
+                                    val genSettings = Intent(Settings.ACTION_SETTINGS).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                    }
+                                    context.startActivity(genSettings)
+                                } catch (_: Exception) {
+                                    Toast.makeText(context, "Please open device Settings to configure voice typing language packs.", Toast.LENGTH_LONG).show()
+                                }
                             }
                         }
                         showOfflineVoiceGuide = false
@@ -904,7 +1032,7 @@ fun AssistantScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showOfflineVoiceGuide = false }) {
-                    Text("Dismiss", color = TextSecondary)
+                    Text("Type Query Instead", color = TextSecondary)
                 }
             }
         )
@@ -914,7 +1042,8 @@ fun AssistantScreen(
 @Composable
 fun ChatBubble(
     message: ChatMessage,
-    isHindiMode: Boolean,
+    selectedLanguage: VoiceLanguage = VoiceLanguage.ENGLISH,
+    isHindiMode: Boolean = selectedLanguage == VoiceLanguage.HINDI,
     activePatient: Member?,
     activeProfile: AshaProfile,
     onPlayTts: (String) -> Unit,
@@ -1044,11 +1173,7 @@ fun ChatBubble(
                         }
 
                         // Clinical Text (Formatted with Patient Badge, Step Cards, & Danger Alerts)
-                        val displayText = if (isHindiMode && message.textHindi.isNotBlank()) {
-                            message.textHindi
-                        } else {
-                            message.text
-                        }
+                        val displayText = message.getDisplayText(selectedLanguage)
 
                         FormattedClinicalGuidance(
                             text = displayText,

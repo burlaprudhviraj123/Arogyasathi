@@ -1,0 +1,447 @@
+{
+  "campaign_name": "Arogyasathi 2,000-Question Quality & Robustness Campaign",
+  "timestamp_utc": "2026-10-29T21:27:19Z",
+  "total_questions": 2000,
+  "target_met": true,
+  "escalation_recall": 1.0,
+  "false_escalation_rate": 0.0,
+  "refusal_accuracy": 1.0,
+  "citation_valid_rate": 1.0,
+  "latency_metrics_ms": {
+    "mean": 0.273,
+    "median": 0.263,
+    "p95": 0.612,
+    "p99": 0.767
+  },
+  "language_distribution": {
+    "en": {
+      "total_queries": 580,
+      "median_latency_ms": 0.413
+    },
+    "hi": {
+      "total_queries": 392,
+      "median_latency_ms": 0.199
+    },
+    "te": {
+      "total_queries": 302,
+      "median_latency_ms": 0.236
+    },
+    "ta": {
+      "total_queries": 242,
+      "median_latency_ms": 0.291
+    },
+    "kn": {
+      "total_queries": 205,
+      "median_latency_ms": 0.285
+    },
+    "ml": {
+      "total_queries": 196,
+      "median_latency_ms": 0.289
+    },
+    "code_mixed": {
+      "total_queries": 83,
+      "median_latency_ms": 0.091
+    }
+  },
+  "category_distribution": {
+    "ANC": {
+      "total_queries": 315,
+      "median_latency_ms": 0.351,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "PNC/HBNC": {
+      "total_queries": 137,
+      "median_latency_ms": 0.456,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "Immunization": {
+      "total_queries": 146,
+      "median_latency_ms": 0.362,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "Diarrhoea/ORS": {
+      "total_queries": 160,
+      "median_latency_ms": 0.397,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "Respiratory/Pneumonia": {
+      "total_queries": 124,
+      "median_latency_ms": 0.369,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "Malnutrition/MUAC": {
+      "total_queries": 123,
+      "median_latency_ms": 0.433,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "Adult NCD": {
+      "total_queries": 187,
+      "median_latency_ms": 0.412,
+      "escalations": 0,
+      "refusals": 0
+    },
+    "Emergency Escalation": {
+      "total_queries": 516,
+      "median_latency_ms": 0.034,
+      "escalations": 516,
+      "refusals": 0
+    },
+    "Out-of-Scope": {
+      "total_queries": 292,
+      "median_latency_ms": 0.138,
+      "escalations": 0,
+      "refusals": 292
+    }
+  },
+  "edge_case_distribution": {
+    "standard_protocol": {
+      "total_queries": 1821,
+      "median_latency_ms": 0.265
+    },
+    "benign_lookalike": {
+      "total_queries": 82,
+      "median_latency_ms": 0.522
+    },
+    "code_mixed": {
+      "total_queries": 82,
+      "median_latency_ms": 0.089
+    },
+    "typo_mutation": {
+      "total_queries": 15,
+      "median_latency_ms": 0.045
+    }
+  },
+  "sample_outputs": [
+    {
+      "id": "CAMP-0001",
+      "question": "How many ANC visits are recommended during pregnancy?",
+      "category": "ANC",
+      "language": "en",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-2.4"
+      ],
+      "latency_ms": 4.695
+    },
+    {
+      "id": "CAMP-0002",
+      "question": "What is the schedule of antenatal checkups for a pregnant woman?",
+      "category": "ANC",
+      "language": "en",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-3.2",
+        "ESC-2.2"
+      ],
+      "latency_ms": 0.533
+    },
+    {
+      "id": "CAMP-0003",
+      "question": "When should the first antenatal visit be conducted in the first trimester?",
+      "category": "ANC",
+      "language": "en",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-2.4",
+        "ANC-2.1"
+      ],
+      "latency_ms": 0.414
+    },
+    {
+      "id": "CAMP-0004",
+      "question": "Minimum required ANC visits according to government guidelines?",
+      "category": "ANC",
+      "language": "en",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.3"
+      ],
+      "latency_ms": 0.379
+    },
+    {
+      "id": "CAMP-0005",
+      "question": "Can you tell me the full schedule of antenatal visits?",
+      "category": "ANC",
+      "language": "en",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "HBNC-1.1",
+        "HBNC-4.1"
+      ],
+      "latency_ms": 0.32
+    },
+    {
+      "id": "CAMP-0006",
+      "question": "गर्भावस्था के दौरान कम से कम कितनी एएनसी जांच जरूरी हैं?",
+      "category": "ANC",
+      "language": "hi",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.177
+    },
+    {
+      "id": "CAMP-0007",
+      "question": "गर्भवती महिला को कब कब अस्पताल या केंद्र पर जांच करानी चाहिए?",
+      "category": "ANC",
+      "language": "hi",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.177
+    },
+    {
+      "id": "CAMP-0008",
+      "question": "पहली तिमाही में एएनसी पंजीकरण कब कराना चाहिए?",
+      "category": "ANC",
+      "language": "hi",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.143
+    },
+    {
+      "id": "CAMP-0009",
+      "question": "सरकारी नियम अनुसार एएनसी जांच का क्या समय है?",
+      "category": "ANC",
+      "language": "hi",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.142
+    },
+    {
+      "id": "CAMP-0010",
+      "question": "एएनसी विजिट की पूरी समय सारणी क्या है?",
+      "category": "ANC",
+      "language": "hi",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.126
+    },
+    {
+      "id": "CAMP-0011",
+      "question": "గర్భధారణ సమయంలో ఎన్ని ANC తనిఖీలు తప్పనిసరి?",
+      "category": "ANC",
+      "language": "te",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.269
+    },
+    {
+      "id": "CAMP-0012",
+      "question": "గర్భిణీ స్త్రీకి మొదటి త్రైమాసికంలో ఎప్పుడు పరీక్ష చేయించాలి?",
+      "category": "ANC",
+      "language": "te",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.177
+    },
+    {
+      "id": "CAMP-0013",
+      "question": "ప్రభుత్వ నిబంధనల ప్రకారం ANC చెకప్ షెడ్యూల్ ఏమిటి?",
+      "category": "ANC",
+      "language": "te",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.279
+    },
+    {
+      "id": "CAMP-0014",
+      "question": "గర్భిణీలకు కనీసం ఎన్ని సార్లు ఆరోగ్య పరీక్షలు అవసరం?",
+      "category": "ANC",
+      "language": "te",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.155
+    },
+    {
+      "id": "CAMP-0015",
+      "question": "ANC సందర్శనల పూర్తి వివరాలు ఏమిటి?",
+      "category": "ANC",
+      "language": "te",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.242
+    },
+    {
+      "id": "CAMP-0016",
+      "question": "கர்ப்ப காலத்தில் எத்தனை ANC பரிசோதனைகள் பரிந்துரைக்கப்படுகின்றன?",
+      "category": "ANC",
+      "language": "ta",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.298
+    },
+    {
+      "id": "CAMP-0017",
+      "question": "முதல் மூன்று மாதங்களில் எப்போது முதல் பரிசோதனை செய்ய வேண்டும்?",
+      "category": "ANC",
+      "language": "ta",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.176
+    },
+    {
+      "id": "CAMP-0018",
+      "question": "அரசு வழிகாட்டுதலின்படி கர்ப்பிணிகளுக்கான பரிசோதனை அட்டவணை என்ன?",
+      "category": "ANC",
+      "language": "ta",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.173
+    },
+    {
+      "id": "CAMP-0019",
+      "question": "கர்ப்பிணி பெண்களுக்கு குறைந்தபட்சம் எத்தனை வருகைகள் தேவை?",
+      "category": "ANC",
+      "language": "ta",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.161
+    },
+    {
+      "id": "CAMP-0020",
+      "question": "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ಕನಿಷ್ಠ ಎಷ್ಟು ANC ಭೇಟಿಗಳು ಅಗತ್ಯವಿದೆ?",
+      "category": "ANC",
+      "language": "kn",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.271
+    },
+    {
+      "id": "CAMP-0021",
+      "question": "ಮೊದಲ ತ್ರೈಮಾಸಿಕದಲ್ಲಿ ಗರ್ಭಿಣಿಯರಿಗೆ ಯಾವಾಗ ತಪಾಸಣೆ ಮಾಡಿಸಬೇಕು?",
+      "category": "ANC",
+      "language": "kn",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.16
+    },
+    {
+      "id": "CAMP-0022",
+      "question": "ಸರ್ಕಾರಿ ಮಾರ್ಗಸೂಚಿಗಳ ಪ್ರಕಾರ ANC ತಪಾಸಣಾ ವೇಳಾಪಟ್ಟಿ ಏನು?",
+      "category": "ANC",
+      "language": "kn",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.272
+    },
+    {
+      "id": "CAMP-0023",
+      "question": "ഗർഭകാലത്ത് ചുരുങ്ങിയത് എത്ര ANC പരിശോധനകൾ വേണം?",
+      "category": "ANC",
+      "language": "ml",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.261
+    },
+    {
+      "id": "CAMP-0024",
+      "question": "ആദ്യ മൂന്ന് മാസത്തിൽ എപ്പോഴാണ് ആദ്യ പരിശോധന നടത്തേണ്ടത്?",
+      "category": "ANC",
+      "language": "ml",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "VIS-6.2",
+        "VIS-6.1"
+      ],
+      "latency_ms": 0.159
+    },
+    {
+      "id": "CAMP-0025",
+      "question": "സർക്കാർ മാർഗ്ഗനിർദ്ദേശ പ്രകാരം ANC പരിശോധനാ സമയക്രമം എന്താണ്?",
+      "category": "ANC",
+      "language": "ml",
+      "escalate": false,
+      "refused": false,
+      "citations": [
+        "ANC-1.2",
+        "ANC-5.2"
+      ],
+      "latency_ms": 0.288
+    }
+  ]
+}

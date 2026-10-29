@@ -19,8 +19,23 @@ data class AssistantResult(
     val isRefusal: Boolean,
     val triageLevel: String, // "EMERGENCY", "OUT_OF_SCOPE", "ROUTINE_PROTOCOL"
     val answerHindi: String = "",
+    val answerTelugu: String = "",
+    val answerTamil: String = "",
+    val answerKannada: String = "",
+    val answerMalayalam: String = "",
     val patientContext: String? = null
-)
+) {
+    fun getAnswerForLanguage(langCode: String): String {
+        return when (langCode.take(2).lowercase()) {
+            "hi" -> if (answerHindi.isNotBlank()) answerHindi else answer
+            "te" -> if (answerTelugu.isNotBlank()) answerTelugu else "గమనిక ($citedSection): $answer"
+            "ta" -> if (answerTamil.isNotBlank()) answerTamil else "குறிப்பு ($citedSection): $answer"
+            "kn" -> if (answerKannada.isNotBlank()) answerKannada else "ಸೂಚನೆ ($citedSection): $answer"
+            "ml" -> if (answerMalayalam.isNotBlank()) answerMalayalam else "ശ്രദ്ധിക്കുക ($citedSection): $answer"
+            else -> answer
+        }
+    }
+}
 
 data class SyncResult(
     val success: Boolean,
@@ -488,6 +503,62 @@ class ArogyasathiRepository(private val context: Context) {
         }
     }
 
+    private fun getDangerTeluguMessage(citation: String): String {
+        return when (citation) {
+            "ESC-6.3" -> "రోగి స్పృహ కోల్పోయారు: ఇది తీవ్రమైన అత్యవసర పరిస్థితి! వెంటనే 108 కు కాల్ చేసి అంబులెన్స్ పిలవండి. నోటి ద్వారా ఏమీ ఇవ్వవద్దు (ESC-6.3)."
+            "ESC-5.1" -> "ఫిట్స్ లేదా మూర్ఛ (Convulsions) ప్రమాదకర లక్షణం. వెంటనే 108/102 కు కాల్ చేసి సమీప ఆసుపత్రికి తరలించండి. నోటిలో ఏమీ పెట్టవద్దు (ESC-5.1)."
+            "ESC-3.1" -> "ప్రసవం తర్వాత తీవ్రమైన రక్తస్రావం (5 నిమిషాల్లో ప్యాడ్ తడిసిపోవడం): వెంటనే 108 కి కాల్ చేయండి (ESC-3.1)."
+            "ESC-2.1" -> "గర్భధారణ సమయంలో ఏ విధమైన యోని రక్తస్రావమైనా ప్రమాద సంకేతం: వెంటనే 102/108 అంబులెన్స్ ద్వారా ఆసుపత్రికి పంపండి (ESC-2.1)."
+            "ESC-2.3" -> "గర్భధారణలో ముఖం వాపు, తీవ్రమైన తలనొప్పి ప్రీ-ఎక్లాంప్సియా లక్షణాలు. వెంటనే ఆసుపత్రికి తరలించండి (ESC-2.3)."
+            "ESC-2.5" -> "గర్భధారణలో తీవ్రమైన పాలిపోవడం మరియు శ్వాస తీసుకోవడంలో ఇబ్బంది తీవ్ర రక్తహీనత, వెంటనే CHC కి తరలించండి (ESC-2.5)."
+            "ESC-5.2" -> "పిల్లలలో ఛాతీ లోపలికి లాగడం లేదా శ్వాసలో పిల్లికూతలు తీవ్రమైన న్యుమోనియా, వెంటనే ఆసుపత్రికి తరలించండి (ESC-5.2)."
+            "ESC-5.4" -> "7 రోజుల కంటే ఎక్కువ తీవ్రమైన జ్వరం లేదా మెడ పట్టేయడం మెనింజైటిస్ కావచ్చు, వెంటనే తరలించండి (ESC-5.4)."
+            else -> "అత్యవసర ప్రమాద లక్షణం గుర్తించబడింది! వెంటనే 108/102 అంబులెన్స్ పిలిచి రోగిని కమ్యూనిటీ హెల్త్ సెంటర్ (CHC) కి తరలించండి ($citation)."
+        }
+    }
+
+    private fun getDangerTamilMessage(citation: String): String {
+        return when (citation) {
+            "ESC-6.3" -> "நோயாளி மயக்கமடைந்துள்ளார்: இது அவசர நிலை! உடனடியாக 108 ஆம்புலன்ஸை அழைக்கவும். வாயில் எதுவும் கொடுக்க வேண்டாம் (ESC-6.3)."
+            "ESC-5.1" -> "வலிப்பு (Convulsions) ஒரு ஆபத்தான அறிகுறி. உடனடியாக 108/102 அழைத்து அருகில் உள்ள மருத்துவமனைக்கு கொண்டு செல்லவும் (ESC-5.1)."
+            "ESC-3.1" -> "பிரசவத்திற்குப் பின் அதிக ரத்தப்போக்கு (5 நிமிடத்தில் பேட் நனைவது): உடனடியாக 108 அழைக்கவும் (ESC-3.1)."
+            "ESC-2.1" -> "கர்ப்ப காலத்தில் ஏற்படும் யோனி ரத்தப்போக்கு ஆபத்து அறிகுறி: உடனடியாக 102/108 ஆம்புலன்ஸ் மூலம் மருத்துவமனைக்கு அனுப்பவும் (ESC-2.1)."
+            "ESC-2.3" -> "கர்ப்ப காலத்தில் முக வீக்கம், கடுமையான தலைவலி ப்ரீ-எக்லாம்ப்சியாவின் அறிகுறிகள். உடனே மருத்துவமனைக்கு அனுப்பவும் (ESC-2.3)."
+            "ESC-2.5" -> "கர்ப்ப காலத்தில் அதிக வெளிறிய நிறம் கடுமையான ரத்தசோகையின் அறிகுறி, உடனே CHC க்கு அனுப்பவும் (ESC-2.5)."
+            "ESC-5.2" -> "குழந்தையின் விலா எலும்பு உள்வாங்குதல் கடுமையான நிமோனியாவின் அறிகுறி, உடனே மருத்துவமனைக்கு அனுப்பவும் (ESC-5.2)."
+            "ESC-5.4" -> "7 நாட்களுக்கு மேல் காய்ச்சல் அல்லது கழுத்து விறைப்பு ஆபத்து, உடனே மருத்துவமனைக்கு அனுப்பவும் (ESC-5.4)."
+            else -> "அவசர ஆபத்து அறிகுறி கண்டறியப்பட்டுள்ளது! உடனே 108/102 ஆம்புலன்ஸ் மூலம் சமூக சுகாதார மையத்திற்கு (CHC) அனுப்பவும் ($citation)."
+        }
+    }
+
+    private fun getDangerKannadaMessage(citation: String): String {
+        return when (citation) {
+            "ESC-6.3" -> "ರೋಗಿ ಪ್ರಜ್ಞಾಹೀನರಾಗಿದ್ದಾರೆ: ಇದು ತೀವ್ರ ತುರ್ತು ಪರಿಸ್ಥಿತಿ! ತಕ್ಷಣ 108 ಆಂಬ್ಯುಲೆನ್ಸ್ ಕರೆ ಮಾಡಿ. ಬಾಯಿಗೆ ಏನನ್ನೂ ನೀಡಬೇಡಿ (ESC-6.3)."
+            "ESC-5.1" -> "ಫಿಟ್ಸ್ ಅಥವಾ ಸೆಳೆತ (Convulsions) ಗಂಭೀರ ಅಪಾಯದ ಲಕ್ಷಣ. ತಕ್ಷಣ 108/102 ಕರೆ ಮಾಡಿ ಆಸ್ಪತ್ರೆಗೆ ಕರೆದೊಯ್ಯಿರಿ (ESC-5.1)."
+            "ESC-3.1" -> "ಹೆರಿಗೆಯ ನಂತರ ಅತಿಯಾದ ರಕ್ತಸ್ರಾವ: ತಕ್ಷಣ 108 ಕರೆ ಮಾಡಿ (ESC-3.1)."
+            "ESC-2.1" -> "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ಯೋನಿ ರಕ್ತಸ್ರಾವ ಗಂಭೀರ ಅಪಾಯದ ಸಂಕೇತ: ತಕ್ಷಣ 102/108 ಆಂಬ್ಯುಲೆನ್ಸ್ ಮೂಲಕ ಆಸ್ಪತ್ರೆಗೆ ಕಳುಹಿಸಿ (ESC-2.1)."
+            "ESC-2.3" -> "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ಮುಖದ ಊತ, ತೀವ್ರ ತಲೆನೋವು ಪ್ರಿಕ್ಲಾಂಪ್ಸಿಯಾದ ಲಕ್ಷಣ. ತಕ್ಷಣ ಆಸ್ಪತ್ರೆಗೆ ಕಳುಹಿಸಿ (ESC-2.3)."
+            "ESC-2.5" -> "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ತೀವ್ರ ರಕ್ತಹೀನತೆ, ತಕ್ಷಣ CHC ಗೆ ಕಳುಹಿಸಿ (ESC-2.5)."
+            "ESC-5.2" -> "ಮಗುವಿನ ಎದೆ ಎಳೆಯುವುದು ತೀವ್ರ ನ್ಯುಮೋನಿಯಾ, ತಕ್ಷಣ ಆಸ್ಪತ್ರೆಗೆ ಕರೆದೊಯ್ಯಿರಿ (ESC-5.2)."
+            "ESC-5.4" -> "7 ದಿನಗಳಿಗಿಂತ ಹೆಚ್ಚು ಜ್ವರ ಅಪಾಯ, ತಕ್ಷಣ ಆಸ್ಪತ್ರೆಗೆ ಕಳುಹಿಸಿ (ESC-5.4)."
+            else -> "ತುರ್ತು ಅಪಾಯದ ಲಕ್ಷಣ ಕಂಡುಬಂದಿದೆ! ತಕ್ಷಣ 108/102 ಆಂಬ್ಯುಲೆನ್ಸ್ ಕರೆ ಮಾಡಿ ಸಮುದಾಯ ಆರೋಗ್ಯ ಕೇಂದ್ರಕ್ಕೆ (CHC) ಕಳುಹಿಸಿ ($citation)."
+        }
+    }
+
+    private fun getDangerMalayalamMessage(citation: String): String {
+        return when (citation) {
+            "ESC-6.3" -> "രോഗി അബോധാവസ്ഥയിലാണ്: ഇത് അടിയന്തര സാഹചര്യമാണ്! ഉടൻ 108 ആംബുലൻസ് വിളിക്കുക. വായിലൂടെ ഒന്നും നൽകരുത് (ESC-6.3)."
+            "ESC-5.1" -> "ഫിറ്റ്സ് അല്ലെങ്കിൽ അപസ്മാരം (Convulsions) ഗുരുതര അപകട ലക്ഷണമാണ്. ഉടൻ 108/102 വിളിച്ച് ആശുപത്രിയിലെത്തിക്കുക (ESC-5.1)."
+            "ESC-3.1" -> "പ്രസവശേഷം അമിത രಕ್ತസ്രാവം: ഉടൻ 108 വിളിക്കുക (ESC-3.1)."
+            "ESC-2.1" -> "ഗർഭാവസ്ഥയിലെ യോനി രക്തസ്രാവം അപകട ലക്ഷണമാണ്: ഉടൻ 102/108 ആംബുലൻസിൽ ആശുപത്രിയിലെത്തിക്കുക (ESC-2.1)."
+            "ESC-2.3" -> "ഗർഭാവസ്ഥയിലെ മുഖവീക്കം, കഠിനമായ തലവേദന പ്രീ-എക്ലാംസിയ ലക്ഷണങ്ങളാണ്. ഉടൻ ആശുപത്രിയിലെത്തിക്കുക (ESC-2.3)."
+            "ESC-2.5" -> "ഗർഭാവസ്ഥയിലെ കഠിനമായ വിളർച്ച ഗുരുതരമാണ്, ഉടൻ CHC-ലേക്ക് റഫർ ചെയ്യുക (ESC-2.5)."
+            "ESC-5.2" -> "കുട്ടിയുടെ നെഞ്ച് ഉള്ളിലേക്ക് വലിയുന്നത് കഠിന ന്യുമോണിയയാണ്, ഉടൻ ആശുപത്രിയിലെത്തിക്കുക (ESC-5.2)."
+            "ESC-5.4" -> "7 ദിവസത്തിലധികം കടുത്ത പനി മസ്തിഷ്കജ്വര സാധ്യതയാണ്, ഉടൻ റഫർ ചെയ്യുക (ESC-5.4)."
+            else -> "അടിയന്തര അപകട ലക്ഷണം കണ്ടെത്തി! ഉടൻ 108/102 ആംബുലൻസ് വിളിച്ച് CHC-ലേക്ക് റഫർ ചെയ്യുക ($citation)."
+        }
+    }
+
     fun askAssistant(query: String, patient: Member? = null): AssistantResult {
         val queryMentioned = resolveMemberFromQuery(query)
         val effectivePatient = queryMentioned ?: patient
@@ -499,6 +570,10 @@ class ArogyasathiRepository(private val context: Context) {
         val escResult = JEVEscalate.evaluate(query)
         if (escResult != null) {
             val hindiMsg = getDangerHindiMessage(escResult.first)
+            val teluguMsg = getDangerTeluguMessage(escResult.first)
+            val tamilMsg = getDangerTamilMessage(escResult.first)
+            val kannadaMsg = getDangerKannadaMessage(escResult.first)
+            val malayalamMsg = getDangerMalayalamMessage(escResult.first)
             val ctx = if (effectivePatient != null) "Patient: ${effectivePatient.name} (${effectivePatient.village})" else null
             return AssistantResult(
                 answer = escResult.second,
@@ -507,6 +582,10 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = false,
                 triageLevel = "EMERGENCY",
                 answerHindi = hindiMsg,
+                answerTelugu = teluguMsg,
+                answerTamil = tamilMsg,
+                answerKannada = kannadaMsg,
+                answerMalayalam = malayalamMsg,
                 patientContext = ctx
             )
         }
@@ -515,6 +594,10 @@ class ArogyasathiRepository(private val context: Context) {
         val scpResult = JEVScope.evaluate(query)
         if (scpResult != null) {
             val hindiMsg = "यह विषय मेरे प्रोटोकॉल से बाहर है। कृपया प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या अपनी एएनएम से परामर्श लें (SCP-1.2)।"
+            val teluguMsg = "ఈ విషయం నా ప్రోటోకాల్ పరిధికి మించినది. దయచేసి ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) మెడికల్ ఆఫీసర్ లేదా మీ ANM ను సంప్రదించండి (SCP-1.2)."
+            val tamilMsg = "இந்த கேள்வி நெறிமுறைக்கு அப்பாற்பட்டது. தயவுசெய்து ஆரம்ப சுகாதார நிலைய (PHC) மருத்துவ அதிகாரி அல்லது ANM-ஐ அணுகவும் (SCP-1.2)."
+            val kannadaMsg = "ಈ ವಿಷಯವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರದ (PHC) ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ (SCP-1.2)."
+            val malayalamMsg = "ഈ വിഷയം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. പ്രാഥമികാരോഗ്യ കേന്ദ്രത്തിലെ (PHC) മെഡിക്കൽ ഓഫീസറോടോ ANM-നോടോ ഉപദേശം തേടുക (SCP-1.2)."
             return AssistantResult(
                 answer = scpResult.second,
                 citedSection = scpResult.first,
@@ -522,6 +605,10 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
                 answerHindi = hindiMsg,
+                answerTelugu = teluguMsg,
+                answerTamil = tamilMsg,
+                answerKannada = kannadaMsg,
+                answerMalayalam = malayalamMsg,
                 patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
             )
         }
@@ -545,6 +632,10 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = false,
                 triageLevel = "ROUTINE_PROTOCOL",
                 answerHindi = synth.textHindi,
+                answerTelugu = synth.textTelugu,
+                answerTamil = synth.textTamil,
+                answerKannada = synth.textKannada,
+                answerMalayalam = synth.textMalayalam,
                 patientContext = pTag
             )
         } else {
@@ -555,6 +646,10 @@ class ArogyasathiRepository(private val context: Context) {
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
                 answerHindi = "कृपया नियमित प्रोटोकॉल दिशा-निर्देशों का पालन करें और अपने पर्यवेक्षक से सलाह लें (SCP-1.1)।",
+                answerTelugu = "దయచేసి సాధారణ ప్రోటోకాల్ మార్గదర్శకాలను పాటించండి మరియు మీ సూపర్‌వైజర్‌ను సంప్రదించండి (SCP-1.1).",
+                answerTamil = "வழக்கமான நெறிமுறை வழிகாட்டுதல்களைப் பின்பற்றவும். மேற்பார்வையாளரைக் கலந்தாலோசிக்கவும் (SCP-1.1).",
+                answerKannada = "ಸಾಮಾನ್ಯ ಪ್ರೋಟೋಕಾಲ್ ಮಾರ್ಗಸೂಚಿಗಳನ್ನು ಅನುಸರಿಸಿ. ಮೇಲ್ವಿಚಾರಕರನ್ನು ಸಂಪರ್ಕಿಸಿ (SCP-1.1).",
+                answerMalayalam = "സാധാരണ പ്രോട്ടോക്കോൾ മാർഗ്ഗനിർദ്ദേശങ്ങൾ പാലിക്കുക. സൂപ്പർവൈസറുമായി ബന്ധപ്പെടുക (SCP-1.1).",
                 patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
             )
         }

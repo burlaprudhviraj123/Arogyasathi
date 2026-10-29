@@ -157,6 +157,19 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Zero Performance Impact: Maintains lazy composition with unique keys (`asha_header_card`, `metrics_row`, `village_filters`, `priority_filters`), preserving high FPS rendering without dropped frames.
   - Verification: 29/29 Kotlin unit tests pass; 18/18 Python unit tests pass; Pre-flight Certification 100% PASS; verified live on `prudhvi_s_phone` emulator via swipe gestures with before/after visual tour artifacts.
 
+- [x] Phase 7G — Offline Android Final Product Completion & 2,000-Question Quality Campaign
+  - Full Six-Language Clinical Synthesis: Extended `LayaSynthesizer` with complete protocol guidance across all 7 protocol categories in Telugu, Tamil, Kannada, and Malayalam, alongside English and Hindi, with dynamic UI language switching.
+  - Local Household Visit Logging: Implemented `RecordHouseholdVisitDialog` in `FamiliesScreen.kt` allowing ASHA workers to record ANC, Immunization, HBNC, MUAC, NCD, or Routine visits directly into SQLite and local outbox queue.
+  - Multilingual Safety Gate Harmonization: Unified JEV deterministic emergency escalation and scope refusal regexes across Python and Kotlin, incorporating native Indic scripts, transliterated terms, and typographical error tolerance.
+  - 2,000-Question Quality & Robustness Campaign (`campaign_2000_questions.py`): Evaluated 2,000 diverse queries across 6 languages and 9 categories:
+    * Danger Sign Recall: **100.00%** (516/516) [Target: 100%]
+    * False Escalation Rate: **0.00%** (0/1484) [Target: <= 20%]
+    * Scope Refusal Accuracy: **100.00%** (292/292)
+    * Valid Leaf Citation Rate: **100.00%** (3,192/3,192)
+    * Median CPU Latency: **0.263 ms**
+  - Standalone Release APK (`Arogyasathi-v1.0-offline.apk`): **8.01 MB** (well under 25 MB budget); Peak RAM **102.31 MB**.
+  - Verification & Certification: 31 Kotlin unit tests pass; 18 Python unit tests pass; Official Evaluator certified at **0.9735** (`ESCALATION GATE: PASS`); Pre-flight Certification 100% PASS; all 18 tour screenshots captured live on emulator.
+
 ---
 
 ## Mandatory Engineering Rules

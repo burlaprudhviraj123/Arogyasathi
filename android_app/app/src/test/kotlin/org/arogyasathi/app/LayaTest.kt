@@ -416,4 +416,54 @@ class LayaTest {
         assertEquals("Chandrapuri PHC (Sector 1)", slip.referredFacility)
         assertEquals("+91 94310 •••01", org.arogyasathi.app.core.maskPhoneNumber(slip.medicalOfficerPhone))
     }
+
+    @Test
+    fun testSixLanguageGuidanceSynthesis() {
+        val sec = ProtocolSection(
+            sectionId = "CHD-1.2",
+            title = "ORS Preparation & Administration",
+            body = "Give 1 packet of ORS in 1 litre drinking water. Children under 2 years: 50-100 ml after each stool.",
+            category = "CHD"
+        )
+
+        val synth = LayaSynthesizer.synthesizeWithContext(sec, "child has diarrhoea motions")
+        assertEquals("CHD-1.2", synth.citedSection)
+        assertTrue(synth.textEnglish.contains("ORS"))
+        assertTrue(synth.textHindi.contains("ओआरएस"))
+        assertTrue(synth.textTelugu.contains("ఓఆర్ఎస్") || synth.textTelugu.contains("విరేచనం"))
+        assertTrue(synth.textTamil.contains("ORS") || synth.textTamil.contains("வயிற்றுப்போக்கு"))
+        assertTrue(synth.textKannada.contains("ಓಆರ್‌ಎಸ್") || synth.textKannada.contains("ಬೇದಿ"))
+        assertTrue(synth.textMalayalam.contains("ഒആർഎസ്") || synth.textMalayalam.contains("വയറിളക്ക"))
+
+        // Language extractor method verification
+        assertEquals(synth.textEnglish, synth.getTextForLanguage("en-IN"))
+        assertEquals(synth.textHindi, synth.getTextForLanguage("hi-IN"))
+        assertEquals(synth.textTelugu, synth.getTextForLanguage("te-IN"))
+        assertEquals(synth.textTamil, synth.getTextForLanguage("ta-IN"))
+        assertEquals(synth.textKannada, synth.getTextForLanguage("kn-IN"))
+        assertEquals(synth.textMalayalam, synth.getTextForLanguage("ml-IN"))
+    }
+
+    @Test
+    fun testSixLanguageAssistantResultResolution() {
+        val result = org.arogyasathi.app.data.AssistantResult(
+            answer = "General protocol guidance in English (CHD-1.2).",
+            citedSection = "CHD-1.2",
+            isEscalation = false,
+            isRefusal = false,
+            triageLevel = "ROUTINE_PROTOCOL",
+            answerHindi = "हिन्दी में प्रोटोकॉल मार्गदर्शन (CHD-1.2)।",
+            answerTelugu = "తెలుగులో ప్రోటోకాల్ మార్గదర్శకం (CHD-1.2).",
+            answerTamil = "தமிழில் மருத்துவ நெறிமுறை (CHD-1.2).",
+            answerKannada = "ಕನ್ನಡದಲ್ಲಿ ಪ್ರೋಟೋಕಾಲ್ ಮಾರ್ಗದರ್ಶನ (CHD-1.2).",
+            answerMalayalam = "മലയാളത്തിൽ ക്ലിനിക്കൽ പ്രോട്ടോക്കോൾ (CHD-1.2)."
+        )
+
+        assertEquals("General protocol guidance in English (CHD-1.2).", result.getAnswerForLanguage("en"))
+        assertEquals("हिन्दी में प्रोटोकॉल मार्गदर्शन (CHD-1.2)।", result.getAnswerForLanguage("hi"))
+        assertEquals("తెలుగులో ప్రోటోకాల్ మార్గదర్శకం (CHD-1.2).", result.getAnswerForLanguage("te"))
+        assertEquals("தமிழில் மருத்துவ நெறிமுறை (CHD-1.2).", result.getAnswerForLanguage("ta"))
+        assertEquals("ಕನ್ನಡದಲ್ಲಿ ಪ್ರೋಟೋಕಾಲ್ ಮಾರ್ಗದರ್ಶನ (CHD-1.2).", result.getAnswerForLanguage("kn"))
+        assertEquals("മലയാളത്തിൽ ക്ലിനിക്കൽ പ്രോട്ടോക്കോൾ (CHD-1.2).", result.getAnswerForLanguage("ml"))
+    }
 }

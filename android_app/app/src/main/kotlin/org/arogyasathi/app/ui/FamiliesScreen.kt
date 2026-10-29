@@ -1,5 +1,6 @@
 package org.arogyasathi.app.ui
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,11 +29,13 @@ fun FamiliesScreen(
     repository: ArogyasathiRepository,
     onConsultMember: (Member) -> Unit
 ) {
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var selectedVillage by remember { mutableStateOf("All") }
     var households by remember { mutableStateOf<List<Household>>(emptyList()) }
     var expandedHouseholdId by remember { mutableStateOf<String?>(null) }
     var membersMap by remember { mutableStateOf<Map<String, List<Member>>>(emptyMap()) }
+    var selectedMemberForVisit by remember { mutableStateOf<Member?>(null) }
 
     LaunchedEffect(searchQuery, selectedVillage) {
         val list = repository.getHouseholds(searchQuery, selectedVillage)
@@ -170,7 +174,8 @@ fun FamiliesScreen(
                                     members.forEach { m ->
                                         MemberRowItem(
                                             member = m,
-                                            onConsult = { onConsultMember(m) }
+                                            onConsult = { onConsultMember(m) },
+                                            onRecordVisit = { selectedMemberForVisit = m }
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                     }
@@ -181,13 +186,139 @@ fun FamiliesScreen(
                 }
             }
         }
+
+        selectedMemberForVisit?.let { member ->
+            RecordHouseholdVisitDialog(
+                member = member,
+                onDismiss = { selectedMemberForVisit = null },
+                onSave = { dueItem, status, notes ->
+                    val ok = repository.recordVisitOutcome(
+                        householdId = member.householdId,
+                        memberId = member.memberId,
+                        memberName = member.name,
+                        dueItem = dueItem,
+                        status = status,
+                        notes = notes
+                    )
+                    if (ok) {
+                        Toast.makeText(context, "Visit recorded for ${member.name} ($dueItem).", Toast.LENGTH_SHORT).show()
+                    }
+                    selectedMemberForVisit = null
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun RecordHouseholdVisitDialog(
+    member: Member,
+    onDismiss: () -> Unit,
+    onSave: (dueItem: String, status: String, notes: String) -> Unit
+) {
+    val defaultItem = when {
+        member.isPregnant -> "ANC Follow-up"
+        member.lastMuacCm != null -> "MUAC / Malnutrition"
+        member.ncdCondition != null -> "NCD BP/Sugar Follow-up"
+        org.arogyasathi.app.laya.PatientAgeCalculator.calculate(member.dob)?.isChildUnderFive == true -> "Immunization Check"
+        else -> "Routine Home Visit"
+    }
+    var selectedItem by remember { mutableStateOf(defaultItem) }
+    var selectedStatus by remember { mutableStateOf("COMPLETED") }
+    var notesText by remember { mutableStateOf("") }
+
+    val activityOptions = listOf(
+        "ANC Follow-up",
+        "Immunization Check",
+        "HBNC Postnatal Visit",
+        "MUAC / Malnutrition",
+        "NCD BP/Sugar Follow-up",
+        "Routine Home Visit"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Record Member Visit",
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp,
+                color = TextPrimary
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "${member.name} • ${member.relation} (${member.village})",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PrimaryTeal
+                )
+
+                Text("Select Visit Activity:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    activityOptions.forEach { act ->
+                        FilterChip(
+                            selected = selectedItem == act,
+                            onClick = { selectedItem = act },
+                            label = { Text(act, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                Text("Outcome Status:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf("COMPLETED", "UNAVAILABLE", "REFUSED").forEach { st ->
+                        FilterChip(
+                            selected = selectedStatus == st,
+                            onClick = { selectedStatus = st },
+                            label = { Text(st.take(4), fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                OutlinedTextField(
+                    value = notesText,
+                    onValueChange = { notesText = it },
+                    label = { Text("Clinical observation / notes (optional)", fontSize = 12.sp) },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(selectedItem, selectedStatus, notesText.trim()) },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal)
+            ) {
+                Text("Save Record", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = TextSecondary)
+            }
+        }
+    )
 }
 
 @Composable
 fun MemberRowItem(
     member: Member,
-    onConsult: () -> Unit
+    onConsult: () -> Unit,
+    onRecordVisit: () -> Unit = {}
 ) {
     Surface(
         shape = RoundedCornerShape(10.dp),
@@ -200,7 +331,7 @@ fun MemberRowItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "${member.name} (${member.relation})",
                         fontWeight = FontWeight.SemiBold,
@@ -214,11 +345,22 @@ fun MemberRowItem(
                         color = TextSecondary
                     )
                 }
-                TextButton(
-                    onClick = onConsult,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Check", fontSize = 12.sp, color = PrimaryTeal)
+                    TextButton(
+                        onClick = onRecordVisit,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("Log Visit", fontSize = 12.sp, color = RoutineGreen, fontWeight = FontWeight.SemiBold)
+                    }
+                    TextButton(
+                        onClick = onConsult,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("Check", fontSize = 12.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
 

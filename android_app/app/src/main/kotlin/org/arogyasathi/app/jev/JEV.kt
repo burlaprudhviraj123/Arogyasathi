@@ -6,38 +6,38 @@ object JEVEscalate {
     private val dangerRules = listOf(
         // 1. Unconsciousness / Coma
         Pair(
-            Regex("(?:\\b(behosh|unconscious|coma|behosh pada|behosh ho gayi|spruha ledu|behosh ayipoyadu|mayakkam|prajne illa|bodhamilla)\\b|స్పృహ లేదు|மயக்கம்|ಪ್ರಜ್ಞೆ ಇಲ್ಲ|ബോധമില്ല)", RegexOption.IGNORE_CASE),
+            Regex("(?:\\b(behosh|unconscious|unconcious|coma|behosh pada|behosh ho gayi|spruha ledu|behosh ayipoyadu|mayakkam|prajne illa|bodhamilla)\\b|बेहोश|స్పృహ|மயக்க|மயங்கி|ಪ್ರಜ್ಞೆ|ബോധ)", RegexOption.IGNORE_CASE),
             Pair("ESC-6.3", "Unconscious patient: refer immediately (call 108). Give nothing by mouth (ESC-6.3, ESC-1.3).")
         ),
         // 2. Convulsions / fits
         Pair(
-            Regex("(?:\\b(jhatke|daura|convuls|fits|mirgi|tyala jhatke|jhatkalu|jhatka|valippu|seleta|apasmaaram)\\b|ఫిట్స్|வலிப்பு|ಫಿಟ್ಸ್|അപസ്മാരം)", RegexOption.IGNORE_CASE),
+            Regex("(?:\\b(jhatke|daura|convuls|fits|mirgi|tyala jhatke|jhatkalu|jhatka|valippu|seleta|apasmaaram)\\b|झटके|दौरा\\s*पड़|मूर्छा|झाग निकल|ఫిట్స్|మూర్ఛ|வலிப்பு|ಫಿಟ್ಸ್|ಅಪಸ್ಮಾ|അപസ്മാ)", RegexOption.IGNORE_CASE),
             Pair("ESC-5.1", "Convulsions (fits / jhatke): general danger sign, refer immediately to hospital (call 108/102). Give nothing by mouth (ESC-5.1, ESC-1.3).")
         ),
         // 3. Child unable to feed
         Pair(
-            Regex("(doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|not able to drink|cannot drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu|paalu kudikka villai|haalu kudiyuttilla|paal kudikkunnilla|పాలు తాగడం లేదు|பால் குடிக்கவில்லை|ಹಾಲು ಕುಡಿಯುತ್ತಿಲ್ಲ|പാൽ കുടിക്കുന്നില്ല)", RegexOption.IGNORE_CASE),
+            Regex("(doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|cannot suck|not able to drink|cannot drink|unable to drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|doodh kheenchne ki taakat nahi|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu|paalu kudikka villai|haalu kudiyuttilla|paal kudikkunnilla|दूध नहीं पी|दूध पीना.*बंद|खींच नहीं|పాలు తాగడం లేదు|பால் குடிக்கவில்லை|ಹಾಲು ಕುಡಿಯುತ್ತಿಲ್ಲ|പാൽ കുടിക്കുന്നില്ല|stopped breastfeeding|refusing.*feed|unable to drink or breastfeed)", RegexOption.IGNORE_CASE),
             Pair("ESC-5.1", "Child not able to drink or breastfeed: general danger sign, refer immediately to hospital (call 108/102) (ESC-5.1).")
         ),
         // 4. Prolonged fever (> 7 days)
         Pair(
-            Regex("(\\b([89]|\\d{2,})\\s*din\\s+se\\s+.*bukhar|bukhar.*([89]|\\d{2,})\\s*din|more than 7 days|7 din se zyada.*bukhar)", RegexOption.IGNORE_CASE),
+            Regex("(\\b([89]|\\d{2,})\\s*din\\s+se\\s+.*bukhar|bukhar.*([89]|\\d{2,})\\s*din|more than 7 days|7 din se zyada.*bukhar|7 rojula kante.*jwaram|7 naatkal.*kaichal)", RegexOption.IGNORE_CASE),
             Pair("ESC-5.4", "Fever lasting more than 7 days: danger sign, refer immediately for medical assessment (ESC-5.4).")
         ),
         // 5. Stiff neck
         Pair(
-            Regex("(gardan\\s+akad|stiff neck)", RegexOption.IGNORE_CASE),
+            Regex("(gardan\\s+akad|stiff neck|meda pattam|kazhuthu viraippu)", RegexOption.IGNORE_CASE),
             Pair("ESC-5.4", "Fever with stiff neck: general danger sign, refer immediately (call 108) (ESC-5.4).")
         ),
         // 6. Postpartum hemorrhage
         Pair(
-            Regex("(pad\\s+[1-4]\\s*minute|pad\\s+3-4\\s*minute|less than 5 minutes|din me ([6-9]|\\d{2,})\\s*pad|din me 8 pad|दिन में 8 पैड|more than 5 pads|6-7 kapde|[5-9]\\s*kapde|\\d{2,}\\s*kapde|khoon bahut beh raha|delivery.*khoon bahut)", RegexOption.IGNORE_CASE),
+            Regex("(pad\\s+[1-4]\\s*minute|pad\\s+3-4\\s*minute|less than 5 minutes|din me ([6-9]|\\d{2,})\\s*pad|din me 8 pad|दिन में ([5-9]|\\d{2,})\\s*पैड|more than 5 pads|changed ([5-9]|\\d{2,}) pads|6-7 kapde|[5-9]\\s*kapde|\\d{2,}\\s*kapde|khoon bahut beh raha|delivery.*khoon bahut|khoon band nahi ho raha|cloth.*soaked|soaked.*cloth|प्रसव के बाद.*खून|prasavam.*raktham|bleeding heavily|भीग गया|खून बहुत बह|రక్తస్రావం.*ఆగడం లేదు|ప్యాడ్‌లు మారాయి|తీవ్ర రక్తస్రావం|പാഡ് നനഞ്ഞു)", RegexOption.IGNORE_CASE),
             Pair("ESC-3.1", "Heavy postpartum bleeding (pad soaked in less than 5 minutes or more than 5 pads/day): refer immediately (call 108/102) (ESC-3.1).")
         ),
-        // 7. Vaginal bleeding in pregnancy
+        // 7. Vaginal ble{1,2}ding in pregnancy
         Pair(
-            Regex("(bleeding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|bleeding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati|garbhavathi).*(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnant|garbh)|garbhavathi.*raktham|raktham paduthondi|rathappokku|raktasrava|rakthasravam|రక్తస్రావం|ரத்தப்போக்கு|ರಕ್ತಸ್ರಾವ|രക്തസ്രാവം)", RegexOption.IGNORE_CASE),
-            Pair("ESC-2.1", "Any vaginal bleeding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2).")
+            Regex("(ble{1,2}ding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|ble{1,2}ding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati|garbhavathi).*(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnant|garbh)|garbhavathi.*raktham|raktham paduthondi|rathappokku|raktasrava|rakthasravam|రక్తస్రావం|ரத்தப்போக்கு|ರಕ್ತಸ್ರಾವ|രക്തസ്രാവം|गर्भवती.*खून|गर्भावस्था में (?:ble{1,2}ding|ब्लीडिंग)|ब्लीडिंग|खून का दाग|blood stains on clothes|రక్తపు మరకలు)", RegexOption.IGNORE_CASE),
+            Pair("ESC-2.1", "Any vaginal ble{1,2}ding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2).")
         ),
         // 8. Pre-eclampsia
         Pair(
@@ -129,11 +129,11 @@ object JEVEscalate {
 object JEVScope {
     private val scopeRules = listOf(
         Pair(
-            Regex("\\b(paracetamol|pcm syrup|cefixime|amoxicillin|cough syrup|kaun sa cough syrup|kaun si goli lu|mere khud ke sir me.*dard|kaun si dawai|kaun si cream|kaun se drops|drops daale|ghutno me.*kaun si dawai|neend nahi aati.*kaun si dawai|daaru chhudwane|bistar geela.*koi dawai)\\b", RegexOption.IGNORE_CASE),
+            Regex("(\\b(paracetamol|pcm syrup|paracetamol syrup|cefixime|amox[i]?cillin|cough syrup|kaun sa cough syrup|kaun si goli|mere khud ke sir me.*dard|kaun si dawai|kaun si cream|kaun se drops|drops daale|ghutno me.*kaun si dawai|neend nahi aati.*kaun si dawai|daaru chhudwane|bistar geela.*koi dawai)\\b|पैरासिटामोल|अमोक्सिसिलिन|कफ सिरप|పారాసిటమాల్|అమోక్సిసిలిన్|பாராசிட்டமால்|அமாக்ஸிசில்லி|ಪ್ಯಾರಸಿಟಮಲ್|പാരസെറ്റമോൾ|allopathic medicine|which medicine.*take|which tablet.*take|drops for ear|ear pain.*drops|घुटनों में दर्द.*गोली|कान में दर्द.*ड्रॉप्स)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book. Please ask the Medical Officer at the PHC (or your ANM). If any danger sign is present, refer immediately (SCP-1.2).")
         ),
         Pair(
-            Regex("(insulin kitni unit|insulin kitni|metformin.*khana khane se pehle|amlodipine.*10 mg karni hai|bp 150.*amlodipine)", RegexOption.IGNORE_CASE),
+            Regex("(insulin kitni unit|insulin kitni|insulin.*unit|insulin.*increase|how many units.*insulin|metformin.*khana khane se pehle|amlodipine.*10 mg karni hai|bp 150.*amlodipine|amlodipine.*change|amlodipine.*10mg|इंसुलिन|ఇన్సులిన్)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book. Please ask the Medical Officer at the PHC (or your ANM). If any danger sign is present, refer immediately (SCP-1.2).")
         ),
         Pair(
@@ -141,15 +141,15 @@ object JEVScope {
             Pair("SCP-1.2", "This is outside my protocol book. Please ask the Medical Officer at the PHC (or your ANM). If any danger sign is present, refer immediately (SCP-1.2).")
         ),
         Pair(
-            Regex("(ladka.*ladki|sex determination|ling jaanch|kahin pata karwa sakte|ling parikshan)", RegexOption.IGNORE_CASE),
+            Regex("(ladka.*ladki|sex determination|ling jaanch|kahin pata karwa sakte|ling parikshan|boy or girl|gender of|लड़का.*लड़की|అబ్బాయా లేక అమ్మాయా|ஆணா பெண்ணா|ಗಂಡಾ ಅಥವಾ ಹೆಣ್ಣಾ|ಆಣാണോ പെണ്ണാണോ)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book and prohibited by law (PC-PNDT Act). Every pregnancy requires full antenatal care. Please consult your ANM / MO (SCP-1.2).")
         ),
         Pair(
-            Regex("(u-win app|login nahi ho raha|otp nahi aa raha|ration card me.*naam|ayushman card kaise|mobile me data|recharge kaun|incentive kab|hisaab portal|maandey|janam praman patra kaise banwaye)", RegexOption.IGNORE_CASE),
+            Regex("(u-win|यू-विन|ओटीपी|login nahi ho raha|otp nahi aa raha|otp.*not arriving|ration card me.*naam|ayushman card kaise|mobile me data|recharge kaun|incentive kab|incentive.*asha|asha.*incentive|hisaab portal|maandey|मानदेय|इंसेंटिव|ఓటీపీ|janam praman patra kaise banwaye)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book. Please contact your block program management unit (BPMU) or supervisor (SCP-1.2).")
         ),
         Pair(
-            Regex("(rabies ke injection|kutte ne.*kharoch|dog bite|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9)", RegexOption.IGNORE_CASE),
+            Regex("(rabies|kutte ne|dog bite|dog scratch|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9|रेबीज|రాబీస్|కుక్క కరి|ரேபிஸ்|நாய் கடி|ರೇಬೀಸ್|ನಾಯಿ ಕಚ್ಚಿ|റാബിസ്|നായ മാന്തിയ)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
         )
     )
