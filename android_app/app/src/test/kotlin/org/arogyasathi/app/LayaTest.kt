@@ -136,6 +136,58 @@ class LayaTest {
     }
 
     @Test
+    fun testSouthIndianMultilingualRetrieval() {
+        val retriever = LayaRetriever(LocalRepository.sampleProtocols)
+
+        // Telugu script
+        val teHits = retriever.retrieve("విరేచనాలు", topK = 1)
+        assertFalse("Telugu script query should retrieve protocol", teHits.isEmpty())
+        assertTrue("Telugu query should match diarrhoea", teHits.first().sectionId.startsWith("CHD-1"))
+
+        // Tamil script
+        val taHits = retriever.retrieve("வயிற்றுப்போக்கு", topK = 1)
+        assertFalse("Tamil script query should retrieve protocol", taHits.isEmpty())
+        assertTrue("Tamil query should match diarrhoea", taHits.first().sectionId.startsWith("CHD-1"))
+
+        // Kannada script
+        val knHits = retriever.retrieve("ಭೇದಿ", topK = 1)
+        assertFalse("Kannada script query should retrieve protocol", knHits.isEmpty())
+        assertTrue("Kannada query should match diarrhoea", knHits.first().sectionId.startsWith("CHD-1"))
+
+        // Malayalam script
+        val mlHits = retriever.retrieve("വയറിളക്കം", topK = 1)
+        assertFalse("Malayalam script query should retrieve protocol", mlHits.isEmpty())
+        assertTrue("Malayalam query should match diarrhoea", mlHits.first().sectionId.startsWith("CHD-1"))
+    }
+
+    @Test
+    fun testSouthIndianEmergencyPhrasesInJEV() {
+        // Tamil unconsciousness & fits
+        val taEsc1 = org.arogyasathi.app.jev.JEVEscalate.evaluate("நோயாளிக்கு மயக்கம் வந்துவிட்டது")
+        assertNotNull("Tamil unconsciousness must escalate", taEsc1)
+        assertEquals("ESC-6.3", taEsc1?.first)
+
+        val taEsc2 = org.arogyasathi.app.jev.JEVEscalate.evaluate("குழந்தைக்கு வலிப்பு")
+        assertNotNull("Tamil convulsions must escalate", taEsc2)
+        assertEquals("ESC-5.1", taEsc2?.first)
+
+        // Kannada unconsciousness & fits
+        val knEsc1 = org.arogyasathi.app.jev.JEVEscalate.evaluate("ರೋಗಿಗೆ ಪ್ರಜ್ಞೆ ಇಲ್ಲ")
+        assertNotNull("Kannada unconsciousness must escalate", knEsc1)
+        assertEquals("ESC-6.3", knEsc1?.first)
+
+        // Malayalam unconsciousness & fits
+        val mlEsc1 = org.arogyasathi.app.jev.JEVEscalate.evaluate("ബോധമില്ല")
+        assertNotNull("Malayalam unconsciousness must escalate", mlEsc1)
+        assertEquals("ESC-6.3", mlEsc1?.first)
+
+        // Telugu severe bleeding in pregnancy
+        val teEsc = org.arogyasathi.app.jev.JEVEscalate.evaluate("గర్భిణికి రక్తస్రావం")
+        assertNotNull("Telugu severe pregnancy bleeding must escalate", teEsc)
+        assertEquals("ESC-2.1", teEsc?.first)
+    }
+
+    @Test
     fun testTeluguEmergencyPhrasesInJEV() {
         val res1 = org.arogyasathi.app.jev.JEVEscalate.evaluate("jhatkalu vasthunnai")
         assertNotNull("Must detect Telugu convulsions as emergency", res1)

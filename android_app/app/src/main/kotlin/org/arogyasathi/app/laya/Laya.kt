@@ -149,21 +149,92 @@ object LayaLexicon {
         "salt" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "namak" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "exercise" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1 lifestyle counselling",
-        "kasrat" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1"
+        "kasrat" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1",
+
+        // South Indian & Dravidian Languages (Telugu, Tamil, Kannada, Malayalam)
+        // Diarrhoea & ORS
+        "విరేచనాలు" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "మోషన్స్" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "వయిట్రుపోక్కు" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "வயிற்றுப்போக்கு" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "பேதி" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "vayittruppokku" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "bedhi" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "ಭೇದಿ" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "ವಾಂತಿ ಭೇದಿ" to "diarrhoea loose motions vomiting chd-1.1 chd-1.2",
+        "bhedi" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "വയറിളക്കം" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "vayarilakkam" to "diarrhoea loose motions chd-1.1 chd-1.2",
+
+        // Fever & Respiratory
+        "జ్వరం" to "fever 38 100.4 chd-2.1 chd-2.2",
+        "శ్వాస" to "breaths fast breathing pneumonia chd-3.1",
+        "దగ్గు" to "cough fast breathing chd-3.1",
+        "காய்ச்சல்" to "fever 38 100.4 chd-2.1 chd-2.2",
+        "சுரம்" to "fever chd-2.1 chd-2.2",
+        "இருமல்" to "cough fast breathing chd-3.1",
+        "மூச்சு" to "breaths fast breathing pneumonia chd-3.1",
+        "kaichal" to "fever chd-2.1 chd-2.2",
+        "irumal" to "cough fast breathing chd-3.1",
+        "moochu" to "breaths fast breathing pneumonia chd-3.1",
+        "ಜ್ವರ" to "fever 38 100.4 chd-2.1 chd-2.2",
+        "ಉಸಿರಾಟ" to "breaths fast breathing pneumonia chd-3.1",
+        "ಕೆಮ್ಮು" to "cough fast breathing chd-3.1",
+        "jwara" to "fever chd-2.1 chd-2.2",
+        "kemmu" to "cough fast breathing chd-3.1",
+        "പനി" to "fever 38 100.4 chd-2.1 chd-2.2",
+        "ചുമ" to "cough fast breathing chd-3.1",
+        "ശ്വാസം" to "breaths fast breathing pneumonia chd-3.1",
+        "pani" to "fever chd-2.1 chd-2.2",
+        "chuma" to "cough fast breathing chd-3.1",
+
+        // Vaccines & Immunization
+        "టీకా" to "vaccine immunisation session imm-1.1 imm-2",
+        "టీకాలు" to "vaccine immunisation session imm-1.1 imm-2",
+        "தடுப்பூசி" to "vaccine immunisation session imm-1.1 imm-2",
+        "thaduppoosi" to "vaccine immunisation session imm-1.1 imm-2",
+        "ಲಸಿಕೆ" to "vaccine immunisation session imm-1.1 imm-2",
+        "lasike" to "vaccine immunisation session imm-1.1 imm-2",
+        "പ്രതിരോധകുത്തിവയ്പ്പ്" to "vaccine immunisation session imm-1.1 imm-2",
+        "kuthivaippu" to "vaccine immunisation session imm-1.1 imm-2",
+
+        // Maternal & ANC
+        "గర్భవతి" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "గర్భం" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "కాల్షియం" to "calcium two tablets a day 500 mg 6 months anc-2.3",
+        "రక్తహీనత" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "கர்ப்பம்" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "கர்ப்பிணி" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "ரத்தசோகை" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "karppam" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "ratha sogai" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "ಗರ್ಭಿಣಿ" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "ರಕ್ತಹೀನತೆ" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "garbhini" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "ಗರ್ಭ" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "ഗർഭം" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "ഗർഭിണി" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "വിളർച്ച" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "garbham" to "pregnancy antenatal anc-1.1 anc-1.2"
     )
 
     fun expand(text: String): List<String> {
-        val raw = Regex("[a-zA-Z0-9]+").findAll(text.lowercase()).map { it.value }.toList()
-        val out = raw.toMutableList()
-        val joined = " " + raw.joinToString(" ") + " "
+        val tLower = text.lowercase()
+        // Split on whitespace and standard punctuation, preserving any Unicode script words
+        val unicodeWords = tLower.split(Regex("[\\s,?.!;:()\\[\\]{}\"']+")).filter { it.isNotBlank() }
+        val asciiWords = Regex("[a-z0-9]+").findAll(tLower).map { it.value }.toList()
+
+        val out = (unicodeWords + asciiWords).distinct().toMutableList()
+        val joined = " " + unicodeWords.joinToString(" ") + " "
+
         for ((k, v) in lexicon) {
             if (k.contains(" ") && joined.contains(" $k ")) {
                 out.addAll(v.split(" "))
-            } else if (k in raw) {
+            } else if (k in unicodeWords || k in asciiWords) {
                 out.addAll(v.split(" "))
             }
         }
-        return out
+        return out.distinct()
     }
 }
 

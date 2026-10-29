@@ -60,6 +60,20 @@ data class ChatMessage(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+enum class VoiceLanguage(
+    val code: String,
+    val nativeLabel: String,
+    val shortCode: String,
+    val prompt: String
+) {
+    ENGLISH("en-IN", "English", "EN", "Speak clinical query (English)"),
+    HINDI("hi-IN", "हिन्दी", "HI", "बोलें — नैदानिक प्रश्न पूछें (Hindi)"),
+    TELUGU("te-IN", "తెలుగు", "TE", "మాట్లాడండి — క్లినికల్ ప్రశ్న (Telugu)"),
+    TAMIL("ta-IN", "தமிழ்", "TA", "பேசுங்கள் — மருத்துவ கேள்வி (Tamil)"),
+    KANNADA("kn-IN", "ಕನ್ನಡ", "KN", "ಮಾತನಾಡಿ — ಕ್ಲಿನಿಕಲ್ ಪ್ರಶ್ನೆ (Kannada)"),
+    MALAYALAM("ml-IN", "മലയാളം", "ML", "സംസാരിക്കൂ — ക്ലിനിക്കൽ ചോദ്യം (Malayalam)")
+}
+
 @Composable
 fun AssistantScreen(
     repository: ArogyasathiRepository,
@@ -72,7 +86,8 @@ fun AssistantScreen(
     val listState = rememberLazyListState()
 
     var activePatient by remember { mutableStateOf<Member?>(initialPatient) }
-    var isHindiMode by remember { mutableStateOf(false) }
+    var selectedLanguage by remember { mutableStateOf(VoiceLanguage.ENGLISH) }
+    val isHindiMode = selectedLanguage == VoiceLanguage.HINDI
     var showPatientPicker by remember { mutableStateOf(false) }
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
 
@@ -473,55 +488,69 @@ fun AssistantScreen(
             }
         }
 
-        // Quick Suggestion Chips Carousel & Bilingual Toggle Strip
-        Row(
+        // Multilingual Voice & Clinical Language Selector Strip
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .padding(horizontal = 12.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Language Toggle Pill
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = if (isHindiMode) PrimaryTeal else Color(0xFFE6F4F1),
-                border = BorderStroke(1.dp, PrimaryTeal),
-                modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable { isHindiMode = !isHindiMode }
-            ) {
-                Text(
-                    text = if (isHindiMode) "हिंदी (HI)" else "English (EN)",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isHindiMode) Color.White else PrimaryTeal,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            // Quick Question Chips
-            LazyRow(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                items(quickTopics) { topic ->
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color.White,
-                        border = BorderStroke(1.dp, BorderSubtle),
-                        modifier = Modifier.clip(RoundedCornerShape(14.dp)),
-                        onClick = { submitQuery(topic) }
+            items(VoiceLanguage.values()) { lang ->
+                val isSelected = selectedLanguage == lang
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (isSelected) PrimaryTeal else Color(0xFFE6F4F1),
+                    border = BorderStroke(1.dp, if (isSelected) PrimaryTeal else Color(0xFFCBD5E1)),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { selectedLanguage = lang }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = topic,
+                            text = lang.nativeLabel,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Color.White else PrimaryTeal
+                        )
+                        Text(
+                            text = lang.shortCode,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) Color.White.copy(alpha = 0.85f) else DarkTeal
                         )
                     }
+                }
+            }
+        }
+
+        // Quick Question Chips
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            items(quickTopics) { topic ->
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color.White,
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    modifier = Modifier.clip(RoundedCornerShape(14.dp)),
+                    onClick = { submitQuery(topic) }
+                ) {
+                    Text(
+                        text = topic,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
                 }
             }
         }
@@ -548,7 +577,14 @@ fun AssistantScreen(
                             tts?.stop()
                             isSpeaking = false
                         } else {
-                            val lang = if (isHindiMode) Locale.forLanguageTag("hi-IN") else Locale.US
+                            val lang = when (selectedLanguage) {
+                                VoiceLanguage.HINDI -> Locale.forLanguageTag("hi-IN")
+                                VoiceLanguage.TELUGU -> Locale.forLanguageTag("te-IN")
+                                VoiceLanguage.TAMIL -> Locale.forLanguageTag("ta-IN")
+                                VoiceLanguage.KANNADA -> Locale.forLanguageTag("kn-IN")
+                                VoiceLanguage.MALAYALAM -> Locale.forLanguageTag("ml-IN")
+                                VoiceLanguage.ENGLISH -> Locale.forLanguageTag("en-IN")
+                            }
                             tts?.language = lang
                             tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts")
                             isSpeaking = true
@@ -586,8 +622,8 @@ fun AssistantScreen(
                         try {
                             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, if (isHindiMode) "hi-IN" else "en-IN")
-                                putExtra(RecognizerIntent.EXTRA_PROMPT, "बोलें — Ask clinical question (Hindi/English)")
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
+                                putExtra(RecognizerIntent.EXTRA_PROMPT, selectedLanguage.prompt)
                             }
                             speechLauncher.launch(intent)
                         } catch (e: Exception) {
