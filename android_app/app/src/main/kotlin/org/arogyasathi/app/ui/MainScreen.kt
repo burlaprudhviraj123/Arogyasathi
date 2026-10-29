@@ -41,7 +41,7 @@ fun MainScreen() {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "आरोग्यसाथी",
+                                text = "Arogyasathi",
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 17.sp,
                                 color = PrimaryTeal
@@ -61,7 +61,7 @@ fun MainScreen() {
                             }
                         }
                         Text(
-                            text = "Arogyasathi Clinical Companion",
+                            text = "Frontline Clinical Companion",
                             fontSize = 11.sp,
                             color = TextSecondary
                         )
