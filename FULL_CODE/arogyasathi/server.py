@@ -11,6 +11,7 @@ from __future__ import annotations
 import time
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from .protocols import load_protocol_sections
@@ -19,7 +20,8 @@ from .visit_engine import generate_visit_list
 import pandas as pd
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "H5_Frontline_Health_Worker_Companion" / "data"
+ROOT_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOT_DIR / "H5_Frontline_Health_Worker_Companion" / "data"
 
 app = FastAPI(
     title="Arogyasathi Edge Sync Gateway",
@@ -33,6 +35,22 @@ SYNCED_OUTCOMES: list[dict] = []
 # Initialize QA Engine & Protocol Corpus on startup
 SECTIONS = load_protocol_sections(DATA_DIR / "protocols")
 QA_ENGINE = QAEngine(SECTIONS)
+
+
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+def serve_web_demo():
+    demo_file = ROOT_DIR / "web_demo.html"
+    if demo_file.exists():
+        return FileResponse(demo_file, media_type="text/html")
+    return {"message": "Arogyasathi Edge Sync Gateway Active"}
+
+
+@app.api_route("/slides", methods=["GET", "HEAD"], include_in_schema=False)
+def serve_slides():
+    slides_file = ROOT_DIR / "slides.html"
+    if slides_file.exists():
+        return FileResponse(slides_file, media_type="text/html")
+    return {"message": "Slides not found"}
 
 
 class QueryRequest(BaseModel):

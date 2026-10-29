@@ -95,3 +95,15 @@ def test_protocols_endpoint():
     assert data["count"] > 0
     for p in data["protocols"]:
         assert p["section_id"].startswith("ANC")
+
+
+def test_root_and_slides_endpoints():
+    res_root = client.get("/")
+    assert res_root.status_code == 200
+    assert "text/html" in res_root.headers.get("content-type", "")
+    assert "आरोग्यसाथी" in res_root.text
+
+    res_slides = client.get("/slides")
+    assert res_slides.status_code == 200
+    assert "text/html" in res_slides.headers.get("content-type", "")
+    assert "Arogyasathi" in res_slides.text
