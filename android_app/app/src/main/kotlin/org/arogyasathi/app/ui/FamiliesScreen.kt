@@ -30,6 +30,7 @@ fun FamiliesScreen(
     onConsultMember: (Member) -> Unit
 ) {
     val context = LocalContext.current
+    val strings = LocalAppStrings.current
     var searchQuery by remember { mutableStateOf("") }
     var selectedVillage by remember { mutableStateOf("All") }
     var households by remember { mutableStateOf<List<Household>>(emptyList()) }
@@ -52,7 +53,7 @@ fun FamiliesScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search by family head, house #, or ID...") },
+            placeholder = { Text(strings.searchPlaceholder) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(

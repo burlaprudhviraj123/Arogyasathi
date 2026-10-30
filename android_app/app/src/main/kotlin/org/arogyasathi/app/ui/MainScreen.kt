@@ -30,6 +30,9 @@ import org.arogyasathi.app.data.ArogyasathiRepository
 fun MainScreen() {
     val context = LocalContext.current
     val repository = remember { ArogyasathiRepository(context) }
+    var currentLanguage by remember { mutableStateOf(repository.getAppLanguage()) }
+    val strings = getAppStrings(currentLanguage)
+
     var selectedTab by remember { mutableIntStateOf(0) }
     var assistantQuery by remember { mutableStateOf<String?>(null) }
     var assistantPatient by remember { mutableStateOf<org.arogyasathi.app.core.Member?>(null) }
@@ -37,142 +40,157 @@ fun MainScreen() {
     var showEmergencyDialog by remember { mutableStateOf(false) }
     var activeProfile by remember { mutableStateOf(repository.getActiveProfile()) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Arogyasathi",
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 17.sp,
-                                color = PrimaryTeal
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = RoutineGreen.copy(alpha = 0.12f)
-                            ) {
+    CompositionLocalProvider(
+        LocalCurrentLanguage provides currentLanguage,
+        LocalAppStrings provides strings
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "OFFLINE READY",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = RoutineGreen,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = "Frontline Clinical Companion",
-                            fontSize = 11.sp,
-                            color = TextSecondary
-                        )
-                    }
-                },
-                actions = {
-                    // Global Emergency SOS Action Button
-                    IconButton(
-                        onClick = { showEmergencyDialog = true },
-                        modifier = Modifier.size(38.dp)
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(34.dp),
-                            shape = CircleShape,
-                            color = Color(0xFFFEF2F2),
-                            border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.4f))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_emergency),
-                                    contentDescription = "Emergency SOS Contacts",
-                                    tint = EmergencyRed,
-                                    modifier = Modifier.size(17.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    // Minimalist Circular Avatar Button (Standard Material 3 UX)
-                    IconButton(
-                        onClick = { showProfileDialog = true },
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(38.dp)
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(34.dp),
-                            shape = CircleShape,
-                            color = Color(0xFFE6F4F1),
-                            border = BorderStroke(1.5.dp, PrimaryTeal.copy(alpha = 0.35f))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = activeProfile.name.firstOrNull()?.uppercase() ?: "A",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    text = strings.appName,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 17.sp,
                                     color = PrimaryTeal
                                 )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = RoutineGreen.copy(alpha = 0.12f)
+                                ) {
+                                    Text(
+                                        text = strings.offlineReady,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = RoutineGreen,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = strings.appSubtitle,
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    },
+                    actions = {
+                        // Global Emergency SOS Action Button
+                        IconButton(
+                            onClick = { showEmergencyDialog = true },
+                            modifier = Modifier.size(38.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(34.dp),
+                                shape = CircleShape,
+                                color = Color(0xFFFEF2F2),
+                                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.4f))
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_emergency),
+                                        contentDescription = strings.emergencySos,
+                                        tint = EmergencyRed,
+                                        modifier = Modifier.size(17.dp)
+                                    )
+                                }
                             }
                         }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = TextPrimary
-                )
-            )
-        },
-        bottomBar = {
-            FloatingGlassBottomBar(
-                selectedIndex = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(CanvasBackground)
-                .padding(paddingValues)
-        ) {
-            when (selectedTab) {
-                0 -> TodayScreen(
-                    repository = repository,
-                    activeProfile = activeProfile,
-                    onNavigateToAssistant = { prompt, memberId ->
-                        assistantPatient = memberId?.let { repository.getMemberById(it) }
-                        assistantQuery = prompt
-                        selectedTab = 2 // Switch to Assistant tab
-                    }
-                )
-                1 -> FamiliesScreen(
-                    repository = repository,
-                    onConsultMember = { member ->
-                        val prompt = when {
-                            member.isPregnant -> "High risk pregnancy follow-up for ${member.name} EDD ${member.edd ?: "unknown"}"
-                            member.ncdCondition != null -> "NCD management protocol for ${member.ncdCondition}"
-                            else -> "Clinical protocol guidance for ${member.name}"
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // Minimalist Circular Avatar Button (Standard Material 3 UX)
+                        IconButton(
+                            onClick = { showProfileDialog = true },
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(38.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(34.dp),
+                                shape = CircleShape,
+                                color = Color(0xFFE6F4F1),
+                                border = BorderStroke(1.5.dp, PrimaryTeal.copy(alpha = 0.35f))
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = activeProfile.name.firstOrNull()?.uppercase() ?: "A",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryTeal
+                                    )
+                                }
+                            }
                         }
-                        assistantPatient = member
-                        assistantQuery = prompt
-                        selectedTab = 2 // Switch to Assistant tab
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White,
+                        titleContentColor = TextPrimary
+                    )
                 )
-                2 -> AssistantScreen(
-                    repository = repository,
-                    initialQuery = assistantQuery,
-                    initialPatient = assistantPatient,
-                    onClearInitialContext = {
-                        assistantQuery = null
-                        assistantPatient = null
-                    }
+            },
+            bottomBar = {
+                FloatingGlassBottomBar(
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it }
                 )
-                3 -> RecordsScreen(
-                    repository = repository
-                )
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(CanvasBackground)
+                    .padding(paddingValues)
+            ) {
+                when (selectedTab) {
+                    0 -> TodayScreen(
+                        repository = repository,
+                        activeProfile = activeProfile,
+                        onNavigateToAssistant = { prompt, memberId ->
+                            assistantPatient = memberId?.let { repository.getMemberById(it) }
+                            assistantQuery = prompt
+                            selectedTab = 2 // Switch to Assistant tab
+                        }
+                    )
+                    1 -> FamiliesScreen(
+                        repository = repository,
+                        onConsultMember = { member ->
+                            val prompt = when {
+                                member.isPregnant -> "High risk pregnancy follow-up for ${member.name} EDD ${member.edd ?: "unknown"}"
+                                member.ncdCondition != null -> "NCD management protocol for ${member.ncdCondition}"
+                                else -> "Clinical protocol guidance for ${member.name}"
+                            }
+                            assistantPatient = member
+                            assistantQuery = prompt
+                            selectedTab = 2 // Switch to Assistant tab
+                        }
+                    )
+                    2 -> AssistantScreen(
+                        repository = repository,
+                        initialQuery = assistantQuery,
+                        initialPatient = assistantPatient,
+                        onClearInitialContext = {
+                            assistantQuery = null
+                            assistantPatient = null
+                        }
+                    )
+                    3 -> RecordsScreen(
+                        repository = repository
+                    )
+                    4 -> SettingsScreen(
+                        repository = repository,
+                        activeProfile = activeProfile,
+                        currentLanguage = currentLanguage,
+                        onLanguageChanged = { newLang ->
+                            repository.setAppLanguage(newLang)
+                            currentLanguage = newLang
+                        },
+                        onSwitchProfile = { showProfileDialog = true }
+                    )
+                }
             }
         }
     }

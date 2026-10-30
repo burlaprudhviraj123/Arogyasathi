@@ -41,11 +41,13 @@ fun FloatingGlassBottomBar(
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val items = listOf(
-        NavigationTabItem("Today", R.drawable.ic_today, 0),
-        NavigationTabItem("Families", R.drawable.ic_families, 1),
-        NavigationTabItem("Assistant", R.drawable.ic_assistant, 2),
-        NavigationTabItem("Records", R.drawable.ic_records, 3)
+        NavigationTabItem(strings.tabToday, R.drawable.ic_today, 0),
+        NavigationTabItem(strings.tabFamilies, R.drawable.ic_families, 1),
+        NavigationTabItem(strings.tabAssistant, R.drawable.ic_assistant, 2),
+        NavigationTabItem(strings.tabRecords, R.drawable.ic_records, 3),
+        NavigationTabItem(strings.tabSettings, R.drawable.ic_settings, 4)
     )
 
     val isDark = isSystemInDarkTheme()
@@ -57,7 +59,7 @@ fun FloatingGlassBottomBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
@@ -72,7 +74,7 @@ fun FloatingGlassBottomBar(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 6.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -96,9 +98,9 @@ fun FloatingGlassBottomBar(
                             .clickable { onTabSelected(item.index) }
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = if (isSelected) 10.dp else 8.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = item.iconRes),
@@ -109,9 +111,10 @@ fun FloatingGlassBottomBar(
                             if (isSelected) {
                                 Text(
                                     text = item.title,
-                                    fontSize = 13.sp,
+                                    fontSize = 11.5.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = activeTint
+                                    color = activeTint,
+                                    maxLines = 1
                                 )
                             }
                         }

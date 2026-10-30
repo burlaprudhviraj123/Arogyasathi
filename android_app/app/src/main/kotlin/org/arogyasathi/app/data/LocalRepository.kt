@@ -161,6 +161,28 @@ class ArogyasathiRepository(private val context: Context) {
         "Belwadi Tola", "Amrapur", "Kesarganj", "Dhanpura", "Navagaon Khurd", "Sitapahari"
     )
 
+    fun getAppLanguage(): org.arogyasathi.app.ui.AppLanguage {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        val code = prefs.getString("app_language", org.arogyasathi.app.ui.AppLanguage.ENGLISH.code)
+            ?: org.arogyasathi.app.ui.AppLanguage.ENGLISH.code
+        return org.arogyasathi.app.ui.AppLanguage.fromCode(code)
+    }
+
+    fun setAppLanguage(language: org.arogyasathi.app.ui.AppLanguage) {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("app_language", language.code).apply()
+    }
+
+    fun isVoiceModelDownloaded(): Boolean {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("voice_model_downloaded", false)
+    }
+
+    fun setVoiceModelDownloaded(downloaded: Boolean) {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("voice_model_downloaded", downloaded).apply()
+    }
+
     fun verifyPhoneNumber(rawPhone: String): AshaProfile? {
         val clean = rawPhone.replace(Regex("[^0-9]"), "")
         return allProfiles.find {

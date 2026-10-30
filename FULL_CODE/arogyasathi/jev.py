@@ -24,13 +24,13 @@ DANGER_RULES = [
     ),
     # 2. General convulsions / fits (ESC-5.1, ESC-4.1)
     (
-        r"\bjhatke\b|\bdaura\b|\bconvuls|\bfitt?s\b|\bmirgi\b|\btyala jhatke\b|\bjhatkalu\b|\bvalippu\b|\bseleta\b|\bapasmaaram\b|झटके|दौरा\s*पड़|मूर्छा|झाग निकल|ఫిట్స్|మూర్ఛ|வலிப்பு|ಫಿಟ್ಸ್|ಅಪಸ್ಮಾ|അപസ്മാ",
+        r"\bjhatke\b|\bdaura\b|\bconvuls|\bfitt?s\b|\bmirgi\b|\btyala jhatke\b|\bjhatkalu\b|\bvalippu\b|\bseleta\b|\bapasmaaram\b|झटके|दौर[ेा]\s*पड़|दौरा|दौरे|मूर्छा|झाग निकल|ఫిట్స్|మూర్ఛ|வலிப்பு|ಫಿಟ್ಸ್|ಅಪಸ್ಮಾ|അപസ്മാ",
         "ESC-5.1",
         "Convulsions (fits / jhatke): general danger sign, refer immediately to hospital (call 108/102). Give nothing by mouth (ESC-5.1, ESC-1.3)."
     ),
     # 3. Child unable to drink or breastfeed (ESC-5.1, ESC-4.1)
     (
-        r"doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|cannot suck|not able to drink|cannot drink|unable to drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|doodh kheenchne ki taakat nahi|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu|paalu kudikka villai|haalu kudiyuttilla|paal kudikkunnilla|दूध नहीं खींच|दूध.*खींच नहीं|दूध नहीं पी|दूध पीना.*बंद|खींच नहीं|పాలు తాగడం లేదు|பால் குடிக்கவில்லை|ಹಾಲು ಕುಡಿಯುತ್ತಿಲ್ಲ|പാൽ കുടിക്കുന്നില്ല|stopped breastfeeding|refusing.*feed|unable to drink or breastfeed",
+        r"doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|cannot suck|not able to drink|cannot drink|unable to drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|doodh kheenchne ki taakat nahi|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu|paal[u]?\s*kudikka\s*villai|paal[u]?\s*kudikkavillai|haalu kudiyuttilla|paal kudikkunnilla|दूध नहीं खींच|दूध.*खींच नहीं|दूध नहीं पी|दूध पीना.*बंद|खींच नहीं|పాలు తాగడం లేదు|பால் குடிக்கவில்லை|ಹಾಲು ಕುಡಿಯುತ್ತಿಲ್ಲ|പാൽ കുടിക്കുന്നില്ല|stopped breastfeeding|refusing.*feed|unable to drink or breastfeed",
         "ESC-5.1",
         "Child not able to drink or breastfeed: general danger sign, refer immediately to hospital (call 108/102) (ESC-5.1)."
     ),
@@ -54,7 +54,9 @@ DANGER_RULES = [
     ),
     # 7. Bleeding in pregnancy (ESC-2.1)
     (
-        r"ble{1,2}ding in (?:first|second|third|pregnancy)|garbh.*(?:khoon|bleeding)|pregnant.*(?:khoon|ble{1,2}ding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(?:mahila|aurat|garbh[a-z]*|pregnan[a-z]*|karp[a-z]*|sthr[a-z]*).*(?:ble{1,2}d[a-z]*|khoon|rakth[a-z]*|rathap[a-z]*)|(?:ble{1,2}d[a-z]*|khoon|rakth[a-z]*|rathap[a-z]*).*(?:mahila|aurat|garbh[a-z]*|pregnan[a-z]*|karp[a-z]*|sthr[a-z]*)|గర్భిణి.*రక్తస్రావం|గర్భ.*రక్తస్రావం|గర్భిణి.*రక్తం|రక్తస్రావం.*గర్భిణి|గర్భవతి.*రక్తస్రావం|గర్భిణీ.*రక్తస్రావం|రక్తస్రావం|கர்ப்பிணி.*ரத்தப்போக்கு|கர்ப்ப.*ரத்தப்போக்கு|ரத்தப்போக்கு|ಗರ್ಭಿಣಿ.*ರಕ್ತಸ್ರಾವ|ಗರ್ಭ.*ರಕ್ತಸ್ರಾವ|ರಕ್ತಸ್ರಾವ|ഗർഭിണി.*രക്തസ്രാവം|ഗർഭ.*രക്തസ്രാവം|രക്തസ്രാവം|రక్తపు మరకలు|రక్తస్రావం.*bleeding|గర్భిణీ.*bleeding|గర్భిణి.*bleeding|गर्भवती.*खून|गर्भावस्था में (?:ble{1,2}ding|ब्लीडिंग)|khoon ka daag|blood stains on clothes",
+        r"(?:ble{1,2}d[a-z]*|khoon|rak[t|th][a-z]*|rathap[a-z]*).*(?:in\s*|in)?(?:first|second|third|1st|2nd|3rd)\s*trim[a-z]*|"
+        r"(?:first|second|third|1st|2nd|3rd)\s*trim[a-z]*.*(?:ble{1,2}d[a-z]*|khoon|rak[t|th][a-z]*|rathap[a-z]*)|"
+        r"ble{1,2}ding in (?:first|second|third|pregnancy)|garbh.*(?:khoon|bleeding)|pregnant.*(?:khoon|ble{1,2}ding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(?:mahila|aurat|garbh[a-z]*|pregnan[a-z]*|karp[a-z]*|sthr[a-z]*).*(?:ble{1,2}d[a-z]*|khoon|rak[t|th][a-z]*|rathap[a-z]*)|(?:ble{1,2}d[a-z]*|khoon|rak[t|th][a-z]*|rathap[a-z]*).*(?:mahila|aurat|garbh[a-z]*|pregnan[a-z]*|karp[a-z]*|sthr[a-z]*)|గర్భిణి.*రక్తస్రావం|గర్భ.*రక్తస్రావం|గర్భిణి.*రక్తం|రక్తస్రావం.*గర్భిణి|గర్భవతి.*రక్తస్రావం|గర్భిణీ.*రక్తస్రావం|రక్తస్రావం|கர்ப்பிணி.*ரத்தப்போக்கு|கர்ப்ப.*ரத்தப்போக்கு|ரத்தப்போக்கு|ಗರ್ಭಿಣಿ.*ರಕ್ತಸ್ರಾವ|ಗರ್ಭ.*ರಕ್ತಸ್ರಾವ|ರಕ್ತಸ್ರಾವ|ഗർഭിണി.*രക്തസ്രാവം|ഗർഭ.*രക്തസ്രാവം|രക്തസ്രാവം|రక్తపు మరకలు|రక్తస్రావం.*bleeding|గర్భిణీ.*bleeding|గర్భిణి.*bleeding|गर्भवती.*खून|गर्भावस्था.*(?:ble{1,2}ding|ब्लीडिंग|रक्तस्राव|खून)|तीसरी तिमाही.*(?:रक्तस्राव|खून)|रक्तस्राव|khoon ka daag|blood stains on clothes",
         "ESC-2.1",
         "Any vaginal ble{1,2}ding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2)."
     ),
@@ -237,7 +239,7 @@ OUT_OF_SCOPE_RULES = [
     ),
     # 6. Uncovered conditions / non-routine vaccines
     (
-        r"rabies|kutte ne|dog bite|dog scratch|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9|रेबीज|రాబీస్|కుక్క కరి|ரேபிஸ்|நாய் கடி|ರೇಬೀಸ್|ನಾಯಿ ಕಚ್ಚಿ|റാബിസ്|നായ മാന്തിയ",
+        r"rabies|kutte ne|dog bite|dog scratch|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9|caesarean|c-section|chemotherapy|cancer.*treatment|surgery|surgical|biopsy|radiotherapy|dialysis|bypass|సిజేరియన్|సర్జరీ|ఆపరేషన్|శస్త్రచికిత్స|కీమోథెరపీ|క్యాన్సర్|सर्जरी|ऑपरेशन|सिजेरियन|कीमोथेरेपी|कैंसर.*इलाज|रेबीज|రాబీస్|కుక్క కరి|ரேபிஸ்|நாய் கடி|ರೇಬೀಸ್|ನಾಯಿ ಕಚ್ಚಿ|റാബിസ്|നായ മാന്തിയ",
         "SCP-1.2",
         "This is outside my protocol book. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2)."
     ),
