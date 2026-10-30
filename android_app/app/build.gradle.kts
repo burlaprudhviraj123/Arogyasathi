@@ -82,4 +82,8 @@ dependencies {
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+
+  // Room Database Schema & Offline Caching
+  implementation(libs.androidx.room.common)
+  implementation(libs.androidx.room.runtime)
 }

@@ -54,6 +54,12 @@ fun RecordsScreen(repository: ArogyasathiRepository) {
 
     LaunchedEffect(Unit) {
         refreshData()
+        repository.roomDb.syncQueueDao().observeSyncQueue().collect {
+            completedVisits = repository.getCompletedVisits()
+            syncQueue = repository.getSyncQueueItems()
+            pendingCount = repository.getPendingSyncCount()
+            protocols = repository.getProtocols()
+        }
     }
 
     Column(

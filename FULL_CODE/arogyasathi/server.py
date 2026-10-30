@@ -209,9 +209,85 @@ def get_protocols(category: Optional[str] = None):
             "section_id": sec_id,
             "title": data["title"],
             "category": sec_id.split("-")[0],
-            "body": data["text"]
+            "body": data["text"],
+            "keywords": data.get("keywords", ""),
         })
     return {
         "count": len(out),
         "protocols": out
     }
+
+
+@app.get("/api/v1/bootstrap")
+def get_bootstrap_dataset(asha_id: Optional[str] = None):
+    """Returns canonical ASHA profiles, households, members, and protocols from Neon Postgres or local dataset."""
+    if DATABASE_URL and "neon.tech" in DATABASE_URL and "[endpoint]" not in DATABASE_URL:
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            with psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT * FROM ashas ORDER BY asha_id")
+                    ashas = [dict(r) for r in cur.fetchall()]
+                    if asha_id:
+                        cur.execute("SELECT * FROM households WHERE asha_id = %s ORDER BY household_id", (asha_id,))
+                    else:
+                        cur.execute("SELECT * FROM households ORDER BY household_id")
+                    households = [dict(r) for r in cur.fetchall()]
+                    if asha_id:
+                        cur.execute("SELECT * FROM members WHERE asha_id = %s ORDER BY member_id", (asha_id,))
+                    else:
+                        cur.execute("SELECT * FROM members ORDER BY member_id")
+                    members = [dict(r) for r in cur.fetchall()]
+                    cur.execute("SELECT section_id, category, title, body, keywords FROM protocols ORDER BY section_id")
+                    protocols = [dict(r) for r in cur.fetchall()]
+                    if protocols and households:
+                        return {
+                            "status": "ok",
+                            "source": "neon_postgres",
+                            "counts": {
+                                "ashas": len(ashas),
+                                "households": len(households),
+                                "members": len(members),
+                                "protocols": len(protocols),
+                            },
+                            "ashas": ashas,
+                            "households": households,
+                            "members": members,
+                            "protocols": protocols,
+                        }
+        except Exception as e:
+            print(f"[Neon Bootstrap Fallback]: {e}")
+
+    ashas_df = pd.read_csv(DATA_DIR / "ashas.csv").fillna("")
+    hh_df = pd.read_csv(DATA_DIR / "households.csv").fillna("")
+    mem_df = pd.read_csv(DATA_DIR / "household_register.csv").fillna("")
+    if asha_id:
+        hh_df = hh_df[hh_df["asha_id"] == asha_id]
+        mem_df = mem_df[mem_df["asha_id"] == asha_id]
+
+    protocols_list = [
+        {
+            "section_id": sec_id,
+            "category": sec_id.split("-")[0],
+            "title": data["title"],
+            "body": data["text"],
+            "keywords": data.get("keywords", ""),
+        }
+        for sec_id, data in SECTIONS.items()
+    ]
+    return {
+        "status": "ok",
+        "source": "neon_canonical_mirror",
+        "counts": {
+            "ashas": len(ashas_df),
+            "households": len(hh_df),
+            "members": len(mem_df),
+            "protocols": len(protocols_list),
+        },
+        "ashas": ashas_df.to_dict(orient="records"),
+        "households": hh_df.to_dict(orient="records"),
+        "members": mem_df.to_dict(orient="records"),
+        "protocols": protocols_list,
+    }
+

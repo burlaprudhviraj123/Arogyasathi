@@ -3,12 +3,17 @@ package org.arogyasathi.app.data
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
+import kotlinx.coroutines.runBlocking
 import org.arogyasathi.app.core.*
+import org.arogyasathi.app.data.local.ArogyasathiRoomDatabase
+import org.arogyasathi.app.data.local.DangerEscalationEntity
+import org.arogyasathi.app.data.local.PatientChatEntity
 import org.arogyasathi.app.jev.JEVEscalate
 import org.arogyasathi.app.jev.JEVScope
 import org.arogyasathi.app.laya.LayaRetriever
 import org.arogyasathi.app.laya.LayaSynthesizer
 import org.arogyasathi.app.laya.PatientAgeCalculator
+import org.arogyasathi.app.sync.NeonPostgresSyncClient
 import org.arogyasathi.app.visit.VisitEngine
 import org.json.JSONObject
 
@@ -45,6 +50,8 @@ data class SyncResult(
 class ArogyasathiRepository(private val context: Context) {
 
     private val dbHelper = ArogyasathiDbHelper.getInstance(context)
+    val roomDb: ArogyasathiRoomDatabase = ArogyasathiRoomDatabase.getInstance(context)
+    val neonSyncClient: NeonPostgresSyncClient = NeonPostgresSyncClient(roomDb)
 
     @Volatile
     private var cachedProtocols: List<ProtocolSection>? = null
@@ -163,32 +170,21 @@ class ArogyasathiRepository(private val context: Context) {
 
     fun getProtocols(): List<ProtocolSection> {
         cachedProtocols?.let { return it }
-        val list = mutableListOf<ProtocolSection>()
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            ArogyasathiDbHelper.TABLE_PROTOCOLS,
-            null, null, null, null, null, "section_id ASC"
-        )
-        cursor.use {
-            val idIdx = it.getColumnIndexOrThrow("section_id")
-            val titleIdx = it.getColumnIndexOrThrow("title")
-            val bodyIdx = it.getColumnIndexOrThrow("body")
-            val catIdx = it.getColumnIndexOrThrow("category")
-            while (it.moveToNext()) {
-                list.add(
-                    ProtocolSection(
-                        sectionId = it.getString(idIdx),
-                        title = it.getString(titleIdx),
-                        body = it.getString(bodyIdx),
-                        category = it.getString(catIdx)
-                    )
-                )
-            }
-        }
+        val list = roomDb.protocolDao().getAllProtocols().map { it.toDomain() }
         val result = if (list.isNotEmpty()) list else LocalRepository.sampleProtocols
         cachedProtocols = result
         layaRetriever = LayaRetriever(result)
         return result
+    }
+
+    suspend fun refreshFromNeonPostgres(): NeonPostgresSyncClient.BootstrapSyncReport {
+        val report = neonSyncClient.pullAndCacheFromNeon(activeAshaId)
+        if (report.syncedFromRemote) {
+            cachedProtocols = null
+            layaRetriever = null
+            cachedMembers = null
+        }
+        return report
     }
 
     fun getHouseholds(searchQuery: String? = null, villageFilter: String? = null): List<Household> {
@@ -251,47 +247,16 @@ class ArogyasathiRepository(private val context: Context) {
     }
 
     fun getMembersByHousehold(householdId: String): List<Member> {
-        val list = mutableListOf<Member>()
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            ArogyasathiDbHelper.TABLE_MEMBERS,
-            null, "household_id = ?", arrayOf(householdId), null, null, "dob ASC"
-        )
-        cursor.use {
-            while (it.moveToNext()) {
-                list.add(cursorToMember(it))
-            }
-        }
-        return list
+        return roomDb.memberDao().getMembersByHousehold(householdId).map { it.toDomain() }
     }
 
     fun getMemberById(memberId: String): Member? {
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            ArogyasathiDbHelper.TABLE_MEMBERS,
-            null, "member_id = ?", arrayOf(memberId), null, null, null
-        )
-        cursor.use {
-            if (it.moveToNext()) {
-                return cursorToMember(it)
-            }
-        }
-        return null
+        return roomDb.memberDao().getMemberById(memberId)?.toDomain()
     }
 
     fun getAllMembers(): List<Member> {
         cachedMembers?.let { return it }
-        val list = mutableListOf<Member>()
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            ArogyasathiDbHelper.TABLE_MEMBERS,
-            null, null, null, null, null, "household_id ASC"
-        )
-        cursor.use {
-            while (it.moveToNext()) {
-                list.add(cursorToMember(it))
-            }
-        }
+        val list = roomDb.memberDao().getAllMembers().map { it.toDomain() }
         val result = if (list.isNotEmpty()) list else LocalRepository.sampleMembers
         cachedMembers = result
         return result
@@ -356,7 +321,7 @@ class ArogyasathiRepository(private val context: Context) {
             }
             db.insertWithOnConflict(ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES, null, cvOutcome, android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE)
 
-            // 2. Queue for deferred sync
+            // 2. Queue for deferred sync to central Neon Postgres
             val payload = JSONObject().apply {
                 put("outcome_id", outcomeId)
                 put("household_id", householdId)
@@ -378,6 +343,7 @@ class ArogyasathiRepository(private val context: Context) {
             db.insert(ArogyasathiDbHelper.TABLE_SYNC_QUEUE, null, cvSync)
 
             db.setTransactionSuccessful()
+            roomDb.notifyDataChanged()
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -388,104 +354,20 @@ class ArogyasathiRepository(private val context: Context) {
     }
 
     fun getCompletedVisits(): List<VisitOutcome> {
-        val list = mutableListOf<VisitOutcome>()
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES,
-            null, null, null, null, null, "timestamp DESC"
-        )
-        cursor.use {
-            val idIdx = it.getColumnIndexOrThrow("outcome_id")
-            val hIdx = it.getColumnIndexOrThrow("household_id")
-            val mIdx = it.getColumnIndexOrThrow("member_id")
-            val nameIdx = it.getColumnIndexOrThrow("member_name")
-            val itemIdx = it.getColumnIndexOrThrow("due_item")
-            val stIdx = it.getColumnIndexOrThrow("status")
-            val nIdx = it.getColumnIndexOrThrow("notes")
-            val tsIdx = it.getColumnIndexOrThrow("timestamp")
-
-            while (it.moveToNext()) {
-                list.add(
-                    VisitOutcome(
-                        outcomeId = it.getString(idIdx),
-                        householdId = it.getString(hIdx),
-                        memberId = it.getString(mIdx),
-                        memberName = it.getString(nameIdx),
-                        dueItem = it.getString(itemIdx),
-                        status = it.getString(stIdx),
-                        notes = it.getString(nIdx),
-                        timestamp = it.getLong(tsIdx)
-                    )
-                )
-            }
-        }
-        return list
+        return roomDb.visitOutcomeDao().getAllOutcomes().map { it.toDomain() }
     }
 
     fun getPendingSyncCount(): Int {
-        val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM ${ArogyasathiDbHelper.TABLE_SYNC_QUEUE} WHERE status = ?",
-            arrayOf(SyncStatus.PENDING.name)
-        )
-        cursor.use {
-            if (it.moveToFirst()) {
-                return it.getInt(0)
-            }
-        }
-        return 0
+        return roomDb.syncQueueDao().getPendingCount()
     }
 
     fun getSyncQueueItems(): List<SyncItem> {
-        val list = mutableListOf<SyncItem>()
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            ArogyasathiDbHelper.TABLE_SYNC_QUEUE,
-            null, null, null, null, null, "created_at DESC"
-        )
-        cursor.use {
-            val idIdx = it.getColumnIndexOrThrow("id")
-            val typeIdx = it.getColumnIndexOrThrow("entity_type")
-            val entIdIdx = it.getColumnIndexOrThrow("entity_id")
-            val pIdx = it.getColumnIndexOrThrow("payload_json")
-            val stIdx = it.getColumnIndexOrThrow("status")
-            val rIdx = it.getColumnIndexOrThrow("retry_count")
-            val cIdx = it.getColumnIndexOrThrow("created_at")
-
-            while (it.moveToNext()) {
-                val stStr = it.getString(stIdx)
-                val st = try { SyncStatus.valueOf(stStr) } catch (e: Exception) { SyncStatus.PENDING }
-                list.add(
-                    SyncItem(
-                        id = it.getLong(idIdx),
-                        entityType = it.getString(typeIdx),
-                        entityId = it.getString(entIdIdx),
-                        payloadJson = it.getString(pIdx),
-                        status = st,
-                        retryCount = it.getInt(rIdx),
-                        createdAt = it.getLong(cIdx)
-                    )
-                )
-            }
-        }
-        return list
+        return roomDb.syncQueueDao().getAllSyncItems().map { it.toDomain() }
     }
 
     fun triggerSync(forceOfflineMark: Boolean = false): SyncResult {
-        val db = dbHelper.writableDatabase
-        val cv = ContentValues().apply {
-            put("status", SyncStatus.SYNCED.name)
-        }
-        val count = db.update(
-            ArogyasathiDbHelper.TABLE_SYNC_QUEUE,
-            cv,
-            "status = ?",
-            arrayOf(SyncStatus.PENDING.name)
-        )
-        return if (count > 0) {
-            SyncResult(true, "Successfully synchronized $count record(s) to sub-centre gateway.")
-        } else {
-            SyncResult(true, "All records already synchronized. Outbox is up to date.")
+        return runBlocking {
+            neonSyncClient.pushOutboxToNeon(activeAshaId, forceOfflineMark = forceOfflineMark)
         }
     }
 

@@ -14,12 +14,14 @@ class ArogyasathiDbHelper(private val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "arogyasathi.db"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 3
 
+        const val TABLE_ASHAS = "ashas"
         const val TABLE_HOUSEHOLDS = "households"
         const val TABLE_MEMBERS = "members"
         const val TABLE_PROTOCOLS = "protocols"
         const val TABLE_VISIT_OUTCOMES = "visit_outcomes"
+        const val TABLE_REFERRAL_SLIPS = "referral_slips"
         const val TABLE_SYNC_QUEUE = "sync_queue"
         const val TABLE_PATIENT_CHAT = "patient_chat_history"
 
@@ -33,7 +35,29 @@ class ArogyasathiDbHelper(private val context: Context) :
         }
     }
 
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        db.enableWriteAheadLogging()
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_ASHAS (
+                asha_id TEXT PRIMARY KEY,
+                name TEXT,
+                phone TEXT,
+                villages_csv TEXT,
+                sub_centre TEXT,
+                parent_phc TEXT,
+                mo_name TEXT,
+                mo_phone TEXT,
+                anm_name TEXT,
+                anm_phone TEXT
+            )
+            """.trimIndent()
+        )
+
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS $TABLE_HOUSEHOLDS (
@@ -111,6 +135,30 @@ class ArogyasathiDbHelper(private val context: Context) :
 
         db.execSQL(
             """
+            CREATE TABLE IF NOT EXISTS $TABLE_REFERRAL_SLIPS (
+                slip_id TEXT PRIMARY KEY,
+                patient_id TEXT,
+                patient_name TEXT,
+                age_gender TEXT,
+                village TEXT,
+                household_id TEXT,
+                suspected_condition TEXT,
+                danger_signs_csv TEXT,
+                vital_signs TEXT,
+                protocol_citation TEXT,
+                referred_facility TEXT,
+                immediate_action_taken TEXT,
+                asha_name TEXT,
+                asha_phone TEXT,
+                mo_name TEXT,
+                mo_phone TEXT,
+                timestamp INTEGER
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS $TABLE_SYNC_QUEUE (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entity_type TEXT,
@@ -154,10 +202,12 @@ class ArogyasathiDbHelper(private val context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_ASHAS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_HOUSEHOLDS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_MEMBERS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PROTOCOLS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_VISIT_OUTCOMES")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_REFERRAL_SLIPS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SYNC_QUEUE")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PATIENT_CHAT")
         onCreate(db)
@@ -165,9 +215,49 @@ class ArogyasathiDbHelper(private val context: Context) :
 
     private fun seedInitialData(db: SQLiteDatabase) {
         try {
+            seedAshas(db)
             seedProtocols(db)
             seedHouseholds(db)
             seedMembers(db)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun seedAshas(db: SQLiteDatabase) {
+        try {
+            context.assets.open("ashas.csv").use { inputStream ->
+                BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                    var line = reader.readLine() // header: asha_id,asha_name,villages
+                    db.beginTransaction()
+                    try {
+                        while (reader.readLine()?.also { line = it } != null) {
+                            val parts = parseCsvLine(line!!)
+                            if (parts.size >= 3) {
+                                val ashaId = parts[0].trim()
+                                val name = parts[1].trim()
+                                val villages = parts[2].trim()
+                                val cv = ContentValues().apply {
+                                    put("asha_id", ashaId)
+                                    put("name", name)
+                                    put("phone", "+91 98765 43220")
+                                    put("villages_csv", villages)
+                                    put("sub_centre", "${villages.split(";").firstOrNull() ?: "Chandrapuri"} Health & Wellness Centre")
+                                    put("parent_phc", "Chandrapuri PHC (Sector 1)")
+                                    put("mo_name", "Dr. Rajesh Sharma, MBBS")
+                                    put("mo_phone", "+91 94310 82101")
+                                    put("anm_name", "Anita Sharma")
+                                    put("anm_phone", "+91 98350 41102")
+                                }
+                                db.insertWithOnConflict(TABLE_ASHAS, null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+                            }
+                        }
+                        db.setTransactionSuccessful()
+                    } finally {
+                        db.endTransaction()
+                    }
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

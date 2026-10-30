@@ -35,9 +35,12 @@ class NetworkSyncManager(
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            Log.d(TAG, "Network restored: Syncing offline outbox queue to central Neon backend...")
+            Log.d(TAG, "Network restored: Syncing local Room cache with central Neon Postgres...")
             _isOnline.value = true
             scope.launch {
+                runCatching {
+                    repository.refreshFromNeonPostgres()
+                }
                 val pending = repository.getPendingSyncCount()
                 if (pending > 0) {
                     val res = repository.triggerSync()
@@ -48,12 +51,17 @@ class NetworkSyncManager(
         }
 
         override fun onLost(network: Network) {
-            Log.d(TAG, "Network lost: Reverting to 100% offline edge mode.")
+            Log.d(TAG, "Network lost: Reverting to 100% offline Room edge mode.")
             _isOnline.value = false
         }
     }
 
     fun startMonitoring() {
+        if (_isOnline.value) {
+            scope.launch {
+                runCatching { repository.refreshFromNeonPostgres() }
+            }
+        }
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()

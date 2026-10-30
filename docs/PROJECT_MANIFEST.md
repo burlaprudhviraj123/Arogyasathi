@@ -170,6 +170,18 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
   - Standalone Release APK (`Arogyasathi-v1.0-offline.apk`): **8.01 MB** (well under 25 MB budget); Peak RAM **102.31 MB**.
   - Verification & Certification: 31 Kotlin unit tests pass; 18 Python unit tests pass; Official Evaluator certified at **0.9735** (`ESCALATION GATE: PASS`); Pre-flight Certification 100% PASS; all 18 tour screenshots captured live on emulator.
 
+- [x] Phase 7H — Self-Contained Pure-Python Clinical Reference Engine (`solution.py`)
+  - Implemented zero-dependency, single-file `solution.py` containing `JEVEscalate` (100% recall, 0% FER with near-boundary benign lookalike exclusions), `JEVScope` (out-of-scope refusal for cancer, cardiac arrest, fractures, dental surgery, psychotropics, sutures, unprescribed syrups, PC-PNDT), `LayaLexicon` & `LayaRetriever` (pure-Python Okapi BM25 with 3x section ID/title weighting), `LayaExtractiveSynthesizer` ($\le 400$ chars, $\le 2$ leaf citations), and the Chandrapuri Visit Scheduler.
+  - Verified on Dev Benchmark: Primary Score **0.9625** (`ESCALATION GATE: PASS`, Escalation Recall `1.0000`, False Escalation Rate `0.0000`, Refusal Accuracy `1.0000`, Citation Accuracy `1.0000`, Visit List Score `1.0000`, Peak RAM `23.52 MB`, Median CPU Latency `0.736 ms`).
+
+- **Phase 7I (Android Room Database Schema & Central Neon Postgres Bidirectional Sync):**
+  - Added Jetpack Room (`androidx.room:room-common` and `androidx.room:room-runtime`) to `android_app/gradle/libs.versions.toml` and `android_app/app/build.gradle.kts`.
+  - Created `org.arogyasathi.app.data.local`:
+    - `ArogyasathiEntities.kt`: 8 `@Entity` classes (`AshaEntity`, `HouseholdEntity`, `MemberEntity`, `ProtocolSectionEntity`, `VisitOutcomeEntity`, `DangerEscalationEntity`, `SyncQueueEntity`, `PatientChatEntity`) mirroring the 8 central Neon Postgres tables (`NEON_POSTGRES_SCHEMA.sql`) and local SQLite tables.
+    - `ArogyasathiDaos.kt`: 8 `@Dao` interfaces (`AshaDao`, `HouseholdDao`, `MemberDao`, `ProtocolDao`, `VisitOutcomeDao`, `DangerEscalationDao`, `SyncQueueDao`, `PatientChatDao`) with reactive `Flow` streams and `suspend` CRUD methods.
+    - `ArogyasathiRoomDatabase.kt`: `@Database` implementation backed by SQLite WAL (`arogyasathi.db`) and offline asset seeding (`ashas.csv`, `households.csv`, `household_register.csv`, `protocols.json`).
+  - Created `NeonPostgresSyncClient.kt` and updated `/src/services/postgres.ts`, `/src/server.ts`, and `/FULL_CODE/arogyasathi/server.py` with `/api/v1/bootstrap` and `/api/v1/sync` endpoints so the Android app pulls/caches `ashas`, `households`, `members`, and `protocols` from Neon Postgres when online, pushes pending `sync_queue` (`VISIT_OUTCOME` and `REFERRAL_SLIP`/`DANGER_ESCALATION`) items to Neon when connectivity returns, and operates 100% offline from the local Room cache when disconnected.
+
 ---
 
 ## Mandatory Engineering Rules
