@@ -32,7 +32,8 @@ fun AshaProfileScreen(
     activeProfile: AshaProfile,
     allProfiles: List<AshaProfile>,
     onSelectProfile: (AshaProfile) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val strings = LocalAppStrings.current
@@ -629,6 +630,25 @@ fun AshaProfileScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = onLogout,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = EmergencyRed),
+                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Text(
+                        text = strings.logoutButton,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = EmergencyRed
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,27 +38,31 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import org.arogyasathi.app.R
 
 data class NavigationTabItem(
     val title: String,
     val iconRes: Int,
-    val index: Int
+    val index: Int,
+    val badgeCount: Int? = null
 )
 
 @Composable
 fun FloatingGlassBottomBar(
     selectedIndex: Int,
     onTabSelected: (Int) -> Unit,
+    todayBadgeCount: Int = 0,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalAppStrings.current
     val items = listOf(
-        NavigationTabItem(strings.tabToday, R.drawable.ic_today, 0),
+        NavigationTabItem(strings.tabToday, R.drawable.ic_today, 0, badgeCount = if (todayBadgeCount > 0) todayBadgeCount else null),
         NavigationTabItem(strings.tabFamilies, R.drawable.ic_families, 1),
         NavigationTabItem(strings.tabAssistant, R.drawable.ic_assistant, 2),
         NavigationTabItem(strings.tabRecords, R.drawable.ic_records, 3),
@@ -138,28 +143,28 @@ fun FloatingGlassBottomBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .shadow(12.dp, shape = RoundedCornerShape(32.dp))
-                .clip(RoundedCornerShape(32.dp))
-                .border(1.dp, glassBrd, RoundedCornerShape(32.dp)),
+                .height(72.dp)
+                .shadow(12.dp, shape = RoundedCornerShape(36.dp))
+                .clip(RoundedCornerShape(36.dp))
+                .border(1.dp, glassBrd, RoundedCornerShape(36.dp)),
             color = glassBg
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 6.dp)
+                    .padding(horizontal = 4.dp)
                     .onGloballyPositioned {
                         barCoordinates = it
                         updateBounds()
                     }
             ) {
-                // Sliding indicator pill (glides smoothly across side tabs with spring dynamics)
+                // Sliding capsule indicator pill (glides smoothly across side tabs, enclosing icon + label)
                 if (indicatorAlpha > 0.01f && currentRect != null) {
                     val density = LocalDensity.current
                     Box(
@@ -172,7 +177,7 @@ fun FloatingGlassBottomBar(
                                 height = with(density) { animHeight.toDp() }
                             )
                             .graphicsLayer { alpha = indicatorAlpha }
-                            .clip(RoundedCornerShape(19.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(activeContainer)
                     )
                 }
@@ -266,9 +271,10 @@ private fun SideNavTab(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(width = 52.dp, height = 38.dp)
+            .width(62.dp)
+            .height(52.dp)
             .onGloballyPositioned { onPositioned(it) }
-            .clip(RoundedCornerShape(19.dp))
+            .clip(RoundedCornerShape(20.dp))
             .semantics {
                 role = Role.Tab
                 contentDescription = "${item.title} tab"
@@ -276,12 +282,52 @@ private fun SideNavTab(
             }
             .clickable { onTabSelected(item.index) }
     ) {
-        Icon(
-            painter = painterResource(id = item.iconRes),
-            contentDescription = item.title,
-            modifier = Modifier.size(20.dp),
-            tint = animTint
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(id = item.iconRes),
+                    contentDescription = item.title,
+                    modifier = Modifier.size(20.dp),
+                    tint = animTint
+                )
+
+                // Badge support on icon (e.g. urgent visits count)
+                if (item.badgeCount != null && item.badgeCount > 0) {
+                    Surface(
+                        color = if (isSelected) PrimaryTeal else Color(0xFF1E293B),
+                        shape = CircleShape,
+                        border = BorderStroke(1.dp, Color.White),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 10.dp, y = (-4).dp)
+                            .size(15.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = if (item.badgeCount > 9) "9+" else item.badgeCount.toString(),
+                                fontSize = 8.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            Text(
+                text = item.title,
+                fontSize = 10.5.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = animTint,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -321,7 +367,7 @@ private fun CentralAssistantButton(
     ) {
         Surface(
             modifier = Modifier
-                .size(50.dp)
+                .size(52.dp)
                 .graphicsLayer {
                     scaleX = centerScale
                     scaleY = centerScale

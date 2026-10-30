@@ -173,7 +173,22 @@ data class AppStrings(
     val moInChargeTitle: String,
     val anmTitle: String,
     val nationalAmbulancesTitle: String,
-    val tollFreeHelplineDesc: String
+    val tollFreeHelplineDesc: String,
+
+    // Login & Authentication
+    val loginTitle: String = "Login",
+    val loginSubtitle: String = "National Health Mission • Field Worker Access",
+    val loginHeadline: String = "Log in to stay on top of your community healthcare",
+    val loginPhoneLabel: String = "Registered Mobile Number",
+    val loginPhonePlaceholder: String = "98765 43220",
+    val loginPasswordLabel: String = "Security PIN / Password",
+    val loginPasswordPlaceholder: String = "Enter 4-digit PIN",
+    val loginRememberMe: String = "Remember Me",
+    val loginForgotPassword: String = "Forgot PIN?",
+    val loginButton: String = "Login",
+    val loginQuickAccess: String = "Quick ASHA Profile Access",
+    val loginErrorInvalid: String = "Please enter valid registered mobile and PIN.",
+    val logoutButton: String = "Logout"
 )
 
 fun getAppStrings(language: AppLanguage): AppStrings {
@@ -332,7 +347,22 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             moInChargeTitle = "Medical Officer In-Charge",
             anmTitle = "Designated Sector ANM",
             nationalAmbulancesTitle = "National Ambulances",
-            tollFreeHelplineDesc = "Toll-free 24x7 government helpline"
+            tollFreeHelplineDesc = "Toll-free 24x7 government helpline",
+
+            // Login & Authentication
+            loginTitle = "Login",
+            loginSubtitle = "National Health Mission • Field Worker Access",
+            loginHeadline = "Log in to stay on top of your community healthcare",
+            loginPhoneLabel = "Registered Mobile Number",
+            loginPhonePlaceholder = "98765 43220",
+            loginPasswordLabel = "Security PIN / Password",
+            loginPasswordPlaceholder = "Enter 4-digit PIN",
+            loginRememberMe = "Remember Me",
+            loginForgotPassword = "Forgot PIN?",
+            loginButton = "Login",
+            loginQuickAccess = "Quick ASHA Profile Access",
+            loginErrorInvalid = "Please enter valid registered mobile and PIN.",
+            logoutButton = "Logout"
         )
 
         AppLanguage.TELUGU -> AppStrings(
@@ -489,7 +519,22 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             moInChargeTitle = "ఇన్‌ఛార్జ్ మెడికల్ ఆఫీసర్ (MO)",
             anmTitle = "కేటాయించిన సెక్టార్ ఏఎన్‌ఎం",
             nationalAmbulancesTitle = "జాతీయ అత్యవసర అంబులెన్సులు",
-            tollFreeHelplineDesc = "టోల్-ఫ్రీ 24x7 ప్రభుత్వ హెల్ప్‌లైన్"
+            tollFreeHelplineDesc = "టోల్-ఫ్రీ 24x7 ప్రభుత్వ హెల్ప్‌లైన్",
+
+            // Login & Authentication
+            loginTitle = "లాగిన్",
+            loginSubtitle = "జాతీయ ఆరోగ్య మిషన్ • ఫీల్డ్ వర్కర్ లాగిన్",
+            loginHeadline = "మీ సమాజ ఆరోగ్య సంరక్షణపై పర్యవేక్షణ ఉంచడానికి లాగిన్ అవ్వండి",
+            loginPhoneLabel = "నమోదిత మొబైల్ నంబర్",
+            loginPhonePlaceholder = "98765 43220",
+            loginPasswordLabel = "సెక్యూరిటీ పిన్ / పాస్‌వర్డ్",
+            loginPasswordPlaceholder = "4 అంకెల పిన్ నమోదు చేయండి",
+            loginRememberMe = "నన్ను గుర్తుంచుకో",
+            loginForgotPassword = "పిన్ మర్చిపోయారా?",
+            loginButton = "లాగిన్ అవ్వండి",
+            loginQuickAccess = "త్వరిత ఆశా ప్రొఫైల్ లాగిన్",
+            loginErrorInvalid = "దయచేసి సరైన నమోదిత మొబైల్ మరియు పిన్ నమోదు చేయండి.",
+            logoutButton = "లాగౌట్"
         )
 
         AppLanguage.HINDI -> AppStrings(
@@ -646,7 +691,22 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             moInChargeTitle = "प्रभारी चिकित्सा अधिकारी (MO)",
             anmTitle = "नामित सेक्टर एएनएम",
             nationalAmbulancesTitle = "राष्ट्रीय आपातकालीन एम्बुलेंस",
-            tollFreeHelplineDesc = "टोल-फ्री 24x7 सरकारी हेल्पलाइन"
+            tollFreeHelplineDesc = "टोल-फ्री 24x7 सरकारी हेल्पलाइन",
+
+            // Login & Authentication
+            loginTitle = "लॉग इन",
+            loginSubtitle = "राष्ट्रीय स्वास्थ्य मिशन • फील्ड कार्यकर्ता लॉगिन",
+            loginHeadline = "सामुदायिक स्वास्थ्य कार्यों की निगरानी हेतु लॉग इन करें",
+            loginPhoneLabel = "पंजीकृत मोबाइल नंबर",
+            loginPhonePlaceholder = "98765 43220",
+            loginPasswordLabel = "सुरक्षा पिन / पासवर्ड",
+            loginPasswordPlaceholder = "4-अंकीय पिन दर्ज करें",
+            loginRememberMe = "मुझे याद रखें",
+            loginForgotPassword = "पिन भूल गए?",
+            loginButton = "लॉग इन करें",
+            loginQuickAccess = "त्वरित आशा प्रोफ़ाइल चयन",
+            loginErrorInvalid = "कृपया वैध पंजीकृत मोबाइल और पिन दर्ज करें।",
+            logoutButton = "लॉग आउट"
         )
 
         AppLanguage.TAMIL -> AppStrings(
@@ -803,7 +863,22 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             moInChargeTitle = "பொறுப்பு மருத்துவ அலுவலர் (MO)",
             anmTitle = "நியமிக்கப்பட்ட கிராம சுகாதார செவிலியர் (ANM)",
             nationalAmbulancesTitle = "தேசிய அவசர ஆம்புலன்ஸ்கள்",
-            tollFreeHelplineDesc = "கட்டணமில்லா 24x7 அரசு உதவி எண்"
+            tollFreeHelplineDesc = "கட்டணமில்லா 24x7 அரசு உதவி எண்",
+
+            // Login & Authentication
+            loginTitle = "உள்நுழைக",
+            loginSubtitle = "தேசிய சுகாதார இயக்கம் • களப்பணியாளர் உள்நுழைவு",
+            loginHeadline = "சமூக சுகாதாரப் பணிகளைக் கண்காணிக்க உள்நுழையவும்",
+            loginPhoneLabel = "பதிவுசெய்த மொபைல் எண்",
+            loginPhonePlaceholder = "98765 43220",
+            loginPasswordLabel = "பாதுகாப்பு பின் / கடவுச்சொல்",
+            loginPasswordPlaceholder = "4 இலக்க பின்னை உள்ளிடவும்",
+            loginRememberMe = "என்னை நினைவில் கொள்",
+            loginForgotPassword = "பின் மறந்துவிட்டதா?",
+            loginButton = "உள்நுழைக",
+            loginQuickAccess = "விரைவு ஆஷா தேர்வு",
+            loginErrorInvalid = "சரியான பதிவு செய்யப்பட்ட மொபைல் எண் மற்றும் பின்னை உள்ளிடவும்.",
+            logoutButton = "வெளியேறு"
         )
 
         AppLanguage.KANNADA -> AppStrings(
@@ -960,7 +1035,22 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             moInChargeTitle = "ಪ್ರಭಾರ ವೈದ್ಯಾಧಿಕಾರಿ (MO)",
             anmTitle = "ಗೊತ್ತುಪಡಿಸಿದ ಸೆಕ್ಟರ್ ಎಎನ್‌ಎಂ",
             nationalAmbulancesTitle = "ರಾಷ್ಟ್ರೀಯ ತುರ್ತು ಆಂಬ್ಯುಲೆನ್ಸ್‌ಗಳು",
-            tollFreeHelplineDesc = "ಟೋಲ್-ಫ್ರೀ 24x7 ಸರ್ಕಾರಿ ಸಹಾಯವಾಣಿ"
+            tollFreeHelplineDesc = "ಟೋಲ್-ಫ್ರೀ 24x7 ಸರ್ಕಾರಿ ಸಹಾಯವಾಣಿ",
+
+            // Login & Authentication
+            loginTitle = "ಲಾಗಿನ್",
+            loginSubtitle = "ರಾಷ್ಟ್ರೀಯ ಆರೋಗ್ಯ ಅಭಿಯಾನ • ಕ್ಷೇತ್ರ ಕಾರ್ಯಕರ್ತೆಯರ ಲಾಗಿನ್",
+            loginHeadline = "ಸಮುದಾಯ ಆರೋಗ್ಯ ಸೇವೆಗಳನ್ನು ನಿರ್ವಹಿಸಲು ಲಾಗಿನ್ ಆಗಿ",
+            loginPhoneLabel = "ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+            loginPhonePlaceholder = "98765 43220",
+            loginPasswordLabel = "ಭದ್ರತಾ ಪಿನ್ / ಪಾಸ್‌ವರ್ಡ್",
+            loginPasswordPlaceholder = "4 ಅಂಕಿಯ ಪಿನ್ ನಮೂದಿಸಿ",
+            loginRememberMe = "ನನ್ನನ್ನು ನೆನಪಿಡಿ",
+            loginForgotPassword = "ಪಿನ್ ಮರೆತಿರೇ?",
+            loginButton = "ಲಾಗಿನ್ ಮಾಡಿ",
+            loginQuickAccess = "ತ್ವರಿತ ಆಶಾ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆ",
+            loginErrorInvalid = "ದಯವಿಟ್ಟು ಮಾನ್ಯ ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಮತ್ತು ಪಿನ್ ನಮೂದಿಸಿ.",
+            logoutButton = "ಲಾಗ್‌ಔಟ್"
         )
 
         AppLanguage.MALAYALAM -> AppStrings(
@@ -1117,7 +1207,22 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             moInChargeTitle = "ഇൻ-ചാർജ് മെഡിക്കൽ ഓഫീസർ (MO)",
             anmTitle = "നിയുക്ത സെക്ടർ എഎൻഎം",
             nationalAmbulancesTitle = "ദേശീയ അടിയന്തര ആംബുലൻസുകൾ",
-            tollFreeHelplineDesc = "ടോൾ-ഫ്രീ 24x7 സർക്കാർ ഹെൽപ്പ്‌ലൈൻ"
+            tollFreeHelplineDesc = "ടോൾ-ഫ്രീ 24x7 സർക്കാർ ഹെൽപ്പ്‌ലൈൻ",
+
+            // Login & Authentication
+            loginTitle = "ലോഗിൻ",
+            loginSubtitle = "ദേശീയ ആരോഗ്യ ദൗത്യം • ഫീൽഡ് വർക്കർ ലോഗിൻ",
+            loginHeadline = "കമ്മ്യൂണിറ്റി ആരോഗ്യ പരിചരണത്തിൽ മുന്നേറാൻ ലോഗിൻ ചെയ്യുക",
+            loginPhoneLabel = "രജിസ്റ്റർ ചെയ്ത മൊബൈൽ നമ്പർ",
+            loginPhonePlaceholder = "98765 43220",
+            loginPasswordLabel = "സെക്യൂരിറ്റി പിൻ / പാസ്‌വേഡ്",
+            loginPasswordPlaceholder = "4 അക്ക പിൻ നൽകുക",
+            loginRememberMe = "എന്നെ ഓർക്കുക",
+            loginForgotPassword = "പിൻ മറന്നോ?",
+            loginButton = "ലോഗിൻ ചെയ്യുക",
+            loginQuickAccess = "വേഗത്തിലുള്ള ആശ പ്രൊഫൈൽ ലോഗിൻ",
+            loginErrorInvalid = "സാധുവായ രജിസ്റ്റർ ചെയ്ത മൊബൈലും പിന്നും നൽകുക.",
+            logoutButton = "ലോഗ് ഔട്ട്"
         )
     }
 }

@@ -183,6 +183,30 @@ class ArogyasathiRepository(private val context: Context) {
         prefs.edit().putBoolean("voice_model_downloaded", downloaded).apply()
     }
 
+    fun isLoggedIn(): Boolean {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("is_logged_in", false)
+    }
+
+    fun setLoggedIn(loggedIn: Boolean) {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("is_logged_in", loggedIn).apply()
+    }
+
+    fun logout() {
+        setLoggedIn(false)
+    }
+
+    fun loginWithPhoneAndPin(rawPhone: String, pin: String): AshaProfile? {
+        val profile = verifyPhoneNumber(rawPhone) ?: return null
+        if (pin.trim().length >= 4) {
+            setActiveWorker(profile.ashaId)
+            setLoggedIn(true)
+            return profile
+        }
+        return null
+    }
+
     fun verifyPhoneNumber(rawPhone: String): AshaProfile? {
         val clean = rawPhone.replace(Regex("[^0-9]"), "")
         return allProfiles.find {

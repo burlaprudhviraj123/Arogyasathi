@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import org.arogyasathi.app.R
 import org.arogyasathi.app.core.AshaProfile
+import org.arogyasathi.app.core.Priority
 import org.arogyasathi.app.data.ArogyasathiRepository
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -150,6 +151,9 @@ fun MainScreen() {
                     FloatingGlassBottomBar(
                         selectedIndex = selectedTab,
                         onTabSelected = { selectedTab = it },
+                        todayBadgeCount = remember(selectedTab) {
+                            repository.getTodayVisits().count { it.priority == Priority.HIGH }
+                        },
                         modifier = Modifier.navigationBarsPadding()
                     )
                 }
