@@ -112,6 +112,46 @@ CREATE INDEX IF NOT EXISTS idx_members_pregnant ON members(pregnant) WHERE pregn
 CREATE INDEX IF NOT EXISTS idx_members_ncd ON members(ncd_condition) WHERE ncd_condition IS NOT NULL;
 
 -- -----------------------------------------------------------------------------
+-- 4b. COMPATIBILITY VIEWS: household_registers & household_register
+-- Provides full compatibility with household_register.csv queries
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE VIEW household_registers AS
+SELECT 
+    m.member_id,
+    m.household_id,
+    m.village,
+    m.asha_id,
+    m.name,
+    m.relation,
+    m.sex,
+    m.dob,
+    m.pregnant,
+    m.lmp_date,
+    m.edd,
+    m.anc_visit_dates,
+    m.last_anc_bp,
+    m.last_hb_gdl,
+    m.td_booster_eligible,
+    m.td_doses,
+    m.place_of_delivery,
+    m.birth_weight_kg,
+    m.hbnc_visits_done,
+    m.child_vaccines,
+    m.last_muac_cm,
+    m.last_muac_date,
+    m.bilateral_pitting_oedema,
+    m.ncd_condition,
+    m.last_bp_check_date,
+    m.last_bp_reading,
+    m.last_sugar_check_date,
+    m.last_rbs_mg_dl,
+    h.house_no,
+    h.head_name,
+    h.members_count
+FROM members m
+LEFT JOIN households h ON m.household_id = h.household_id;
+
+-- -----------------------------------------------------------------------------
 -- 5. PROTOCOLS (107 Official Leaf Protocol Sections)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS protocols (
