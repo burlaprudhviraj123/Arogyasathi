@@ -101,7 +101,10 @@ class VoicePackManager(private val context: Context) {
      * Returns the active directory containing model.int8.onnx and tokens.txt for a language.
      */
     fun getActivePackDirectory(languageTag: String): File? {
-        val currentDir = File(baseDir, "$languageTag/$CURRENT_PACK_DIR_NAME")
+        val langDir = File(baseDir, languageTag)
+        if (File(langDir, ".deleted").exists()) return null
+
+        val currentDir = File(langDir, CURRENT_PACK_DIR_NAME)
         val modelFile = File(currentDir, "model.int8.onnx")
         val tokensFile = File(currentDir, "tokens.txt")
         if (isPackReady(languageTag) && modelFile.isFile && tokensFile.isFile) return currentDir
@@ -118,7 +121,9 @@ class VoicePackManager(private val context: Context) {
      */
     fun installBundledPackSync(languageTag: String): Boolean {
         if (!isBundledAssetPresent(languageTag)) return false
-        val currentDir = File(baseDir, "$languageTag/$CURRENT_PACK_DIR_NAME")
+        val langDir = File(baseDir, languageTag)
+        File(langDir, ".deleted").delete()
+        val currentDir = File(langDir, CURRENT_PACK_DIR_NAME)
         if (File(currentDir, INSTALL_RECORD_FILE).isFile &&
             File(currentDir, "model.int8.onnx").isFile &&
             File(currentDir, "tokens.txt").isFile
@@ -163,7 +168,12 @@ class VoicePackManager(private val context: Context) {
      * Derives pack state strictly from filesystem integrity and installation record.
      */
     fun derivePackState(languageTag: String): VoicePackState {
-        val currentDir = File(baseDir, "$languageTag/$CURRENT_PACK_DIR_NAME")
+        val langDir = File(baseDir, languageTag)
+        if (File(langDir, ".deleted").exists()) {
+            return VoicePackState.NotInstalled
+        }
+
+        val currentDir = File(langDir, CURRENT_PACK_DIR_NAME)
         val recordFile = File(currentDir, INSTALL_RECORD_FILE)
         val modelFile = File(currentDir, "model.int8.onnx")
         val tokensFile = File(currentDir, "tokens.txt")
@@ -381,10 +391,18 @@ class VoicePackManager(private val context: Context) {
 
     /**
      * Deletes an installed voice pack from app-private storage.
+     * English is the base system pack and is protected from deletion.
      */
     fun deletePack(languageTag: String): Boolean {
-        val currentDir = File(baseDir, "$languageTag/$CURRENT_PACK_DIR_NAME")
+        if (languageTag == "en-IN" || languageTag.startsWith("en")) {
+            return false
+        }
+        val langDir = File(baseDir, languageTag)
+        val currentDir = File(langDir, CURRENT_PACK_DIR_NAME)
         val deleted = currentDir.deleteRecursively()
+        try {
+            File(langDir, ".deleted").createNewFile()
+        } catch (_: Exception) {}
         refreshAllPackStates()
         return deleted
     }
@@ -489,6 +507,7 @@ class VoicePackManager(private val context: Context) {
     ) {
         val langDir = File(baseDir, languageTag)
         langDir.mkdirs()
+        File(langDir, ".deleted").delete()
 
         val currentDir = File(langDir, CURRENT_PACK_DIR_NAME)
         val backupDir = File(langDir, "current_backup_${System.currentTimeMillis()}")

@@ -496,81 +496,136 @@ fun SettingsScreen(
                                     else -> {}
                                 }
 
+                                val isEnglish = langCode == "en-IN" || langCode.startsWith("en")
+
                                 // Action Buttons
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    if (state is VoicePackState.NotInstalled && entry != null) {
-                                        Button(
-                                            onClick = {
-                                                coroutineScope.launch {
-                                                    voicePackManager.downloadAndInstall(langCode, entry)
+                                when (state) {
+                                    is VoicePackState.Ready -> {
+                                        // Already downloaded models: remove import zip; only delete option, and English never has a delete option
+                                        if (!isEnglish) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                OutlinedButton(
+                                                    onClick = {
+                                                        voicePackManager.deletePack(langCode)
+                                                    },
+                                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = EmergencyRed),
+                                                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(strings.deletePackButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                                 }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                                            shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text("${strings.downloadPackButton} (${entry.bytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    } else if (state is VoicePackState.Failed && entry != null) {
-                                        Button(
-                                            onClick = {
-                                                coroutineScope.launch {
-                                                    voicePackManager.downloadAndInstall(langCode, entry)
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                                            shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text(strings.retryDownloadButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    } else if (state is VoicePackState.UpdateAvailable && entry != null) {
-                                        Button(
-                                            onClick = {
-                                                coroutineScope.launch {
-                                                    voicePackManager.downloadAndInstall(langCode, entry)
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E22CE)),
-                                            shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Text("${strings.updatePackButton} (${state.newPackBytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            }
                                         }
                                     }
-
-                                    // Import Pack from OTG/Local storage
-                                    OutlinedButton(
-                                        onClick = {
-                                            targetImportLang = langCode
-                                            importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
-                                        },
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text(strings.importZipButton, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                                    }
-
-                                    // Delete pack (if installed and not bundled)
-                                    if (state is VoicePackState.Ready && !state.isBundled) {
-                                        OutlinedButton(
-                                            onClick = {
-                                                voicePackManager.deletePack(langCode)
-                                            },
-                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = EmergencyRed),
-                                            border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
-                                            shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                    is VoicePackState.NotInstalled -> {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            Text(strings.deletePackButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            if (entry != null) {
+                                                Button(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            voicePackManager.downloadAndInstall(langCode, entry)
+                                                        }
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    Text("${strings.downloadPackButton} (${entry.bytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                            OutlinedButton(
+                                                onClick = {
+                                                    targetImportLang = langCode
+                                                    importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                                                },
+                                                shape = RoundedCornerShape(8.dp),
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                modifier = if (entry != null) Modifier.weight(1f) else Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(strings.importZipButton, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                            }
                                         }
+                                    }
+                                    is VoicePackState.Failed -> {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            if (entry != null) {
+                                                Button(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            voicePackManager.downloadAndInstall(langCode, entry)
+                                                        }
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    Text(strings.retryDownloadButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                            OutlinedButton(
+                                                onClick = {
+                                                    targetImportLang = langCode
+                                                    importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                                                },
+                                                shape = RoundedCornerShape(8.dp),
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                modifier = if (entry != null) Modifier.weight(1f) else Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(strings.importZipButton, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                            }
+                                        }
+                                    }
+                                    is VoicePackState.UpdateAvailable -> {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            if (entry != null) {
+                                                Button(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            voicePackManager.downloadAndInstall(langCode, entry)
+                                                        }
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E22CE)),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                    modifier = if (!isEnglish) Modifier.weight(1f) else Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text("${strings.updatePackButton} (${state.newPackBytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                            if (!isEnglish) {
+                                                OutlinedButton(
+                                                    onClick = {
+                                                        voicePackManager.deletePack(langCode)
+                                                    },
+                                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = EmergencyRed),
+                                                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                                    modifier = if (entry != null) Modifier.weight(1f) else Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(strings.deletePackButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else -> {
+                                        // Downloading, Verifying, Installing, Queued
                                     }
                                 }
                             }
