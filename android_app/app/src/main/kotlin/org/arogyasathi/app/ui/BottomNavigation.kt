@@ -77,113 +77,141 @@ fun FloatingGlassBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 6.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                items.forEach { item ->
-                    val isSelected = selectedIndex == item.index
+                // Left Wing: Tab 0 (Today) and Tab 1 (Families) - strictly balanced weight
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SideNavTab(items[0], selectedIndex == 0, onTabSelected, activeContainer, activeTint)
+                    SideNavTab(items[1], selectedIndex == 1, onTabSelected, activeContainer, activeTint)
+                }
 
-                    if (item.index == 2) {
-                        // Central Highlighted Core Assistant Action (Prominent Circular Focal Button)
-                        val centerBg by animateColorAsState(
-                            targetValue = if (isSelected) PrimaryTeal else if (isDark) Color(0xFF133E3A) else Color(0xFFE6F4F1),
-                            label = "centerBg"
-                        )
-                        val centerIconTint by animateColorAsState(
-                            targetValue = if (isSelected) Color.White else PrimaryTeal,
-                            label = "centerIconTint"
-                        )
+                // Center Core Anchor: Tab 2 (Assistant) - Permanently locked at 50% dead center
+                CentralAssistantButton(
+                    item = items[2],
+                    isSelected = selectedIndex == 2,
+                    onSelect = { onTabSelected(2) },
+                    isDark = isDark
+                )
 
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .semantics {
-                                    role = Role.Tab
-                                    contentDescription = "${item.title} tab"
-                                    stateDescription = if (isSelected) "Selected" else "Not selected"
-                                }
-                                .padding(vertical = 4.dp)
-                        ) {
-                            Surface(
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .shadow(if (isSelected) 8.dp else 2.dp, CircleShape)
-                                    .clip(CircleShape)
-                                    .clickable { onTabSelected(item.index) },
-                                shape = CircleShape,
-                                color = centerBg,
-                                border = BorderStroke(
-                                    width = if (isSelected) 2.dp else 1.5.dp,
-                                    color = if (isSelected) Color(0xFF2DD4BF) else PrimaryTeal.copy(alpha = 0.45f)
-                                )
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        painter = painterResource(id = item.iconRes),
-                                        contentDescription = item.title,
-                                        modifier = Modifier.size(24.dp),
-                                        tint = centerIconTint
-                                    )
-                                }
-                            }
-
-                            // Active indicator dot at the bottom of the circular button (matching reference UI)
-                            if (isSelected) {
-                                Surface(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .offset(y = 3.dp)
-                                        .size(6.dp),
-                                    shape = CircleShape,
-                                    color = Color(0xFF2DD4BF),
-                                    border = BorderStroke(1.dp, Color.White)
-                                ) {}
-                            }
-                        }
-                    } else {
-                        // Standard Navigation Tabs
-                        val animBg by animateColorAsState(
-                            targetValue = if (isSelected) activeContainer else Color.Transparent,
-                            label = "tabBg"
-                        )
-
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = animBg,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .semantics {
-                                    role = Role.Tab
-                                    contentDescription = "${item.title} tab"
-                                    stateDescription = if (isSelected) "Selected" else "Not selected"
-                                }
-                                .clickable { onTabSelected(item.index) }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = if (isSelected) 10.dp else 8.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = item.iconRes),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                    tint = if (isSelected) activeTint else TextSecondary
-                                )
-                                if (isSelected) {
-                                    Text(
-                                        text = item.title,
-                                        fontSize = 11.5.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = activeTint,
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-                    }
+                // Right Wing: Tab 3 (Records) and Tab 4 (Settings) - strictly balanced weight
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SideNavTab(items[3], selectedIndex == 3, onTabSelected, activeContainer, activeTint)
+                    SideNavTab(items[4], selectedIndex == 4, onTabSelected, activeContainer, activeTint)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SideNavTab(
+    item: NavigationTabItem,
+    isSelected: Boolean,
+    onTabSelected: (Int) -> Unit,
+    activeContainer: Color,
+    activeTint: Color
+) {
+    val animBg by animateColorAsState(
+        targetValue = if (isSelected) activeContainer else Color.Transparent,
+        label = "sideTabBg"
+    )
+    val animTint by animateColorAsState(
+        targetValue = if (isSelected) activeTint else TextSecondary,
+        label = "sideTabTint"
+    )
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = animBg,
+        modifier = Modifier
+            .size(width = 46.dp, height = 36.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .semantics {
+                role = Role.Tab
+                contentDescription = "${item.title} tab"
+                stateDescription = if (isSelected) "Selected" else "Not selected"
+            }
+            .clickable { onTabSelected(item.index) }
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(id = item.iconRes),
+                contentDescription = item.title,
+                modifier = Modifier.size(20.dp),
+                tint = animTint
+            )
+        }
+    }
+}
+
+@Composable
+private fun CentralAssistantButton(
+    item: NavigationTabItem,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
+    isDark: Boolean
+) {
+    val centerBg by animateColorAsState(
+        targetValue = if (isSelected) PrimaryTeal else if (isDark) Color(0xFF133E3A) else Color(0xFFE6F4F1),
+        label = "centerBg"
+    )
+    val centerIconTint by animateColorAsState(
+        targetValue = if (isSelected) Color.White else PrimaryTeal,
+        label = "centerIconTint"
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .semantics {
+                role = Role.Tab
+                contentDescription = "${item.title} tab"
+                stateDescription = if (isSelected) "Selected" else "Not selected"
+            }
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(50.dp)
+                .shadow(if (isSelected) 8.dp else 2.dp, CircleShape)
+                .clip(CircleShape)
+                .clickable { onSelect() },
+            shape = CircleShape,
+            color = centerBg,
+            border = BorderStroke(
+                width = if (isSelected) 2.dp else 1.5.dp,
+                color = if (isSelected) Color(0xFF2DD4BF) else PrimaryTeal.copy(alpha = 0.45f)
+            )
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(id = item.iconRes),
+                    contentDescription = item.title,
+                    modifier = Modifier.size(24.dp),
+                    tint = centerIconTint
+                )
+            }
+        }
+
+        // Active indicator dot at the bottom of the circular button (matching reference UI)
+        if (isSelected) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = 3.dp)
+                    .size(6.dp),
+                shape = CircleShape,
+                color = Color(0xFF2DD4BF),
+                border = BorderStroke(1.dp, Color.White)
+            ) {}
         }
     }
 }
