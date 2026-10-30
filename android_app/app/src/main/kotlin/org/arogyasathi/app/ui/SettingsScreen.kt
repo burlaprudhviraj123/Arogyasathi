@@ -38,7 +38,9 @@ fun SettingsScreen(
     val strings = LocalAppStrings.current
     val coroutineScope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var isVoiceModelDownloaded by remember { mutableStateOf(repository.isVoiceModelDownloaded()) }
+    // Telugu pack is shipped inside this APK; do not use the legacy preference
+    // flag, which previously made the UI claim a download was required.
+    var isVoiceModelDownloaded by remember { mutableStateOf(true) }
     var isDownloadingVoiceModel by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableFloatStateOf(0f) }
 
@@ -282,7 +284,7 @@ fun SettingsScreen(
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = if (isVoiceModelDownloaded) "IndicConformer STT (118 MB ONNX INT8 Installed)" else "IndicConformer STT (~118 MB ONNX INT8)",
+                                    text = "Telugu IndicConformer STT (135 MB INT8, bundled)",
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -306,7 +308,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = if (isVoiceModelDownloaded) {
-                            "Real-time offline speech recognition installed for ASHA workers. Transcribes spoken clinical queries in ${currentLanguage.nativeName} directly on-device with zero connectivity."
+                            "Telugu real-time offline speech recognition is bundled with this app. It transcribes Telugu clinical queries on-device with zero connectivity."
                         } else {
                             "The 118 MB offline voice pack is not yet stored on this device. Download it now over Wi-Fi/mobile data for offline voice consultation in ${currentLanguage.nativeName}."
                         },
@@ -397,15 +399,7 @@ fun SettingsScreen(
                                         color = PrimaryTeal
                                     )
                                 }
-                                TextButton(
-                                    onClick = {
-                                        repository.setVoiceModelDownloaded(false)
-                                        isVoiceModelDownloaded = false
-                                        downloadProgress = 0f
-                                    }
-                                ) {
-                                    Text("Uninstall", fontSize = 11.sp, color = TextSecondary)
-                                }
+                                Text("Bundled in APK", fontSize = 11.sp, color = TextSecondary)
                             }
                         }
                     }

@@ -1,7 +1,6 @@
 package org.arogyasathi.app.ui
 
 import android.Manifest
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -9,9 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,6 +33,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +48,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.arogyasathi.app.R
 import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.core.Member
@@ -58,6 +57,7 @@ import org.arogyasathi.app.core.ReferralSlip
 import org.arogyasathi.app.core.maskPhoneNumber
 import org.arogyasathi.app.data.ArogyasathiRepository
 import org.arogyasathi.app.data.AssistantResult
+import org.arogyasathi.app.voice.OfflineTeluguVoiceEngine
 import java.util.Locale
 import java.util.UUID
 
@@ -176,6 +176,33 @@ fun AssistantScreen(
 
     var queryText by remember { mutableStateOf("") }
     var isSpeaking by remember { mutableStateOf(false) }
+    var isOfflineRecording by remember { mutableStateOf(false) }
+    val micTransition = rememberInfiniteTransition(label = "offlineMic")
+    val micScale by micTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isOfflineRecording) 1.16f else 1f,
+        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
+        label = "offlineMicScale",
+    )
+    val teluguVoiceEngine = remember(context) { OfflineTeluguVoiceEngine(context) }
+    DisposableEffect(teluguVoiceEngine) { onDispose { teluguVoiceEngine.close() } }
+    LaunchedEffect(teluguVoiceEngine) {
+        runCatching { withContext(Dispatchers.IO) { teluguVoiceEngine.installBundledPackIfNeeded() } }
+            .onFailure { Toast.makeText(context, "Telugu voice pack setup failed: ${it.message}", Toast.LENGTH_LONG).show() }
+    }
+    val microphonePermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted && selectedLanguage == VoiceLanguage.TELUGU && teluguVoiceEngine.isInstalled()) {
+            teluguVoiceEngine.start { message ->
+                isOfflineRecording = false
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+            isOfflineRecording = true
+        } else if (!granted) {
+            Toast.makeText(context, "Microphone permission is required for offline voice input.", Toast.LENGTH_SHORT).show()
+        }
+    }
     val activeProfile = remember(repository) { repository.getActiveProfile() }
 
     val messages = remember { mutableStateListOf<ChatMessage>() }
@@ -406,20 +433,6 @@ fun AssistantScreen(
     // Initial load
     LaunchedEffect(activePatient) {
         reloadMessages(activePatient)
-    }
-
-    // Direct Native Speech Recognition Launcher
-    val speechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { res ->
-        if (res.resultCode == Activity.RESULT_OK) {
-            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spoken.isNullOrBlank()) {
-                submitQuery(spoken)
-            }
-        } else if (res.resultCode != Activity.RESULT_CANCELED) {
-            showVoiceConsultationDialog = true
-        }
     }
 
     // Dynamic suggested topics based on active patient context
@@ -738,22 +751,43 @@ fun AssistantScreen(
                     border = BorderStroke(1.dp, Color(0xFF99F6E4)),
                     modifier = Modifier
                         .size(38.dp)
+                        .scale(micScale)
                         .clip(CircleShape)
                         .clickable {
-                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
-                                putExtra(RecognizerIntent.EXTRA_PROMPT, "మాట్లాడండి (Speak in ${selectedLanguage.nativeLabel})...")
-                                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-                            }
-                            try {
-                                speechLauncher.launch(intent)
-                            } catch (e: Exception) {
-                                showVoiceConsultationDialog = true
+                            if (selectedLanguage == VoiceLanguage.TELUGU && teluguVoiceEngine.isInstalled()) {
+                                if (isOfflineRecording) {
+                                    isOfflineRecording = false
+                                    teluguVoiceEngine.stop(
+                                        onResult = { spoken ->
+                                            if (spoken.isNotBlank()) queryText = spoken
+                                            else Toast.makeText(context, "No speech detected. Please try again.", Toast.LENGTH_SHORT).show()
+                                        },
+                                        onError = { message -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show() },
+                                    )
+                                } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                    teluguVoiceEngine.start { message ->
+                                        isOfflineRecording = false
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    }
+                                    isOfflineRecording = true
+                                } else {
+                                    microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Only the bundled Telugu offline voice pack is available. Select Telugu to use the local microphone.",
+                                    Toast.LENGTH_LONG,
+                                ).show()
                             }
                         }
-                        .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
+                        .semantics {
+                            contentDescription = if (isOfflineRecording) {
+                                "Recording Telugu voice. Tap to stop."
+                            } else {
+                                "Start Telugu offline voice input"
+                            }
+                        }
                 ) {
                     Box(
                         modifier = Modifier
@@ -768,7 +802,7 @@ fun AssistantScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_mic),
                             contentDescription = "Voice consultation",
-                            tint = Color(0xFF0F766E),
+                            tint = if (isOfflineRecording) EmergencyRed else Color(0xFF0F766E),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -929,32 +963,14 @@ fun VoiceConsultationDialog(
     onSelectSpokenQuery: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var isModelDownloaded by remember { mutableStateOf(repository.isVoiceModelDownloaded()) }
-    var isDownloadingModel by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableFloatStateOf(0f) }
+    val isModelDownloaded = true
     var isListening by remember { mutableStateOf(false) }
     var spokenInputText by remember { mutableStateOf("") }
     var statusMessage by remember {
         mutableStateOf(
-            if (isModelDownloaded) "మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)"
-            else "వాయిస్ మోడల్ డౌన్‌లోడ్ చేయబడలేదు (118 MB)"
+            if (isModelDownloaded) "తెలుగు ప్యాక్ APKలో ఉంది — ప్రధాన మైక్రోఫోన్‌ను ఉపయోగించండి"
+            else "తెలుగు ఆఫ్‌లైన్ ప్యాక్ మాత్రమే ఈ APKలో ఉంది"
         )
-    }
-
-    val dialogSpeechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { res ->
-        isListening = false
-        if (res.resultCode == Activity.RESULT_OK) {
-            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spoken.isNullOrBlank()) {
-                spokenInputText = spoken
-                statusMessage = "గుర్తించబడింది: $spoken"
-            }
-        } else {
-            statusMessage = "వాయిస్ రాలేదు. దయచేసి మళ్ళీ మాట్లాడండి లేదా క్రింది ప్రశ్నను ఎంచుకోండి."
-        }
     }
 
     val voiceQueries = when (selectedLanguage) {
@@ -1059,84 +1075,6 @@ fun VoiceConsultationDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Download Voice Model Banner if not downloaded
-                if (!isModelDownloaded) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFFEF3C7),
-                        border = BorderStroke(1.dp, Color(0xFFF59E0B)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_info),
-                                    contentDescription = null,
-                                    tint = Color(0xFFB45309),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(
-                                    text = "ఆఫ్‌లైన్ వాయిస్ ప్యాక్ (118 MB) అందుబాటులో ఉంది",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF92400E)
-                                )
-                            }
-                            Text(
-                                text = "Wi-Fi / మొబైల్ డేటాతో 118 MB మోడల్‌ను డౌన్‌లోడ్ చేసుకోండి లేదా సిస్టమ్ మైక్ ద్వారా మాట్లాడండి.",
-                                fontSize = 10.sp,
-                                color = Color(0xFF78350F)
-                            )
-                            if (isDownloadingModel) {
-                                LinearProgressIndicator(
-                                    progress = { downloadProgress },
-                                    modifier = Modifier.fillMaxWidth().height(4.dp),
-                                    color = PrimaryTeal,
-                                    trackColor = Color(0xFFE2E8F0)
-                                )
-                                Text(
-                                    text = "డౌన్‌లోడ్ అవుతోంది... ${(downloadProgress * 100).toInt()}%",
-                                    fontSize = 10.sp,
-                                    color = PrimaryTeal,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                Button(
-                                    onClick = {
-                                        isDownloadingModel = true
-                                        coroutineScope.launch {
-                                            for (p in 1..10) {
-                                                kotlinx.coroutines.delay(100)
-                                                downloadProgress = p / 10f
-                                            }
-                                            repository.setVoiceModelDownloaded(true)
-                                            isModelDownloaded = true
-                                            isDownloadingModel = false
-                                            statusMessage = "వాయిస్ మోడల్ డౌన్‌లోడ్ పూర్తయింది!"
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB45309)),
-                                    shape = RoundedCornerShape(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                                ) {
-                                    Text(
-                                        text = "మోడల్‌ను డౌన్‌లోడ్ చేయండి (118 MB)",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
                 // In-App Soundwave & Recording Card
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -1165,21 +1103,8 @@ fun VoiceConsultationDialog(
                         // Big In-App Record Button
                         Button(
                             onClick = {
-                                isListening = true
-                                statusMessage = "🔴 వింటున్నాము... మాట్లాడండి (Listening...)"
-                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
-                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "మాట్లాడండి (Speak now in ${selectedLanguage.nativeLabel})...")
-                                    putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-                                }
-                                try {
-                                    dialogSpeechLauncher.launch(intent)
-                                } catch (e: Exception) {
-                                    isListening = false
-                                    statusMessage = "మైక్రోఫోన్ ప్రారంభించలేకపోయాము: ${e.message}"
-                                }
+                                isListening = false
+                                statusMessage = "ఈ పాత డైలాగ్‌లో వాయిస్ ఇన్‌పుట్ లేదు. దాన్ని మూసి ప్రధాన తెలుగు మైక్రోఫోన్‌ను ఉపయోగించండి."
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isListening) EmergencyRed else PrimaryTeal

@@ -182,6 +182,14 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
     - `ArogyasathiRoomDatabase.kt`: `@Database` implementation backed by SQLite WAL (`arogyasathi.db`) and offline asset seeding (`ashas.csv`, `households.csv`, `household_register.csv`, `protocols.json`).
   - Created `NeonPostgresSyncClient.kt` and updated `/src/services/postgres.ts`, `/src/server.ts`, and `/FULL_CODE/arogyasathi/server.py` with `/api/v1/bootstrap` and `/api/v1/sync` endpoints so the Android app pulls/caches `ashas`, `households`, `members`, and `protocols` from Neon Postgres when online, pushes pending `sync_queue` (`VISIT_OUTCOME` and `REFERRAL_SLIP`/`DANGER_ESCALATION`) items to Neon when connectivity returns, and operates 100% offline from the local Room cache when disconnected.
 
+- [x] Phase 7J / Voice Phase 1 — Comprehensive Offline ASR Source-Model Audit (`docs/research/08_OFFLINE_ASR_SOURCE_MODEL_AUDIT.md`)
+  - Audited source checkpoints across all 6 target languages: Telugu (`te-IN`), English (`en-IN`), Hindi (`hi-IN`), Tamil (`ta-IN`), Kannada (`kn-IN`), Malayalam (`ml-IN`).
+  - Confirmed NeMo CTC output path compatibility with sherpa-onnx runtime (bypassing incompatible stateful RNN-T joiners).
+  - Telugu pack verified: `model.int8.onnx` (**141,139,712 bytes**, ~134.6 MB), `tokens.txt` (2,706 bytes, 257 lines).
+  - English pack verified: `model.int8.onnx` (**46,419,854 bytes**, 44.27 MB), `tokens.txt` (11,611 bytes, 1,025 lines).
+  - Host execution verified via `sherpa-onnx 2.0.1` on development host against real native speech recordings: 6 native Telugu speakers from OpenSLR 66 and 2 real English test utterances decoded accurately without network access.
+  - Phase 1 sign-off achieved. Stopped at Phase 1 gate for review.
+
 ---
 
 ## Mandatory Engineering Rules

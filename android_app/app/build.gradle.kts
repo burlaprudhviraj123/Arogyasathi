@@ -45,6 +45,7 @@ kotlin {
 }
 
 dependencies {
+  implementation(files("libs/sherpa-onnx-2.0.1.aar"))
   val composeBom = platform(libs.androidx.compose.bom)
   implementation(composeBom)
   androidTestImplementation(composeBom)
