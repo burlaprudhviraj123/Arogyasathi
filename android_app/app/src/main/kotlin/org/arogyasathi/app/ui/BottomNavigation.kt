@@ -1,11 +1,13 @@
 package org.arogyasathi.app.ui
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -80,42 +82,103 @@ fun FloatingGlassBottomBar(
             ) {
                 items.forEach { item ->
                     val isSelected = selectedIndex == item.index
-                    val animBg by animateColorAsState(
-                        targetValue = if (isSelected) activeContainer else Color.Transparent,
-                        label = "tabBg"
-                    )
 
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = animBg,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .semantics {
-                                role = Role.Tab
-                                contentDescription = "${item.title} tab"
-                                stateDescription = if (isSelected) "Selected" else "Not selected"
-                            }
-                            .clickable { onTabSelected(item.index) }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = if (isSelected) 10.dp else 8.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    if (item.index == 2) {
+                        // Central Highlighted Core Assistant Action (Prominent Circular Focal Button)
+                        val centerBg by animateColorAsState(
+                            targetValue = if (isSelected) PrimaryTeal else if (isDark) Color(0xFF133E3A) else Color(0xFFE6F4F1),
+                            label = "centerBg"
+                        )
+                        val centerIconTint by animateColorAsState(
+                            targetValue = if (isSelected) Color.White else PrimaryTeal,
+                            label = "centerIconTint"
+                        )
+
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .semantics {
+                                    role = Role.Tab
+                                    contentDescription = "${item.title} tab"
+                                    stateDescription = if (isSelected) "Selected" else "Not selected"
+                                }
+                                .padding(vertical = 4.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(id = item.iconRes),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = if (isSelected) activeTint else TextSecondary
-                            )
-                            if (isSelected) {
-                                Text(
-                                    text = item.title,
-                                    fontSize = 11.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = activeTint,
-                                    maxLines = 1
+                            Surface(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .shadow(if (isSelected) 8.dp else 2.dp, CircleShape)
+                                    .clip(CircleShape)
+                                    .clickable { onTabSelected(item.index) },
+                                shape = CircleShape,
+                                color = centerBg,
+                                border = BorderStroke(
+                                    width = if (isSelected) 2.dp else 1.5.dp,
+                                    color = if (isSelected) Color(0xFF2DD4BF) else PrimaryTeal.copy(alpha = 0.45f)
                                 )
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(id = item.iconRes),
+                                        contentDescription = item.title,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = centerIconTint
+                                    )
+                                }
+                            }
+
+                            // Active indicator dot at the bottom of the circular button (matching reference UI)
+                            if (isSelected) {
+                                Surface(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .offset(y = 3.dp)
+                                        .size(6.dp),
+                                    shape = CircleShape,
+                                    color = Color(0xFF2DD4BF),
+                                    border = BorderStroke(1.dp, Color.White)
+                                ) {}
+                            }
+                        }
+                    } else {
+                        // Standard Navigation Tabs
+                        val animBg by animateColorAsState(
+                            targetValue = if (isSelected) activeContainer else Color.Transparent,
+                            label = "tabBg"
+                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = animBg,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .semantics {
+                                    role = Role.Tab
+                                    contentDescription = "${item.title} tab"
+                                    stateDescription = if (isSelected) "Selected" else "Not selected"
+                                }
+                                .clickable { onTabSelected(item.index) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = if (isSelected) 10.dp else 8.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = item.iconRes),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = if (isSelected) activeTint else TextSecondary
+                                )
+                                if (isSelected) {
+                                    Text(
+                                        text = item.title,
+                                        fontSize = 11.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = activeTint,
+                                        maxLines = 1
+                                    )
+                                }
                             }
                         }
                     }
