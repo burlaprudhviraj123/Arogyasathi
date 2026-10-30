@@ -58,27 +58,12 @@ fun MainScreen() {
                     TopAppBar(
                         title = {
                             Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = strings.appName,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 17.sp,
-                                        color = PrimaryTeal
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = RoutineGreen.copy(alpha = 0.12f)
-                                    ) {
-                                        Text(
-                                            text = strings.offlineReady,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = RoutineGreen,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                        )
-                                    }
-                                }
+                                Text(
+                                    text = strings.appName,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 17.sp,
+                                    color = PrimaryTeal
+                                )
                                 Text(
                                     text = strings.appSubtitle,
                                     fontSize = 11.sp,
