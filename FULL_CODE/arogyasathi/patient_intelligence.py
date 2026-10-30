@@ -304,3 +304,4 @@ class PatientIntelligenceEngine:
                 trends.append(f"ANAEMIA PROGRESSION: Patient progressed from moderate to SEVERE ANAEMIA (<7.0 g/dL).")
 
         return trends
+

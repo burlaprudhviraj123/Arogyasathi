@@ -72,3 +72,4 @@ def test_scope_refusal(assistant):
     assert res["refused"] is True
     assert res["triage_level"] == "OUT_OF_SCOPE"
     assert "SCP-1.2" in res["cited_section_ids"][0]
+
