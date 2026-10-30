@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +32,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -725,12 +731,12 @@ fun AssistantScreen(
             }
         }
 
-        // Bottom Chat Input Bar (Sleek Floating Pill - Zero Awkward Padding)
+        // Bottom Chat Input Bar (Single Unified Pill with Uniform Companion Action Buttons)
         Surface(
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(26.dp),
             color = Color.White,
-            border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.35f)),
-            shadowElevation = 4.dp,
+            border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.25f)),
+            shadowElevation = 3.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .imePadding()
@@ -739,41 +745,52 @@ fun AssistantScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(start = 14.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Text Input Field
-                OutlinedTextField(
+                // Seamless Text Input Field inside the single bar
+                BasicTextField(
                     value = queryText,
                     onValueChange = { queryText = it },
-                    placeholder = {
-                        Text(
-                            text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = CanvasBackground,
-                        unfocusedContainerColor = CanvasBackground,
-                        focusedBorderColor = PrimaryTeal,
-                        unfocusedBorderColor = BorderSubtle
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 4.dp),
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Normal
                     ),
-                    maxLines = 2
+                    maxLines = 3,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                    keyboardActions = KeyboardActions(onSend = {
+                        if (queryText.trim().isNotEmpty()) {
+                            submitQuery(queryText)
+                        }
+                    }),
+                    decorationBox = { innerTextField ->
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            if (queryText.isEmpty()) {
+                                Text(
+                                    text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
+                                    fontSize = 13.sp,
+                                    color = TextSecondary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
                 )
 
-                // Speech-to-Text Button (Beside Send button)
+                // Uniform Microphone Button (Companion button 1 to the right)
                 IconButton(
-                    onClick = {
-                        showVoiceConsultationDialog = true
-                    },
+                    onClick = { showVoiceConsultationDialog = true },
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(40.dp)
                         .background(Color(0xFFE6F4F1), CircleShape)
+                        .border(1.dp, PrimaryTeal.copy(alpha = 0.25f), CircleShape)
                         .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
                 ) {
                     Icon(
@@ -784,14 +801,20 @@ fun AssistantScreen(
                     )
                 }
 
-                // Send Button
+                // Uniform Send Button (Companion button 2 to the right)
+                val isSendEnabled = queryText.trim().isNotEmpty()
                 IconButton(
                     onClick = { submitQuery(queryText) },
-                    enabled = queryText.trim().isNotEmpty(),
+                    enabled = isSendEnabled,
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(40.dp)
                         .background(
-                            if (queryText.trim().isNotEmpty()) PrimaryTeal else Color(0xFFCBD5E1),
+                            if (isSendEnabled) PrimaryTeal else Color(0xFFF1F5F9),
+                            CircleShape
+                        )
+                        .border(
+                            1.dp,
+                            if (isSendEnabled) PrimaryTeal else Color(0xFFE2E8F0),
                             CircleShape
                         )
                         .semantics { contentDescription = "Send message" }
@@ -799,8 +822,8 @@ fun AssistantScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_send),
                         contentDescription = "Send",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        tint = if (isSendEnabled) Color.White else Color(0xFF94A3B8),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
