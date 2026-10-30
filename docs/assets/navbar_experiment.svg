@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="720" height="320">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#F1F5F9" />
+    </linearGradient>
+    <filter id="navShadow" x="-10%" y="-20%" width="120%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.12" />
+    </filter>
+    <filter id="centerBtnShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F766E" flood-opacity="0.30" />
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="720" height="320" fill="url(#bgGrad)" />
+
+  <!-- Title 1 -->
+  <text x="36" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#475569" letter-spacing="0.5">STATE A: TODAY ACTIVE (CENTER ASSISTANT REMAINS 100% LOCKED AT X = 50%)</text>
+
+  <!-- Navbar 1 Container -->
+  <g transform="translate(36, 46)">
+    <!-- Glass Capsule -->
+    <rect width="648" height="68" rx="34" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.2" filter="url(#navShadow)" />
+
+    <!-- Left Wing (Symmetric 50% width) -->
+    <!-- Tab 0: Today (Selected Pill) -->
+    <rect x="52" y="16" width="46" height="36" rx="18" fill="#E6F4F1" />
+    <path d="M 68,26 h 14 v 14 h -14 z M 68,30 h 14" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round" />
+
+    <!-- Tab 1: Families (Unselected) -->
+    <g transform="translate(195, 22)">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="#64748B" stroke-width="2" />
+      <circle cx="28" cy="14" r="6" fill="none" stroke="#64748B" stroke-width="2" />
+    </g>
+
+    <!-- CENTER TAB 2: ASSISTANT (Prominent Circular Focal Button — Exact Center x=324) -->
+    <g transform="translate(298, 8)">
+      <circle cx="26" cy="26" r="26" fill="#E6F4F1" stroke="#0F766E" stroke-width="1.8" filter="url(#centerBtnShadow)" />
+      <!-- Assistant Sparkle / Bot Icon -->
+      <path d="M 26,16 l 3,7 l 7,3 l -7,3 l -3,7 l -3,-7 l -7,-3 l 7,-3 z" fill="#0F766E" />
+      <circle cx="34" cy="18" r="1.5" fill="#0F766E" />
+    </g>
+
+    <!-- Right Wing (Symmetric 50% width) -->
+    <!-- Tab 3: Records (Unselected) -->
+    <g transform="translate(425, 22)">
+      <rect x="0" y="2" width="20" height="22" rx="3" fill="none" stroke="#64748B" stroke-width="2" />
+      <line x1="4" y1="8" x2="16" y2="8" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+      <line x1="4" y1="14" x2="12" y2="14" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Tab 4: Settings (Unselected) -->
+    <g transform="translate(555, 22)">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="#64748B" stroke-width="2" />
+      <path d="M 12,2 v 4 M 12,18 v 4 M 2,12 h 4 M 18,12 h 4" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Title 2 -->
+  <text x="36" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#475569" letter-spacing="0.5">STATE B: ASSISTANT ACTIVE (ACTIVE TEAL ELEVATION + INDICATOR DOT AT EXACT SAME X)</text>
+
+  <!-- Navbar 2 Container -->
+  <g transform="translate(36, 194)">
+    <!-- Glass Capsule -->
+    <rect width="648" height="68" rx="34" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.2" filter="url(#navShadow)" />
+
+    <!-- Left Wing -->
+    <!-- Tab 0: Today (Unselected) -->
+    <g transform="translate(65, 22)">
+      <path d="M 0,2 h 20 v 18 h -20 z M 0,7 h 20" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Tab 1: Families (Unselected) -->
+    <g transform="translate(195, 22)">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="#64748B" stroke-width="2" />
+      <circle cx="28" cy="14" r="6" fill="none" stroke="#64748B" stroke-width="2" />
+    </g>
+
+    <!-- CENTER TAB 2: ASSISTANT (Selected Active Elevated Button — Exact Center x=324) -->
+    <g transform="translate(298, 8)">
+      <circle cx="26" cy="26" r="26" fill="#0F766E" stroke="#2DD4BF" stroke-width="2.5" filter="url(#centerBtnShadow)" />
+      <!-- Assistant Sparkle / Bot Icon in White -->
+      <path d="M 26,16 l 3,7 l 7,3 l -7,3 l -3,7 l -3,-7 l -7,-3 l 7,-3 z" fill="#FFFFFF" />
+      <circle cx="34" cy="18" r="1.5" fill="#FFFFFF" />
+
+      <!-- Active Indicator Dot (as in user reference image) -->
+      <circle cx="26" cy="51" r="3.5" fill="#2DD4BF" stroke="#FFFFFF" stroke-width="1.2" />
+    </g>
+
+    <!-- Right Wing -->
+    <!-- Tab 3: Records (Unselected) -->
+    <g transform="translate(425, 22)">
+      <rect x="0" y="2" width="20" height="22" rx="3" fill="none" stroke="#64748B" stroke-width="2" />
+      <line x1="4" y1="8" x2="16" y2="8" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+      <line x1="4" y1="14" x2="12" y2="14" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Tab 4: Settings (Unselected) -->
+    <g transform="translate(555, 22)">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="#64748B" stroke-width="2" />
+      <path d="M 12,2 v 4 M 12,18 v 4 M 2,12 h 4 M 18,12 h 4" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+    </g>
+  </g>
+</svg>
