@@ -1,10 +1,10 @@
 {
   "model_names": [
-    "arogyasathi-jev-laya (cpu offline pure-python)"
+    "arogyasathi-jev-laya (cpu offline)"
   ],
   "model_size_mb": 0.25,
-  "peak_ram_mb": 23.52,
-  "median_latency_ms_cpu": 0.736,
+  "peak_ram_mb": 105.61,
+  "median_latency_ms_cpu": 0.497,
   "offline": true,
-  "total_elapsed_sec": 0.08
+  "total_elapsed_sec": 0.27
 }
