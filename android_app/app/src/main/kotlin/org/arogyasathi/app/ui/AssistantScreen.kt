@@ -439,29 +439,152 @@ fun AssistantScreen(
 
     // Dynamic suggested topics based on active patient context
     val quickTopics = when {
-        activePatient?.isPregnant == true -> listOf(
-            "Bleeding in pregnancy danger signs",
-            "Pre-eclampsia high BP and severe headache",
-            "Daily IFA and Calcium tablet schedule",
-            "3rd ANC checkup window weeks"
-        )
-        activePatient?.ncdCondition != null -> listOf(
-            "BP 140/90 hypertension management",
-            "Random blood sugar >=200 guidelines",
-            "Salt reduction and exercise counselling"
-        )
-        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isChildUnderFive == true -> listOf(
-            "Motions avthunnai (ORS and Zinc dose)",
-            "Fast breathing and chest indrawing",
-            "Next due vaccine schedule",
-            "MUAC malnutrition screening"
-        )
-        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isNewbornUnderTwoMonths == true -> listOf(
-            "Baby unable to suck or feed",
-            "Baby cold to touch hypothermia",
-            "Cord care and delayed bathing",
-            "HBNC home visit schedule"
-        )
+        activePatient?.isPregnant == true -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "గర్భధారణలో రక్తస్రావం ప్రమాద సంకేతాలు",
+                "ప్రీ-ఎక్లాంప్సియా అధిక రక్తపోటు మరియు తీవ్ర తలనొప్పి",
+                "రోజువారీ ఐఎఫ్‌ఏ మరియు కాల్షియం మాత్రల షెడ్యూల్",
+                "3వ ఏఎన్‌సీ తనిఖీ సమయం (వారాలు)"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "गर्भावस्था में रक्तस्राव खतरे के संकेत",
+                "प्री-एक्लेमप्सिया उच्च रक्तचाप और गंभीर सिरदर्द",
+                "दैनिक आईएफए और कैल्शियम गोली की समय-सारणी",
+                "तीसरी एएनसी जांच की समय-सीमा"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "கர்ப்பகாலத்தில் ரத்தப்போக்கு ஆபத்து அறிகுறிகள்",
+                "உயர் ரத்த அழுத்தம் மற்றும் கடுமையான தலைவலி",
+                "தினசரி இரும்பு மற்றும் கால்சியம் மாத்திரைகள்",
+                "3வது ANC பரிசோதனை காலம்"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ರಕ್ತಸ್ರಾವ ಅಪಾಯದ ಚಿಹ್ನೆಗಳು",
+                "ಅಧಿಕ ರಕ್ತದೊತ್ತಡ ಮತ್ತು ತೀವ್ರ ತಲೆನೋವು",
+                "ದೈನಂದಿನ ಐಎಫ್‌ಎ ಮತ್ತು ಕ್ಯಾಲ್ಸಿಯಂ ಮಾತ್ರೆಗಳು",
+                "3ನೇ ಎಎನ್‌ಸಿ ತಪಾಸಣೆ ಸಮಯ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "ഗർഭകാലത്തെ രക്തസ്രാവം അപകട ലക്ഷണങ്ങൾ",
+                "ഉയർന്ന രക്തസമ്മർദ്ദവും കഠിനമായ തലവേദനയും",
+                "ദിവസേനയുള്ള അയൺ, കാൽസ്യം ഗുളികകൾ",
+                "മൂന്നാമത്തെ ANC പരിശോധനാ സമയം"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Bleeding in pregnancy danger signs",
+                "Pre-eclampsia high BP and severe headache",
+                "Daily IFA and Calcium tablet schedule",
+                "3rd ANC checkup window weeks"
+            )
+        }
+        activePatient?.ncdCondition != null -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "బీపీ 140/90 రక్తపోటు నిర్వహణ మార్గదర్శకాలు",
+                "రక్తంలో చక్కెర (షుగర్) >=200 మార్గదర్శకాలు",
+                "ఉప్పు తగ్గించడం మరియు వ్యాయామ సలహాలు"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "बीपी 140/90 उच्च रक्तचाप प्रबंधन",
+                "रैंडम ब्लड शुगर >=200 दिशा-निर्देश",
+                "नमक कम करने और व्यायाम की सलाह"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "ரத்த அழுத்தம் 140/90 மேலாண்மை நெறிமுறை",
+                "சர்க்கரை அளவு >=200 வழிகாட்டுதல்கள்",
+                "உப்பு குறைப்பு மற்றும் உடற்பயிற்சி ஆலோசனைகள்"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಬಿಪಿ 140/90 ರಕ್ತದೊತ್ತಡ ನಿರ್ವಹಣಾ ಮಾರ್ಗಸೂಚಿಗಳು",
+                "ರಕ್ತದ ಸಕ್ಕರೆ ಪ್ರಮಾಣ >=200 ಮಾರ್ಗಸೂಚಿಗಳು",
+                "ಉಪ್ಪು ಕಡಿಮೆ ಮಾಡುವುದು ಮತ್ತು ವ್ಯಾಯಾಮ ಸಲಹೆ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "ബിപി 140/90 രക്താതിമർദ്ദ നിയന്ത്രണം",
+                "ബ്ലഡ് ഷുഗർ >=200 മാർഗ്ഗനിർദ്ദേശങ്ങൾ",
+                "ഉപ്പ് കുറയ്ക്കലും വ്യായാമ നിർദ്ദേശങ്ങളും"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "BP 140/90 hypertension management",
+                "Random blood sugar >=200 guidelines",
+                "Salt reduction and exercise counselling"
+            )
+        }
+        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isChildUnderFive == true -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "విరేచనాలకు ఓఆర్ఎస్ మరియు జింక్ మోతాదు",
+                "వేగంగా శ్వాస మరియు ఛాతీ లోపలికి లాగడం",
+                "రాబోయే టీకాల షెడ్యూల్",
+                "MUAC పోషకాహార లోప తనిఖీ"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "दस्त में ओआरएस और जिंक की खुराक",
+                "तेज सांस और छाती धंसना (निमोनिया)",
+                "अगला टीकाकरण शेड्यूल",
+                "MUAC कुपोषण जांच"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "வயிற்றுப்போக்கு ORS மற்றும் ஜிங்க் அளவு",
+                "வேகமான மூச்சு மற்றும் நிமோனியா",
+                "தடுப்பூசி அட்டவணை",
+                "MUAC ஊட்டச்சத்து குறைபாடு பரிசோதனை"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ ಮತ್ತು ಜಿಂಕ್ ಪ್ರಮಾಣ",
+                "ವೇಗದ ಉಸಿರಾಟ ಮತ್ತು ನ್ಯುಮೋನಿಯಾ",
+                "ಮುಂದಿನ ಲಸಿಕೆ ವೇಳಾಪಟ್ಟಿ",
+                "MUAC ಅಪೌಷ್ಟಿಕತೆ ಪರೀಕ್ಷೆ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "വയറിളക്കത്തിന് ഒആർഎസും സിങ്കും",
+                "വേഗതയേറിയ ശ്വാസോച്ഛ്വാസം ന്യുമോണിയ",
+                "വാക്സിനേഷൻ ഷെഡ്യൂൾ",
+                "MUAC പോഷകാഹാര പരിശോധന"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Diarrhoea ORS and Zinc dose",
+                "Fast breathing and chest indrawing",
+                "Next due vaccine schedule",
+                "MUAC malnutrition screening"
+            )
+        }
+        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isNewbornUnderTwoMonths == true -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "శిశువు పాలు తాగలేకపోతోంది",
+                "శిశువు శరీరం చల్లబడటం (హైపోథర్మియా)",
+                "బొడ్డు సంరక్షణ మరియు స్నానం వాయిదా",
+                "HBNC గృహ సందర్శన షెడ్యూల్"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "शिशु दूध नहीं पी पा रहा है",
+                "शिशु का शरीर ठंडा पड़ना (हाइपोथर्मिया)",
+                "नाल की देखभाल और नहलाने में देरी",
+                "HBNC गृह भ्रमण समय-सारणी"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "குழந்தை பால் குடிக்க முடியவில்லை",
+                "குழந்தை உடல் குளிர்ச்சியடைதல் (ஹைபோதெர்மியா)",
+                "தொப்புள் கொடி பராமரிப்பு மற்றும் குளிப்பாட்டுதல்",
+                "HBNC இல்ல வருகை அட்டவணை"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಮಗು ಹಾಲು ಕುಡಿಯಲು ಅಸಮರ್ಥತೆ",
+                "ಮಗುವಿನ ದೇಹ ತಣ್ಣಗಾಗುವುದು (ಹೈಪೋಥರ್ಮಿಯಾ)",
+                "ಹೊಕ್ಕುಳಬಳ್ಳಿ ಆರೈಕೆ ಮತ್ತು ಸ್ನಾನ ಮುಂದೂಡುವುದು",
+                "HBNC ಮನೆ ಭೇಟಿ ವೇಳಾಪಟ್ಟಿ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "കുഞ്ഞിന് പാൽ കുടിക്കാൻ കഴിയുന്നില്ല",
+                "കുഞ്ഞിന്റെ ശരീരം തണുത്തുപോകൽ (ഹൈപ്പോതെർമിയ)",
+                "പൊക്കിൾക്കൊടി പരിചരണവും കുളി മാറ്റിവയ്ക്കലും",
+                "HBNC ഗൃഹസന്ദർശന ഷെഡ്യൂൾ"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Baby unable to suck or feed",
+                "Baby cold to touch hypothermia",
+                "Cord care and delayed bathing",
+                "HBNC home visit schedule"
+            )
+        }
         else -> when (selectedLanguage) {
             VoiceLanguage.HINDI -> listOf(
                 "दस्त में ओआरएस और जिंक की खुराक",
@@ -553,7 +676,7 @@ fun AssistantScreen(
                             }
                         }
                         Text(
-                            text = if (activePatient != null) "${activePatient!!.name} • ${activePatient!!.village}" else "General Consultation",
+                            text = if (activePatient != null) "${activePatient!!.name} • ${activePatient!!.village}" else strings.generalConsultation,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (activePatient != null) DarkTeal else TextPrimary,

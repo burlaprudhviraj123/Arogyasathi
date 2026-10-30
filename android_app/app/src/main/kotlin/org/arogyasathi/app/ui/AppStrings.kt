@@ -81,7 +81,36 @@ data class AppStrings(
     val offlineDatabaseSection: String,
     val helplineSection: String,
     val aboutSection: String,
-    val version: String
+    val version: String,
+
+    // Worker Profile Screen
+    val profileTitle: String,
+    val profileSubtitle: String,
+    val profileActiveBadge: String,
+    val profileRegisteredMobile: String,
+    val profileAssignedSubCentre: String,
+    val profileHierarchyTitle: String,
+    val profileHierarchySubtitle: String,
+    val profileParentPhc: String,
+    val profileAssignedVillages: String,
+    val profileCallMo: String,
+    val profileCallAnm: String,
+    val profileAmbulanceFleet: String,
+    val profileSecurityTitle: String,
+    val profileSecuritySubtitle: String,
+    val profileIvrTitle: String,
+    val profileIvrDesc: String,
+    val profileSwitchBeatTitle: String,
+    val profileSwitchBeatSubtitle: String,
+
+    // Clinical Triage Alerts & Contacts
+    val dangerSignAlert: String,
+    val doctorReferralAlert: String,
+    val clinicalProtocolAlert: String,
+    val referralSlipButton: String,
+    val generalConsultation: String,
+    val emergencyDialogTitle: String,
+    val emergencyDialogSubtitle: String
 )
 
 fun getAppStrings(language: AppLanguage): AppStrings {
@@ -160,7 +189,33 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             offlineDatabaseSection = "Offline Storage & Database",
             helplineSection = "Frontline Emergency Helplines",
             aboutSection = "About Arogyasathi",
-            version = "Version 1.0 (Offline Production Build)"
+            version = "Version 1.0 (Offline Production Build)",
+
+            profileTitle = "ASHA Worker Profile",
+            profileSubtitle = "National Health Mission • Field Credentials",
+            profileActiveBadge = "VERIFIED ACTIVE",
+            profileRegisteredMobile = "REGISTERED MOBILE",
+            profileAssignedSubCentre = "ASSIGNED SUB-CENTRE",
+            profileHierarchyTitle = "Clinical Supervision & Facility Hierarchy",
+            profileHierarchySubtitle = "Direct escalation contacts for emergency referrals",
+            profileParentPhc = "Parent PHC",
+            profileAssignedVillages = "Assigned Villages (Beat)",
+            profileCallMo = "CALL MO",
+            profileCallAnm = "CALL ANM",
+            profileAmbulanceFleet = "EMERGENCY AMBULANCE FLEET",
+            profileSecurityTitle = "Authentication & Security",
+            profileSecuritySubtitle = "Phone Number + OTP Verification",
+            profileIvrTitle = "Phone Call (IVR) Auto-Verification",
+            profileIvrDesc = "When calling from your registered mobile, the system verifies your caller ID automatically.",
+            profileSwitchBeatTitle = "Switch Active ASHA Beat",
+            profileSwitchBeatSubtitle = "Select a profile below to simulate other village jurisdictions:",
+            dangerSignAlert = "DANGER SIGN — CALL 108",
+            doctorReferralAlert = "DOCTOR REFERRAL (PHC)",
+            clinicalProtocolAlert = "CLINICAL PROTOCOL",
+            referralSlipButton = "Referral Slip",
+            generalConsultation = "General Consultation",
+            emergencyDialogTitle = "Clinical Escalation & SOS",
+            emergencyDialogSubtitle = "Direct emergency contact line"
         )
 
         AppLanguage.TELUGU -> AppStrings(
@@ -237,7 +292,33 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             offlineDatabaseSection = "ఆఫ్‌లైన్ నిల్వ & డేటాబేస్",
             helplineSection = "అత్యవసర హెల్ప్‌లైన్లు",
             aboutSection = "ఆరోగ్యసథి గురించి",
-            version = "వెర్షన్ 1.0 (ఆఫ్‌లైన్ ప్రొడక్షన్)"
+            version = "వెర్షన్ 1.0 (ఆఫ్‌లైన్ ప్రొడక్షన్)",
+
+            profileTitle = "ఆశా కార్యకర్త ప్రొఫైల్",
+            profileSubtitle = "జాతీయ ఆరోగ్య మిషన్ • ఫీల్డ్ ఆధారాలు",
+            profileActiveBadge = "క్రియాశీల ధృవీకరణ",
+            profileRegisteredMobile = "నమోదిత మొబైల్",
+            profileAssignedSubCentre = "కేటాయించిన సబ్-సెంటర్",
+            profileHierarchyTitle = "క్లినికల్ పర్యవేక్షణ & ఆసుపత్రి శ్రేణి",
+            profileHierarchySubtitle = "అత్యవసర రిఫరల్స్ కోసం ప్రత్యక్ష సంప్రదింపులు",
+            profileParentPhc = "ప్రధాన పి.హెచ్.సి",
+            profileAssignedVillages = "కేటాయించిన గ్రామాలు (బీట్)",
+            profileCallMo = "MO కి కాల్",
+            profileCallAnm = "ANM కి కాల్",
+            profileAmbulanceFleet = "అత్యవసర అంబులెన్స్ సేవలు",
+            profileSecurityTitle = "ప్రామాణీకరణ & భద్రత",
+            profileSecuritySubtitle = "ఫోన్ నంబర్ + OTP ధృవీకరణ",
+            profileIvrTitle = "ఫోన్ కాల్ (IVR) ఆటో-ధృవీకరణ",
+            profileIvrDesc = "మీ నమోదిత మొబైల్ నుండి కాల్ చేసినప్పుడు సిస్టమ్ మీ కాలర్ ఐడీని స్వయంచాలకంగా ధృవీకరిస్తుంది.",
+            profileSwitchBeatTitle = "క్రియాశీల ఆశా బీట్ మార్చండి",
+            profileSwitchBeatSubtitle = "ఇతర గ్రామాల అధికార పరిధిని ఎంచుకోవడానికి క్రింది ప్రొఫైల్‌ను ఎంచుకోండి:",
+            dangerSignAlert = "ప్రమాద సంకేతం — 108 కి కాల్ చేయండి",
+            doctorReferralAlert = "వైద్యుని రిఫరల్ (PHC)",
+            clinicalProtocolAlert = "క్లినికల్ ప్రోటోకాల్",
+            referralSlipButton = "రిఫరల్ స్లిప్",
+            generalConsultation = "సాధారణ సంప్రదింపు",
+            emergencyDialogTitle = "క్లినికల్ ఎస్కలేషన్ & SOS",
+            emergencyDialogSubtitle = "ప్రత్యక్ష అత్యవసర సంప్రదింపు మార్గం"
         )
 
         AppLanguage.HINDI -> AppStrings(
@@ -314,7 +395,33 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             offlineDatabaseSection = "ऑफ़लाइन स्टोरेज और डेटाबेस",
             helplineSection = "आपातकालीन हेल्पलाइन",
             aboutSection = "आरोग्यसाथी के बारे में",
-            version = "संस्करण 1.0 (ऑफ़लाइन प्रोडक्शन)"
+            version = "संस्करण 1.0 (ऑफ़लाइन प्रोडक्शन)",
+
+            profileTitle = "आशा कार्यकर्ता प्रोफ़ाइल",
+            profileSubtitle = "राष्ट्रीय स्वास्थ्य मिशन • फील्ड क्रेडेंशियल",
+            profileActiveBadge = "सत्यापित सक्रिय",
+            profileRegisteredMobile = "पंजीकृत मोबाइल",
+            profileAssignedSubCentre = "आवंटित उप-केंद्र",
+            profileHierarchyTitle = "क्लिनिकल पर्यवेक्षण एवं स्वास्थ्य सुविधा पदानुक्रम",
+            profileHierarchySubtitle = "आपातकालीन रेफरल हेतु सीधे संपर्क सूत्र",
+            profileParentPhc = "मूल प्राथमिक स्वास्थ्य केंद्र (PHC)",
+            profileAssignedVillages = "आवंटित गाँव (बीट)",
+            profileCallMo = "MO को कॉल",
+            profileCallAnm = "ANM को कॉल",
+            profileAmbulanceFleet = "आपातकालीन एम्बुलेंस बेड़ा",
+            profileSecurityTitle = "प्रमाणीकरण एवं सुरक्षा",
+            profileSecuritySubtitle = "फोन नंबर + ओटीपी सत्यापन",
+            profileIvrTitle = "फोन कॉल (IVR) स्वतः सत्यापन",
+            profileIvrDesc = "पंजीकृत मोबाइल से कॉल करने पर सिस्टम कॉलर आईडी से आपकी पहचान स्वतः सत्यापित करता है।",
+            profileSwitchBeatTitle = "सक्रिय आशा बीट बदलें",
+            profileSwitchBeatSubtitle = "अन्य गाँव अधिकार क्षेत्र का चयन करने हेतु नीचे प्रोफ़ाइल चुनें:",
+            dangerSignAlert = "खतरे का संकेत — 108 पर कॉल करें",
+            doctorReferralAlert = "डॉक्टर रेफरल (PHC)",
+            clinicalProtocolAlert = "क्लिनिकल प्रोटोकॉल",
+            referralSlipButton = "रेफरल पर्ची",
+            generalConsultation = "सामान्य परामर्श",
+            emergencyDialogTitle = "क्लिनिकल एस्केलेशन एवं SOS",
+            emergencyDialogSubtitle = "प्रत्यक्ष आपातकालीन संपर्क लाइन"
         )
 
         AppLanguage.TAMIL -> AppStrings(
@@ -391,7 +498,33 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             offlineDatabaseSection = "ஆஃப்லைன் சேமிப்பு மற்றும் தரவுத்தளம்",
             helplineSection = "அவசர உதவி எண்கள்",
             aboutSection = "ஆரோக்யசதி பற்றி",
-            version = "பதிப்பு 1.0 (ஆஃப்லைன் உற்பத்தி)"
+            version = "பதிப்பு 1.0 (ஆஃப்லைன் உற்பத்தி)",
+
+            profileTitle = "ஆஷா பணியாளர் சுயவிவரம்",
+            profileSubtitle = "தேசிய சுகாதார இயக்கம் • களச் சான்றுகள்",
+            profileActiveBadge = "செயலில் உள்ளவர்",
+            profileRegisteredMobile = "பதிவுசெய்த மொபைல்",
+            profileAssignedSubCentre = "ஒதுக்கப்பட்ட துணை மையம்",
+            profileHierarchyTitle = "மருத்துவக் கண்காணிப்பு மற்றும் கட்டமைப்பு",
+            profileHierarchySubtitle = "அவசர பரிந்துரைகளுக்கான நேரடித் தொடர்புகள்",
+            profileParentPhc = "முதன்மை சுகாதார நிலையம் (PHC)",
+            profileAssignedVillages = "ஒதுக்கப்பட்ட கிராமங்கள் (பீட்)",
+            profileCallMo = "MO-க்கு அழை",
+            profileCallAnm = "ANM-க்கு அழை",
+            profileAmbulanceFleet = "அவசர ஆம்புலன்ஸ் சேவை",
+            profileSecurityTitle = "அங்கீகாரம் மற்றும் பாதுகாப்பு",
+            profileSecuritySubtitle = "தொலைபேசி எண் + OTP சரிபார்ப்பு",
+            profileIvrTitle = "தொலைபேசி அழைப்பு (IVR) தானியங்கி சரிபார்ப்பு",
+            profileIvrDesc = "பதிவுசெய்த மொபைலில் இருந்து அழைக்கும் போது கணினி உங்கள் அடையாளத்தை தானாகவே சரிபார்க்கும்.",
+            profileSwitchBeatTitle = "செயலில் உள்ள ஆஷா பணியாளரை மாற்றவும்",
+            profileSwitchBeatSubtitle = "வேறு கிராம அதிகார வரம்பிற்கு கீழே உள்ள சுயவிவரத்தைத் தேர்ந்தெடுக்கவும்:",
+            dangerSignAlert = "ஆபத்து அறிகுறி — 108 அழைக்கவும்",
+            doctorReferralAlert = "மருத்துவர் பரிந்துரை (PHC)",
+            clinicalProtocolAlert = "மருத்துவ நெறிமுறை",
+            referralSlipButton = "பரிந்துரை சீட்டு",
+            generalConsultation = "பொதுவான ஆலோசனை",
+            emergencyDialogTitle = "மருத்துவ அவசரநிலை & SOS",
+            emergencyDialogSubtitle = "நேரடி அவசர தொடர்பு சேவை"
         )
 
         AppLanguage.KANNADA -> AppStrings(
@@ -468,7 +601,33 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             offlineDatabaseSection = "ಆಫ್‌ಲೈನ್ ಸಂಗ್ರಹಣೆ ಮತ್ತು ಡೇಟಾಬೇಸ್",
             helplineSection = "ತುರ್ತು ಸಹಾಯವಾಣಿಗಳು",
             aboutSection = "ಆರೋಗ್ಯಸಥಿ ಬಗ್ಗೆ",
-            version = "ಆವೃತ್ತಿ 1.0 (ಆಫ್‌ಲೈನ್ ನಿರ್ಮಾಣ)"
+            version = "ಆವೃತ್ತಿ 1.0 (ಆಫ್‌ಲೈನ್ ನಿರ್ಮಾಣ)",
+
+            profileTitle = "ಆಶಾ ಕಾರ್ಯಕರ್ತೆ ಪ್ರೊಫೈಲ್",
+            profileSubtitle = "ರಾಷ್ಟ್ರೀಯ ಆರೋಗ್ಯ ಅಭಿಯಾನ • ಕ್ಷೇತ್ರ ದಾಖಲೆಗಳು",
+            profileActiveBadge = "ಸಕ್ರಿಯ ದೃಢೀಕರಣ",
+            profileRegisteredMobile = "ನೋಂದಾಯಿತ ಮೊಬೈಲ್",
+            profileAssignedSubCentre = "ನಿಯೋಜಿತ ಉಪಕೇಂದ್ರ",
+            profileHierarchyTitle = "ಕ್ಲಿನಿಕಲ್ ಮೇಲ್ವಿಚಾರಣೆ ಮತ್ತು ಸೌಲಭ್ಯ ಶ್ರೇಣಿ",
+            profileHierarchySubtitle = "ತುರ್ತು ಶಿಫಾರಸುಗಳಿಗೆ ನೇರ ಸಂಪರ್ಕಗಳು",
+            profileParentPhc = "ಮೂಲ ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರ (PHC)",
+            profileAssignedVillages = "ನಿಯೋಜಿತ ಹಳ್ಳಿಗಳು (ಬೀಟ್)",
+            profileCallMo = "MO ಗೆ ಕರೆ",
+            profileCallAnm = "ANM ಗೆ ಕರೆ",
+            profileAmbulanceFleet = "ತುರ್ತು ಆಂಬ್ಯುಲೆನ್ಸ್ ವಾಹನಗಳು",
+            profileSecurityTitle = "ದೃಢೀಕರಣ ಮತ್ತು ಭದ್ರತೆ",
+            profileSecuritySubtitle = "ಫೋನ್ ಸಂಖ್ಯೆ + OTP ಪರಿಶೀಲನೆ",
+            profileIvrTitle = "ದೂರವಾಣಿ ಕರೆ (IVR) ಸ್ವಯಂ ಪರಿಶೀಲನೆ",
+            profileIvrDesc = "ನೋಂದಾಯಿತ ಮೊಬೈಲ್‌ನಿಂದ ಕರೆ ಮಾಡಿದಾಗ ಸಿಸ್ಟಮ್ ನಿಮ್ಮ ಕಾಲರ್ ಐಡಿಯನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪರಿಶೀಲಿಸುತ್ತದೆ.",
+            profileSwitchBeatTitle = "ಸಕ್ರಿಯ ಆಶಾ ಬೀಟ್ ಬದಲಾಯಿಸಿ",
+            profileSwitchBeatSubtitle = "ಇತರ ಹಳ್ಳಿಗಳ ವ್ಯಾಪ್ತಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಕೆಳಗಿನ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ:",
+            dangerSignAlert = "ಅಪಾಯದ ಚಿಹ್ನೆ — 108 ಕ್ಕೆ ಕರೆ ಮಾಡಿ",
+            doctorReferralAlert = "ವೈದ್ಯರ ಶಿಫಾರಸು (PHC)",
+            clinicalProtocolAlert = "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್",
+            referralSlipButton = "ಶಿಫಾರಸು ಚೀಟಿ",
+            generalConsultation = "ಸಾಮಾನ್ಯ ಸಮಾಲೋಚನೆ",
+            emergencyDialogTitle = "ಕ್ಲಿನಿಕಲ್ ಎಸ್ಕಲೇಶನ್ ಮತ್ತು SOS",
+            emergencyDialogSubtitle = "ನೇರ ತುರ್ತು ಸಂಪರ್ಕ ಮಾರ್ಗ"
         )
 
         AppLanguage.MALAYALAM -> AppStrings(
@@ -545,7 +704,33 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             offlineDatabaseSection = "ഓഫ്‌ലൈൻ സംഭരണവും ഡാറ്റാബേസും",
             helplineSection = "അടിയന്തര ഹെൽപ്പ് ലൈനുകൾ",
             aboutSection = "ആരോഗ്യസഥിയെക്കുറിച്ച്",
-            version = "പതിപ്പ് 1.0 (ഓഫ്‌ലൈൻ പ്രൊഡക്ഷൻ)"
+            version = "പതിപ്പ് 1.0 (ഓഫ്‌ലൈൻ പ്രൊഡക്ഷൻ)",
+
+            profileTitle = "ആശ പ്രവർത്തക പ്രൊഫൈൽ",
+            profileSubtitle = "ദേശീയ ആരോഗ്യ ദൗത്യം • ഫീൽഡ് രേഖകൾ",
+            profileActiveBadge = "സജീവം",
+            profileRegisteredMobile = "രജിസ്റ്റർ ചെയ്ത മൊബൈൽ",
+            profileAssignedSubCentre = "ഉപകേന്ദ്രം",
+            profileHierarchyTitle = "ക്ലിനിക്കൽ മേൽനോട്ടവും ആരോഗ്യ ശൃംഖലയും",
+            profileHierarchySubtitle = "അടിയന്തര റഫറലുകൾക്കുള്ള നേരിട്ടുള്ള ബന്ധപ്പെടൽ നമ്പറുകൾ",
+            profileParentPhc = "പ്രാഥമികാരോഗ്യ കേന്ദ്രം (PHC)",
+            profileAssignedVillages = "നിയോഗിക്കപ്പെട്ട ഗ്രാമങ്ങൾ",
+            profileCallMo = "MO-യെ വിളിക്കുക",
+            profileCallAnm = "ANM-നെ വിളിക്കുക",
+            profileAmbulanceFleet = "അടിയന്തര ആംബുലൻസ് സർവീസ്",
+            profileSecurityTitle = "പ്രാമാണീകരണവും സുരക്ഷയും",
+            profileSecuritySubtitle = "ഫോൺ നമ്പർ + OTP പരിശോധന",
+            profileIvrTitle = "ഫോൺ കോൾ (IVR) ഓട്ടോ-പരിശോധന",
+            profileIvrDesc = "രജിസ്റ്റർ ചെയ്ത നമ്പറിൽ നിന്ന് വിളിക്കുമ്പോൾ സിസ്റ്റം കോളർ ഐഡി സ്വയമേവ പരിശോധിക്കും.",
+            profileSwitchBeatTitle = "ആശ ബീറ്റ് മാറ്റുക",
+            profileSwitchBeatSubtitle = "മറ്റ് ഗ്രാമങ്ങൾ തിരഞ്ഞെടുക്കാൻ താഴെയുള്ള പ്രൊഫൈൽ തിരഞ്ഞെടുക്കുക:",
+            dangerSignAlert = "അപകട ലക്ഷണം — 108 വിളിക്കുക",
+            doctorReferralAlert = "ഡോക്ടർ റഫറൽ (PHC)",
+            clinicalProtocolAlert = "ക്ലിനിക്കൽ പ്രോട്ടോക്കോൾ",
+            referralSlipButton = "റഫറൽ സ്ലിപ്പ്",
+            generalConsultation = "പൊതുവായ കൺസൾട്ടേഷൻ",
+            emergencyDialogTitle = "അടിയന്തര സഹായം & SOS",
+            emergencyDialogSubtitle = "നേരിട്ടുള്ള അടിയന്തര സേവനം"
         )
     }
 }

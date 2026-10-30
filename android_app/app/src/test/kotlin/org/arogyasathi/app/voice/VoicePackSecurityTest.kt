@@ -220,4 +220,19 @@ class VoicePackSecurityTest {
         assertTrue(File(stagingDir, "tokens.txt").isFile)
         assertTrue(File(stagingDir, "pack.json").isFile)
     }
+
+    @Test
+    fun testProductionCatalogueSignedEnvelopeVerifiesAllSixPacks() {
+        val catalogueFile = File("src/main/assets/voice-packs/catalogue.signed.json")
+        assertTrue("catalogue.signed.json must exist in assets", catalogueFile.isFile)
+        val envelope = catalogueFile.readText(Charsets.UTF_8)
+        val verified = VoicePackCrypto.verifyCatalogueEnvelope(envelope)
+        assertTrue("Signed envelope must verify with trusted public key", verified.isSuccess)
+        val payload = JSONObject(verified.getOrThrow())
+        val packs = payload.getJSONArray("packs")
+        assertEquals(6, packs.length())
+        val langs = (0 until packs.length()).map { packs.getJSONObject(it).getString("languageTag") }.toSet()
+        assertEquals(setOf("en-IN", "te-IN", "hi-IN", "ta-IN", "kn-IN", "ml-IN"), langs)
+    }
 }
+

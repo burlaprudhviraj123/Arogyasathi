@@ -35,7 +35,18 @@ fun AshaProfileScreen(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val strings = LocalAppStrings.current
+    val currentLang = LocalCurrentLanguage.current
     BackHandler(onBack = onDismiss)
+
+    val ashaIdBadgeText = when (currentLang) {
+        AppLanguage.TELUGU -> "ఆశా ఐడీ: ${activeProfile.ashaId}"
+        AppLanguage.HINDI -> "आशा आईडी: ${activeProfile.ashaId}"
+        AppLanguage.TAMIL -> "ஆஷா ஐடி: ${activeProfile.ashaId}"
+        AppLanguage.KANNADA -> "ಆಶಾ ಐಡಿ: ${activeProfile.ashaId}"
+        AppLanguage.MALAYALAM -> "ആശ ഐഡി: ${activeProfile.ashaId}"
+        AppLanguage.ENGLISH -> "ASHA ID: ${activeProfile.ashaId}"
+    }
 
     fun dialContact(number: String) {
         try {
@@ -58,13 +69,13 @@ fun AshaProfileScreen(
                 title = {
                     Column {
                         Text(
-                            text = "ASHA Worker Profile",
+                            text = strings.profileTitle,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary
                         )
                         Text(
-                            text = "National Health Mission • Field Credentials",
+                            text = strings.profileSubtitle,
                             fontSize = 11.sp,
                             color = TextSecondary
                         )
@@ -81,7 +92,7 @@ fun AshaProfileScreen(
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_arrow_back),
-                                    contentDescription = "Back",
+                                    contentDescription = strings.cancel,
                                     tint = TextPrimary,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -175,7 +186,7 @@ fun AshaProfileScreen(
                                 color = PrimaryTeal.copy(alpha = 0.12f)
                             ) {
                                 Text(
-                                    text = "ASHA ID: ${activeProfile.ashaId}",
+                                    text = ashaIdBadgeText,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryTeal,
@@ -187,7 +198,7 @@ fun AshaProfileScreen(
                                 color = RoutineGreen.copy(alpha = 0.12f)
                             ) {
                                 Text(
-                                    text = "🟢 VERIFIED ACTIVE",
+                                    text = "🟢 ${strings.profileActiveBadge}",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = RoutineGreen,
@@ -207,7 +218,7 @@ fun AshaProfileScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    text = "REGISTERED MOBILE",
+                                    text = strings.profileRegisteredMobile,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextSecondary
@@ -230,7 +241,7 @@ fun AshaProfileScreen(
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    text = "ASSIGNED SUB-CENTRE",
+                                    text = strings.profileAssignedSubCentre,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextSecondary
@@ -283,13 +294,13 @@ fun AshaProfileScreen(
                             }
                             Column {
                                 Text(
-                                    text = "Clinical Supervision & Facility Hierarchy",
+                                    text = strings.profileHierarchyTitle,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "Direct escalation contacts for emergency referrals",
+                                    text = strings.profileHierarchySubtitle,
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -312,7 +323,7 @@ fun AshaProfileScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = "Parent PHC",
+                                        text = strings.profileParentPhc,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = TextSecondary
@@ -326,7 +337,7 @@ fun AshaProfileScreen(
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text(
-                                        text = "Assigned Villages (Beat)",
+                                        text = strings.profileAssignedVillages,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = TextSecondary
@@ -390,7 +401,7 @@ fun AshaProfileScreen(
                                             contentDescription = null,
                                             modifier = Modifier.size(14.dp)
                                         )
-                                        Text("CALL MO", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text(strings.profileCallMo, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -445,7 +456,7 @@ fun AshaProfileScreen(
                                             contentDescription = null,
                                             modifier = Modifier.size(14.dp)
                                         )
-                                        Text("CALL ANM", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        Text(strings.profileCallAnm, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -467,7 +478,7 @@ fun AshaProfileScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "EMERGENCY AMBULANCE FLEET",
+                                        text = strings.profileAmbulanceFleet,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = EmergencyRed
@@ -538,13 +549,13 @@ fun AshaProfileScreen(
                             }
                             Column {
                                 Text(
-                                    text = "Authentication & Security",
+                                    text = strings.profileSecurityTitle,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "Phone Number + OTP Verification",
+                                    text = strings.profileSecuritySubtitle,
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -558,14 +569,14 @@ fun AshaProfileScreen(
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
-                                    text = "Phone Call (IVR) Auto-Verification",
+                                    text = strings.profileIvrTitle,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp,
                                     color = TextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(3.dp))
                                 Text(
-                                    text = "When calling from ${activeProfile.phone}, the system verifies your caller ID automatically. If calling from another phone, you are prompted to enter this 10-digit number for secure field access.",
+                                    text = strings.profileIvrDesc,
                                     fontSize = 11.sp,
                                     color = TextSecondary,
                                     lineHeight = 16.sp
@@ -580,13 +591,13 @@ fun AshaProfileScreen(
             item(key = "switch_beat_title") {
                 Column {
                     Text(
-                        text = "Switch Active ASHA Beat",
+                        text = strings.profileSwitchBeatTitle,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Text(
-                        text = "Select a profile below to simulate other village jurisdictions:",
+                        text = strings.profileSwitchBeatSubtitle,
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
@@ -644,7 +655,7 @@ fun AshaProfileScreen(
                                     color = if (isSelected) Color.White else TextPrimary
                                 )
                                 Text(
-                                    text = "Beats: ${profile.villages.joinToString(", ")} • ${profile.parentPhc}",
+                                    text = "${profile.villages.joinToString(", ")} • ${profile.parentPhc}",
                                     fontSize = 11.sp,
                                     color = if (isSelected) Color(0xFFE6F4F1) else TextSecondary
                                 )
@@ -687,7 +698,7 @@ fun AshaProfileScreen(
                         .height(48.dp)
                 ) {
                     Text(
-                        text = "Done / పూర్తి చేయండి",
+                        text = strings.done,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

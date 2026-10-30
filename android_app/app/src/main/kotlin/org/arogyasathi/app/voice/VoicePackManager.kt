@@ -198,11 +198,16 @@ class VoicePackManager(private val context: Context) {
             }
         }
 
-        // Check if bundled inside APK assets (for demo Telugu pack)
-        if (languageTag == "te-IN" && isBundledAssetPresent("te-IN")) {
+        // Check if bundled inside APK assets (e.g. default English pack)
+        if (isBundledAssetPresent(languageTag)) {
+            val declaredBytes = when (languageTag) {
+                "en-IN" -> 46419854L
+                "te-IN" -> 141139712L
+                else -> 0L
+            }
             return VoicePackState.Ready(
                 version = "1.0.0",
-                modelBytes = 141139712L,
+                modelBytes = declaredBytes,
                 isBundled = true,
             )
         }

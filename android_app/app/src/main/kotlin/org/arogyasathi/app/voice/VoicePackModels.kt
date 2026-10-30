@@ -92,3 +92,4 @@ data class InstallationRecord(
     val installedAtTimestampMs: Long,
     val runtimeEngine: String = "sherpa-onnx-2.0.1",
 )
+

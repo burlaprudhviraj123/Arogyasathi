@@ -214,6 +214,23 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
     * Python Unit & E2E Suites: 83/83 tests passing via `pytest tests/`; 61/61 tests passing via `tests/e2e/run_e2e_tests.py`.
     * Official Benchmark Evaluator: Certified at Primary Score **0.9735** (`ESCALATION GATE: PASS`, Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Citation: 1.0000, Visit Score: 1.0000).
 
+- [x] Phase 7L — All Six Multilingual Voice Packs Packaged, Signed & English-Inbuilt Switch
+  - Bundled English Voice Engine: Embedded verified English (`en-IN`) INT8 model (46.4 MB model, 11.6 KB tokens, 1,025 vocabulary lines) into APK assets (`voice-packs/en-IN/`), enabling zero-network, out-of-the-box offline voice input on cold launch without downloading.
+  - Sliced & Quantized Indic Checkpoints: Exported and quantized all remaining AI4Bharat IndicConformer hybrid checkpoints to INT8 NeMo CTC with 256 BPE classes + blank token via `tools/export_indicconformer_pack.py`:
+    * Hindi (`hi-IN`): `arogyasathi-asr-hi-in-1.0.0.zip` (122,876,444 bytes archive, 137.6 MB uncompressed INT8)
+    * Tamil (`ta-IN`): `arogyasathi-asr-ta-in-1.0.0.zip` (123,061,009 bytes archive, 137.6 MB uncompressed INT8)
+    * Kannada (`kn-IN`): `arogyasathi-asr-kn-in-1.0.0.zip` (123,311,259 bytes archive, 137.6 MB uncompressed INT8)
+    * Malayalam (`ml-IN`): `arogyasathi-asr-ml-in-1.0.0.zip` (123,285,965 bytes archive, 137.6 MB uncompressed INT8)
+    * Telugu (`te-IN`): `arogyasathi-asr-te-in-1.0.0.zip` (123,263,350 bytes archive, 141.1 MB uncompressed INT8)
+    * English (`en-IN`): `arogyasathi-asr-en-in-1.0.0.zip` (18,974,135 bytes archive, 46.4 MB uncompressed INT8)
+  - Sherpa-ONNX Verification: All 6 models verified via `sherpa_onnx.OfflineRecognizer.from_nemo_ctc` on development host, passing 16 kHz silence decode without error.
+  - Unified Cryptographic Catalogue: Generated and signed `catalogue.signed.json` containing all 6 production packs with ECDSA NIST P-256 signature, embedded into Android assets (`voice-packs/catalogue.signed.json`).
+  - Comprehensive Verification:
+    * 49/49 Android unit tests pass cleanly via `./gradlew test`.
+    * 83/83 Python unit & E2E tests pass cleanly via `pytest tests/`.
+    * 61/61 Standalone E2E tests pass via `tests/e2e/run_e2e_tests.py`.
+    * Pre-flight certification passes with **0.9735** primary score (`ESCALATION GATE: PASS`).
+
 ---
 
 ## Mandatory Engineering Rules
