@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042F2E" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#021C1B" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Squircle / Rounded Background Tile -->
+  <rect width="108" height="108" rx="24" fill="url(#bgGrad)" />
+
+  <!-- Medical Cross with Shadow -->
+  <path
+    d="M 46,32 C 46,29.8 47.8,28 50,28 L 58,28 C 60.2,28 62,29.8 62,32 L 62,46 L 76,46 C 78.2,46 80,47.8 80,50 L 80,58 C 80,60.2 78.2,62 76,62 L 62,62 L 62,76 C 62,78.2 60.2,80 58,80 L 50,80 C 47.8,80 46,78.2 46,76 L 46,62 L 32,62 C 29.8,62 28,60.2 28,50 L 28,50 C 28,47.8 29.8,46 32,46 L 46,46 Z"
+    fill="#FFFFFF"
+    filter="url(#subtleShadow)"
+  />
+
+  <!-- Vital Heartbeat / Pulse Rhythm Waveform across Cross -->
+  <path
+    d="M 36,54 L 46,54 L 50,47 L 54,61 L 58,51 L 62,54 L 72,54"
+    fill="none"
+    stroke="#0D9488"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
