@@ -9,8 +9,10 @@
 
 Arogyasathi implements a deterministic clinical governance and retrieval architecture designed for low-resource Android edge devices (2–3 GB RAM, no GPU):
 - **JEV (Judicial Evidence Validator):** Deterministic danger-sign escalation kernel (`JEVEscalate`), out-of-scope refusal guard (`JEVScope`), and citation validation (`JEVVerify`).
-- **Laya:** Edge multilingual engine supporting Hindi (Devanagari & Hinglish), Marathi, Telugu, and Bengali (`LayaLexicon`, `LayaRetriever`, `LayaSynthesizer`).
+- **Laya:** Edge multilingual engine supporting Hindi (Devanagari & Hinglish), Telugu, Tamil, Kannada, Malayalam, and Bengali (`LayaLexicon`, `LayaRetriever`, `LayaSynthesizer`).
 - **Chandrapuri Visit Engine:** Prioritized daily visit list scheduler over a 500-household register (2,234 members) following all block counting and priority conventions (`09_VIS`).
+- **Floating Capsule Navigation Dock:** Framer Motion spring-morphing active tab indicator, dark notification badges, and tactile active tab scaling.
+- **Dynamic Database Architecture:** Zero hardcoded worker profiles, sub-centre IDs, or village lists—every field is queried directly and dynamically from SQLite/Room and backed by Neon Postgres.
 
 ---
 
@@ -33,129 +35,111 @@ Arogyasathi implements a deterministic clinical governance and retrieval archite
 
 ## 3. Quick Start & Execution Instructions
 
-### A. One-Touch Unified Verification Pipeline
+### A. Run Core Python Test Suite (29 Automated Tests)
 ```bash
-# Runs Python tests, dev evaluator, Android unit tests, APK compilation, and pre-flight audit:
-./verify_all.sh
+# Run all unit, integration, and safety tests:
+pytest
 ```
 
-### B. Automated Judge Simulation & Benchmark Comparison
+### B. Automated Judge Simulation & CLI Interface
 ```bash
 # Non-interactive automated simulation for judges (<150 ms):
 python3 FULL_CODE/cli.py --demo
-
-# Live reproducible head-to-head comparison against official BM25 baseline (+213% improvement):
-python3 benchmark_comparison.py
 
 # Interactive console interface:
 python3 FULL_CODE/cli.py
 ```
 
-### C. Zero-Dependency Standalone Browser Showcase & Pitch Deck
+### C. Run the Official Evaluator
 ```bash
-# Open the self-contained offline web demo in any browser:
-open web_demo.html
-
-# Open the interactive 10-slide pitch deck in any browser:
-open slides.html
-```
-
-### D. External Pre-Flight Certification Audit
-```bash
-# Audits the official submission ZIP archive in an isolated sandbox:
-python3 preflight_audit.py
-```
-
-### E. Run the Official Evaluator
-```bash
-# Score development submission against ground truth:
+# Score submission against ground truth:
 python3 H5_Frontline_Health_Worker_Companion/evaluate.py \
-  --submission submission_dev \
+  --submission submission \
   --truth H5_Frontline_Health_Worker_Companion/data/dev_truth.jsonl \
   --out score_dev.json
 ```
 
-### F. Native Android App (Build, Test & Install)
+### D. Native Android App (Build, Test & Install)
 ```bash
 cd android_app
 
-# Run 22 Kotlin unit tests
-./gradlew test
+# Run 24 Kotlin unit tests:
+./gradlew testDebugUnitTest
 
-# Build 7.88 MB standalone release APK (or ./gradlew assembleDebug for debug)
-./gradlew assembleRelease
+# Build standalone debug APK:
+./gradlew assembleDebug
 
-# Install and launch on connected device or emulator
-adb install -r app/build/outputs/apk/release/app-release.apk
+# Install and launch on connected Android device:
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n org.arogyasathi.app/.MainActivity
-```
-
-### G. Automated Android UI Live Tour (ADB)
-```bash
-# Autonomously navigates all 4 workspaces, tests danger sign escalation & sync, and captures screenshots:
-python3 demo_android_tour.py
 ```
 
 ---
 
-## 4. Repository Structure
+## 4. Key Android Architecture Highlights
+
+### A. Floating Capsule Navigation Dock
+- **Stadium Capsule Bar:** Clean floating pill dock (`RoundedCornerShape(percent = 50)`) with ambient drop shadow.
+- **Gliding Spring Pill:** Morphing background indicator with Framer Motion spring physics (`dampingRatio = 0.78f`, `stiffness = 380f`) that glides effortlessly between tabs.
+- **Tactile Micro-Interactions:** Subtle icon bounce scale (`1.08f`) and dark notification pill counter badges.
+
+### B. Dynamic Database-Derived Information (Zero Hardcoding)
+- **Profile & Credential Sourcing:** Worker identity (`name`, `phone`, `sub_centre`, `sub_centre_id`, `parent_phc`, `mo_name`, `mo_phone`, `anm_name`, `anm_phone`) is queried directly from SQLite (`ashas` table) and Room DAOs.
+- **Dynamic Village Coverage:** Coverage areas are computed via `SELECT DISTINCT village FROM households`, automatically adapting when households change without static in-memory lists.
+- **Sub-Centre ID Integration:** Explicit Sub-Centre IDs (e.g. `SC-BWT-101`, `SC-AMP-102`) mapped and displayed across Profile Hero cards, Facility Supervision hierarchies, and Settings.
+- **Pixel-Perfect 50/50 Symmetry:** Quick info cards feature balanced column weights (`weight(1f)`), full-height intrinsic dividers (`IntrinsicSize.Min`), and vertically aligned baselines.
+
+---
+
+## 5. Repository Structure
 
 ```text
 Arogyasathi/
-├── android_app/                          # Native offline Android application (Kotlin + Compose)
-│   ├── app/src/main/assets/              # Bundled offline assets (protocols.json, households.csv, household_register.csv)
+├── android_app/                          # Native offline Android application (Kotlin + Jetpack Compose)
+│   ├── app/src/main/assets/              # Bundled offline assets (protocols.json, households.csv)
 │   ├── app/src/main/kotlin/org/arogyasathi/app/
-│   │   ├── core/Models.kt                # Domain models: Member, Household, ProtocolSection, VisitItem, SyncItem
+│   │   ├── core/Models.kt                # Domain models: Member, Household, ProtocolSection, AshaProfile, VisitItem
 │   │   ├── jev/JEV.kt                    # JEV deterministic danger escalation & scope refusal in Kotlin
-│   │   ├── laya/Laya.kt                  # Laya BM25 retrieval & synthesis in Kotlin
+│   │   ├── laya/Laya.kt                  # Laya BM25 retrieval & multilingual synthesis in Kotlin
 │   │   ├── visit/VisitEngine.kt          # Chandrapuri Block scheduler in Kotlin (all 09_VIS rules)
+│   │   ├── sync/NeonPostgresSyncClient.kt# Central Neon Postgres cloud synchronization client
 │   │   ├── data/
-│   │   │   ├── ArogyasathiDbHelper.kt    # SQLite database helper (500 households, 2234 members, 107 protocols)
-│   │   │   └── LocalRepository.kt        # Repository coordinating queries, outcomes, sync outbox
+│   │   │   ├── ArogyasathiDbHelper.kt    # SQLite database helper (seed, query, dynamic profiles & villages)
+│   │   │   ├── LocalRepository.kt        # Repository coordinating queries, outcomes, and sync outbox
+│   │   │   └── local/ArogyasathiRoomDatabase.kt # Room database DAOs & entity mappers
 │   │   └── ui/
-│   │       ├── Theme.kt                  # Clinical Liquid Glass palette & typography
-│   │       ├── BottomNavigation.kt       # Floating Liquid Glass bottom capsule navbar
-│   │       ├── TodayScreen.kt            # Tab 0: Daily visits, metrics counters, outcome completion dialog
-│   │       ├── FamiliesScreen.kt         # Tab 1: Household search, village filter chips, expandable cards
-│   │       ├── AssistantScreen.kt        # Tab 2: 108 emergency dialer, clinical Q&A, Text-to-Speech audio
-│   │       ├── RecordsScreen.kt          # Tab 3: Outcomes history, sync outbox with retry, protocol browser
+│   │       ├── Theme.kt                  # Clinical teal & slate color tokens
+│   │       ├── BottomNavigation.kt       # Floating capsule bottom navbar with spring sliding indicator
+│   │       ├── TodayScreen.kt            # Tab 0: Daily visits, priority filters, outcome completion
+│   │       ├── FamiliesScreen.kt         # Tab 1: Household register, village chips, expandable member cards
+│   │       ├── AssistantScreen.kt        # Tab 2: 108 emergency dialer, clinical Q&A, STT / TTS voice consultation
+│   │       ├── RecordsScreen.kt          # Tab 3: Outcomes history, sync outbox, protocol browser
+│   │       ├── SettingsScreen.kt         # Tab 4: Language picker, offline voice packs, profile switcher
+│   │       ├── AshaProfileScreen.kt      # Slide-out ASHA Profile & clinical hierarchy supervision card
 │   │       └── MainScreen.kt             # Root navigation container
-│   ├── app/src/test/kotlin/              # 14 automated unit tests (JEV, Laya, VisitEngine)
-│   └── app/build/outputs/apk/release/    # app-release.apk (7.88 MB release) / debug (12 MB)
-├── docs/                                 # Complete documentation suite
-│   ├── PROJECT_MANIFEST.md               # Living single source of truth
-│   ├── architecture/                     # System & Android architectures + implementation reports
-│   └── research/                         # 6 audited reference research documents
+│   ├── app/src/test/kotlin/              # 24 automated Android unit tests
+│   └── app/build/outputs/apk/debug/      # app-debug.apk
+├── docs/                                 # Audited technical documentation & architecture records
 ├── FULL_CODE/                            # Production Python core engine (Evaluator Score: 0.9735)
-│   ├── arogyasathi/                      # Python JEV, Laya, VisitEngine, Protocols, Server
-│   │   ├── jev.py                        # JEV deterministic safety kernel
-│   │   ├── laya.py                       # Laya BM25 retrieval & synthesis
-│   │   ├── protocols.py                  # Protocol leaf parser (107 sections)
-│   │   ├── qa_engine.py                  # Unified QA pipeline
-│   │   ├── visit_engine.py               # Chandrapuri visit scheduler (09_VIS)
-│   │   └── server.py                     # FastAPI Sub-Centre edge sync gateway
-│   ├── tests/                            # 17 automated test suites
+│   ├── arogyasathi/                      # Python JEV, Laya, VisitEngine, Protocols, Edge Gateway
+│   ├── tests/                            # 29 automated test suites (pytest)
 │   ├── cli.py                            # Interactive console & judge simulation
-│   └── run_pipeline.py                   # Pipeline runner & submission generator
+│   └── run_pipeline.py                   # Submission generator pipeline
 ├── submission/                           # Scored test submission artifacts
 │   ├── H5_answers.jsonl                  # 200 answers mapped 1:1 to test questions
 │   ├── H5_visit_list.csv                 # 346 prioritized Chandrapuri visits
 │   └── H5_footprint.json                 # Benchmark footprint metadata
-├── slides.html                           # Interactive 10-slide pitch presentation viewer
-├── web_demo.html                         # Zero-dependency browser showcase
-├── demo_android_tour.py                  # Automated live Android UI demonstration & screenshot tour
-├── verify_all.sh                         # Unified 5-step verification pipeline
-├── preflight_audit.py                    # External archive certification auditor
-└── README.md
+├── pytest.ini                            # Pytest configuration
+├── README.md                             # Project overview and technical specification
+└── .gitignore                            # Clean repo ignore rules
 ```
 
 ---
 
-## 5. Architectural Preservation Note
+## 6. Architectural Preservation Note
 
 This implementation strictly preserves:
 - **JEV:** Judicial Evidence Validator as the hard-coded safety and scope governance kernel.
 - **Laya:** Multilingual edge language adaptation and retrieval engine.
 - **3-Mode Operating Topology:** Mode 1 (Offline On-Device), Mode 2 (Online Server), Mode 3 (Twilio IVR Call).
 - **4-Tier RBAC:** Frontline ASHA, Auxiliary Nurse Midwife (ANM), Medical Officer (MO), System Administrator.
-
