@@ -10,9 +10,8 @@ import org.arogyasathi.app.data.local.DangerEscalationEntity
 import org.arogyasathi.app.data.local.PatientChatEntity
 import org.arogyasathi.app.jev.JEVEscalate
 import org.arogyasathi.app.jev.JEVScope
-import org.arogyasathi.app.laya.LayaRetriever
-import org.arogyasathi.app.laya.LayaSynthesizer
-import org.arogyasathi.app.laya.PatientAgeCalculator
+import org.arogyasathi.app.laya.LayaProtocolSources
+import org.arogyasathi.app.laya.LayaV2Engine
 import org.arogyasathi.app.sync.NeonPostgresSyncClient
 import org.arogyasathi.app.visit.VisitEngine
 import org.json.JSONObject
@@ -28,15 +27,17 @@ data class AssistantResult(
     val answerTamil: String = "",
     val answerKannada: String = "",
     val answerMalayalam: String = "",
-    val patientContext: String? = null
+    val patientContext: String? = null,
+    val citedSections: List<String> = listOf(citedSection).filter { it.isNotBlank() },
+    val latencyMs: Long = 0L
 ) {
     fun getAnswerForLanguage(langCode: String): String {
         return when (langCode.take(2).lowercase()) {
-            "hi" -> if (answerHindi.isNotBlank()) answerHindi else answer
-            "te" -> if (answerTelugu.isNotBlank()) answerTelugu else "గమనిక ($citedSection): $answer"
-            "ta" -> if (answerTamil.isNotBlank()) answerTamil else "குறிப்பு ($citedSection): $answer"
-            "kn" -> if (answerKannada.isNotBlank()) answerKannada else "ಸೂಚನೆ ($citedSection): $answer"
-            "ml" -> if (answerMalayalam.isNotBlank()) answerMalayalam else "ശ്രദ്ധിക്കുക ($citedSection): $answer"
+            "hi" -> if (answerHindi.isNotBlank()) answerHindi else "स्वीकृत प्रोटोकॉल नीचे अंग्रेज़ी में है। इसका अर्थ ANM या चिकित्सा अधिकारी से पुष्टि करें।\n\n$answer"
+            "te" -> if (answerTelugu.isNotBlank()) answerTelugu else "ఆమోదించిన ప్రోటోకాల్ క్రింద ఆంగ్లంలో ఉంది. దయచేసి ANM లేదా వైద్య అధికారితో అర్థాన్ని నిర్ధారించండి.\n\n$answer"
+            "ta" -> if (answerTamil.isNotBlank()) answerTamil else "Approved protocol content is shown in English. Please confirm its meaning with the ANM or Medical Officer.\n\n$answer"
+            "kn" -> if (answerKannada.isNotBlank()) answerKannada else "Approved protocol content is shown in English. Please confirm its meaning with the ANM or Medical Officer.\n\n$answer"
+            "ml" -> if (answerMalayalam.isNotBlank()) answerMalayalam else "Approved protocol content is shown in English. Please confirm its meaning with the ANM or Medical Officer.\n\n$answer"
             else -> answer
         }
     }
@@ -56,7 +57,7 @@ class ArogyasathiRepository(private val context: Context) {
     @Volatile
     private var cachedProtocols: List<ProtocolSection>? = null
     @Volatile
-    private var layaRetriever: LayaRetriever? = null
+    private var layaV2Engine: LayaV2Engine? = null
     @Volatile
     private var cachedMembers: List<Member>? = null
 
@@ -170,10 +171,12 @@ class ArogyasathiRepository(private val context: Context) {
 
     fun getProtocols(): List<ProtocolSection> {
         cachedProtocols?.let { return it }
-        val list = roomDb.protocolDao().getAllProtocols().map { it.toDomain() }
+        val list = roomDb.protocolDao().getAllProtocols().map { entity ->
+            val protocol = entity.toDomain()
+            protocol.copy(sourceFilename = LayaProtocolSources.filenameFor(protocol))
+        }
         val result = if (list.isNotEmpty()) list else LocalRepository.sampleProtocols
         cachedProtocols = result
-        layaRetriever = LayaRetriever(result)
         return result
     }
 
@@ -181,7 +184,7 @@ class ArogyasathiRepository(private val context: Context) {
         val report = neonSyncClient.pullAndCacheFromNeon(activeAshaId)
         if (report.syncedFromRemote) {
             cachedProtocols = null
-            layaRetriever = null
+            layaV2Engine = null
             cachedMembers = null
         }
         return report
@@ -482,124 +485,134 @@ class ArogyasathiRepository(private val context: Context) {
         return false
     }
 
-    fun askAssistant(query: String, patient: Member? = null): AssistantResult {
-        val queryMentioned = resolveMemberFromQuery(query)
-        val effectivePatient = queryMentioned ?: patient
-        val recentHistory = if (effectivePatient != null) {
-            getPatientChatHistory(effectivePatient.memberId).takeLast(3)
-        } else emptyList()
+    private fun askAssistantV2(query: String, patient: Member?): AssistantResult {
+        val startedAt = System.nanoTime()
+        val patientContext = patient?.let { "Patient: ${it.name} (${it.village})" }
+        fun elapsedMs() = (System.nanoTime() - startedAt) / 1_000_000L
 
-        // Step 1: JEV Deterministic Escalation
-        val escResult = JEVEscalate.evaluate(query)
-        if (escResult != null) {
-            val hindiMsg = getDangerHindiMessage(escResult.first)
-            val teluguMsg = getDangerTeluguMessage(escResult.first)
-            val tamilMsg = getDangerTamilMessage(escResult.first)
-            val kannadaMsg = getDangerKannadaMessage(escResult.first)
-            val malayalamMsg = getDangerMalayalamMessage(escResult.first)
-            val ctx = if (effectivePatient != null) "Patient: ${effectivePatient.name} (${effectivePatient.village})" else null
+        fun sourceFor(sectionIds: String, protocols: List<ProtocolSection>): Pair<List<String>, String> {
+            val requestedIds = Regex("[A-Z]{2,4}-\\d+(?:\\.\\d+)?")
+                .findAll(sectionIds.uppercase())
+                .map { it.value }
+                .distinct()
+                .toList()
+            val cited = requestedIds.mapNotNull { id ->
+                protocols.firstOrNull { it.sectionId.equals(id, ignoreCase = true) }
+            }
+            val formatted = cited.mapNotNull { section ->
+                val filename = LayaProtocolSources.filenameFor(section)
+                if (filename.isBlank()) return@mapNotNull null
+                val heading = section.body.lineSequence()
+                    .map { it.trim() }
+                    .firstOrNull { it.startsWith("#") }
+                    ?.replace(Regex("^#{1,6}\\s*"), "")
+                    ?.replaceFirst(Regex("^[A-Z]{2,4}-\\d+(?:\\.\\d+)?\\s*"), "")
+                    ?.trim()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: section.title
+                "$filename — $heading (${section.sectionId})"
+            }
+            return cited.map { it.sectionId } to formatted.joinToString("\n") { "Source: $it" }
+        }
+
+        val emergency = JEVEscalate.evaluate(query)
+        if (emergency != null) {
+            val source = sourceFor("${emergency.first} ${emergency.second}", getProtocols())
+            val citation = source.second.takeIf { it.isNotBlank() }?.let { "\n\n$it" }.orEmpty()
             return AssistantResult(
-                answer = escResult.second,
-                citedSection = escResult.first,
+                answer = emergency.second + citation,
+                citedSection = source.first.joinToString(", "),
                 isEscalation = true,
                 isRefusal = false,
                 triageLevel = "EMERGENCY",
-                answerHindi = hindiMsg,
-                answerTelugu = teluguMsg,
-                answerTamil = tamilMsg,
-                answerKannada = kannadaMsg,
-                answerMalayalam = malayalamMsg,
-                patientContext = ctx
+                answerHindi = getDangerHindiMessage(emergency.first) + citation,
+                answerTelugu = getDangerTeluguMessage(emergency.first) + citation,
+                answerTamil = getDangerTamilMessage(emergency.first) + citation,
+                answerKannada = getDangerKannadaMessage(emergency.first) + citation,
+                answerMalayalam = getDangerMalayalamMessage(emergency.first) + citation,
+                patientContext = patientContext,
+                citedSections = source.first,
+                latencyMs = elapsedMs()
             )
         }
 
-        // Step 2: JEV Scope Refusal
-        val scpResult = JEVScope.evaluate(query)
-        if (scpResult != null) {
-            val hindiMsg = "यह विषय मेरे प्रोटोकॉल से बाहर है। कृपया प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या अपनी एएनएम से परामर्श लें (SCP-1.2)।"
-            val teluguMsg = "ఈ విషయం నా ప్రోటోకాల్ పరిధికి మించినది. దయచేసి ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) మెడికల్ ఆఫీసర్ లేదా మీ ANM ను సంప్రదించండి (SCP-1.2)."
-            val tamilMsg = "இந்த கேள்வி நெறிமுறைக்கு அப்பாற்பட்டது. தயவுசெய்து ஆரம்ப சுகாதார நிலைய (PHC) மருத்துவ அதிகாரி அல்லது ANM-ஐ அணுகவும் (SCP-1.2)."
-            val kannadaMsg = "ಈ ವಿಷಯವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರದ (PHC) ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ (SCP-1.2)."
-            val malayalamMsg = "ഈ വിഷയം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. പ്രാഥമികാരോഗ്യ കേന്ദ്രത്തിലെ (PHC) മെഡിക്കൽ ഓഫീസറോടോ ANM-നോടോ ഉപദേശം തേടുക (SCP-1.2)."
+        val outOfScope = JEVScope.evaluate(query)
+        if (outOfScope != null) {
+            val source = sourceFor("${outOfScope.first} ${outOfScope.second}", getProtocols())
+            val citation = source.second.takeIf { it.isNotBlank() }?.let { "\n\n$it" }.orEmpty()
             return AssistantResult(
-                answer = scpResult.second,
-                citedSection = scpResult.first,
+                answer = outOfScope.second + citation,
+                citedSection = source.first.joinToString(", "),
                 isEscalation = false,
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
-                answerHindi = hindiMsg,
-                answerTelugu = teluguMsg,
-                answerTamil = tamilMsg,
-                answerKannada = kannadaMsg,
-                answerMalayalam = malayalamMsg,
-                patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
+                answerHindi = "यह विषय मेरे प्रोटोकॉल से बाहर है। कृपया PHC के चिकित्सा अधिकारी या अपनी ANM से परामर्श लें।$citation",
+                answerTelugu = "ఈ విషయం నా ప్రోటోకాల్ పరిధికి మించినది. దయచేసి PHC వైద్య అధికారి లేదా మీ ANM ను సంప్రదించండి.$citation",
+                answerTamil = "இந்த கேள்வி நெறிமுறைக்கு அப்பாற்பட்டது. PHC மருத்துவ அதிகாரி அல்லது ANM-ஐ அணுகவும்.$citation",
+                answerKannada = "ಈ ವಿಷಯವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. PHC ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ.$citation",
+                answerMalayalam = "ഈ വിഷയം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. PHC മെഡിക്കൽ ഓഫീസറെയോ ANM-നെയോ സമീപിക്കുക.$citation",
+                patientContext = patientContext,
+                citedSections = source.first,
+                latencyMs = elapsedMs()
             )
         }
 
-        // Step 3: Laya Protocol Retrieval & Intelligent Synthesis
+        val effectivePatient = resolveMemberFromQuery(query) ?: patient
+        val resolvedPatientContext = effectivePatient?.let { "Patient: ${it.name} (${it.village})" }
         val protocols = getProtocols()
-        val retriever = layaRetriever ?: LayaRetriever(protocols).also { layaRetriever = it }
-        val topSections = retriever.retrieve(query, topK = 1)
-
-        return if (topSections.isNotEmpty()) {
-            val topSec = topSections.first()
-
-            // Step 3b: Semantic Anatomical Compatibility Guardrail
-            if (isAnatomicallyIncompatible(query, topSec.sectionId)) {
-                val hindiMsg = "यह लक्षण सामुदायिक प्रोटोकॉल से बाहर है। कृपया लाभार्थी को प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या एएनएम के पास रेफर करें (SCP-1.2)।"
-                val teluguMsg = "ఈ లక్షణం కమ్యూనిటీ ప్రోటోకాల్ పరిధికి మించినది. దయచేసి ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) మెడికల్ ఆఫీసర్ లేదా ANM కు రిఫర్ చేయండి (SCP-1.2)."
-                val tamilMsg = "இந்த அறிகுறி நெறிமுறைக்கு அப்பாற்பட்டது. ஆரம்ப சுகாதார நிலைய (PHC) மருத்துவ அதிகாரி அல்லது ANM-இடம் பரிந்துரைக்கவும் (SCP-1.2)."
-                val kannadaMsg = "ಈ ಲಕ್ಷಣವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರದ (PHC) ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರಿಗೆ ಶಿಫಾರಸು ಮಾಡಿ (SCP-1.2)."
-                val malayalamMsg = "ഈ ലക്ഷണം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. പ്രാഥമികാരോഗ്യ കേന്ദ്രത്തിലെ (PHC) മെഡിക്കൽ ഓഫീസർക്കോ ANM-നോ റഫർ ചെയ്യുക (SCP-1.2)."
-                return AssistantResult(
-                    answer = "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).",
-                    citedSection = "SCP-1.2",
-                    isEscalation = false,
-                    isRefusal = true,
-                    triageLevel = "OUT_OF_SCOPE",
-                    answerHindi = hindiMsg,
-                    answerTelugu = teluguMsg,
-                    answerTamil = tamilMsg,
-                    answerKannada = kannadaMsg,
-                    answerMalayalam = malayalamMsg,
-                    patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
-                )
-            }
-
-            val synth = LayaSynthesizer.synthesizeWithContext(topSec, query, effectivePatient, recentHistory)
-            val pTag = if (effectivePatient != null) {
-                val age = PatientAgeCalculator.calculate(effectivePatient.dob)?.ageDisplay ?: effectivePatient.dob
-                "Patient: ${effectivePatient.name} ($age • ${effectivePatient.village})"
-            } else null
-            AssistantResult(
-                answer = synth.textEnglish,
-                citedSection = synth.citedSection,
-                isEscalation = false,
-                isRefusal = false,
-                triageLevel = "ROUTINE_PROTOCOL",
-                answerHindi = synth.textHindi,
-                answerTelugu = synth.textTelugu,
-                answerTamil = synth.textTamil,
-                answerKannada = synth.textKannada,
-                answerMalayalam = synth.textMalayalam,
-                patientContext = pTag
-            )
-        } else {
-            AssistantResult(
-                answer = "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).",
-                citedSection = "SCP-1.2",
+        val engine = layaV2Engine ?: LayaV2Engine(protocols).also { layaV2Engine = it }
+        val response = engine.answer(query)
+        val topSection = response.sections.firstOrNull()
+        if (topSection != null && isAnatomicallyIncompatible(query, topSection.sectionId)) {
+            val source = sourceFor("SCP-1.2", protocols)
+            val citation = source.second.takeIf { it.isNotBlank() }?.let { "\n\n$it" }.orEmpty()
+            return AssistantResult(
+                answer = "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC.$citation",
+                citedSection = source.first.joinToString(", "),
                 isEscalation = false,
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
-                answerHindi = "यह विषय मेरे प्रोटोकॉल से बाहर है। कृपया प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या अपनी एएनएम से परामर्श लें (SCP-1.2)।",
-                answerTelugu = "ఈ విషయం నా ప్రోటోకాల్ పరిధికి మించినది. దయచేసి ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) మెడికల్ ఆఫీసర్ లేదా మీ ANM ను సంప్రదించండి (SCP-1.2).",
-                answerTamil = "இந்த கேள்வி நெறிமுறைக்கு அப்பாற்பட்டது. தயவுசெய்து ஆரம்ப சுகாதார நிலைய (PHC) மருத்துவ அதிகாரி அல்லது ANM-ஐ அணுகவும் (SCP-1.2).",
-                answerKannada = "ಈ ವಿಷಯವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರದ (PHC) ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ (SCP-1.2).",
-                answerMalayalam = "ഈ വിഷയം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. പ്രാഥമികാരോഗ്യ കേന്ദ്രത്തിലെ (PHC) മെഡിക്കൽ ഓഫീസറോടോ ANM-നോടോ ഉപദേശം തേടുക (SCP-1.2).",
-                patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
+                answerHindi = "यह लक्षण सामुदायिक प्रोटोकॉल से बाहर है। कृपया PHC के चिकित्सा अधिकारी या ANM से संपर्क करें।$citation",
+                answerTelugu = "ఈ లక్షణం కమ్యూనిటీ ప్రోటోకాల్ పరిధికి మించినది. దయచేసి PHC వైద్య అధికారి లేదా ANM ను సంప్రదించండి.$citation",
+                answerTamil = "இந்த அறிகுறி நெறிமுறைக்கு அப்பாற்பட்டது. PHC மருத்துவ அதிகாரி அல்லது ANM-ஐ அணுகவும்.$citation",
+                answerKannada = "ಈ ಲಕ್ಷಣವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಗೆ ಮೀರಿದೆ. PHC ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ.$citation",
+                answerMalayalam = "ഈ ലക്ഷണം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. PHC മെഡിക്കൽ ഓഫീസറെയോ ANM-നെയോ സമീപിക്കുക.$citation",
+                patientContext = resolvedPatientContext,
+                citedSections = source.first,
+                latencyMs = elapsedMs()
             )
         }
+
+        if (response.abstained) {
+            return AssistantResult(
+                answer = response.answer,
+                citedSection = "",
+                isEscalation = false,
+                isRefusal = true,
+                triageLevel = "INSUFFICIENT_EVIDENCE",
+                answerHindi = "स्वीकृत प्रोटोकॉल में इस प्रश्न का सुरक्षित उत्तर देने के लिए पर्याप्त जानकारी नहीं है। कृपया ANM या PHC के चिकित्सा अधिकारी से सलाह लें। आपात स्थिति में तुरंत रेफर करें।",
+                answerTelugu = "ఈ ప్రశ్నకు సురక్షితంగా సమాధానం ఇవ్వడానికి ఆమోదించిన ప్రోటోకాల్‌లో తగిన సమాచారం లేదు. దయచేసి ANM లేదా PHC వైద్య అధికారిని సంప్రదించండి. అత్యవసరమైతే వెంటనే రిఫర్ చేయండి.",
+                patientContext = resolvedPatientContext,
+                citedSections = emptyList(),
+                latencyMs = elapsedMs()
+            )
+        }
+
+        val citedIds = response.citations.map { it.sectionId }
+        return AssistantResult(
+            answer = response.answer,
+            citedSection = citedIds.joinToString(", "),
+            isEscalation = false,
+            isRefusal = false,
+            triageLevel = "ROUTINE_PROTOCOL",
+            patientContext = resolvedPatientContext,
+            citedSections = citedIds,
+            latencyMs = elapsedMs()
+        )
     }
+
+    fun askAssistant(query: String, patient: Member? = null): AssistantResult =
+        askAssistantV2(query, patient)
 
     fun savePatientChatMessage(
         patientId: String?,

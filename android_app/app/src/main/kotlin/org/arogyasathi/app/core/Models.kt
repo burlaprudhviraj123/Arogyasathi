@@ -74,7 +74,8 @@ data class ProtocolSection(
     val sectionId: String,
     val title: String,
     val body: String,
-    val category: String
+    val category: String,
+    val sourceFilename: String = ""
 )
 
 data class SafetyResult(
@@ -182,4 +183,3 @@ data class ReferralSlip(
     val medicalOfficerPhone: String = "+91 94310 82101",
     val timestamp: Long = System.currentTimeMillis()
 )
-
