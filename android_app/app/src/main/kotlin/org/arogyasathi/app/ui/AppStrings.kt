@@ -196,7 +196,21 @@ data class AppStrings(
     val forgotPinDialogDesc: String = "As per NHM guidelines, ASHA passwords cannot be reset locally without authorization. Please contact your Medical Officer or Sector ANM at your parent Primary Health Centre (PHC) for identity verification and credential assistance.",
     val forgotPinCallMo: String = "Call Medical Officer (PHC)",
     val forgotPinCallAnm: String = "Call Sector ANM",
-    val logoutButton: String = "Logout"
+    val logoutButton: String = "Logout",
+
+    // New Emergency Referral PDF & Accessibility & Contacts
+    val viewReferralPdf: String = "View Referral PDF",
+    val shareReferralPdf: String = "Share PDF",
+    val interimReliefTitle: String = "Interim En-Route Relief (First Aid)",
+    val interimReliefDisclaimer: String = "Interim comfort guidance only while ambulance is arriving. Do not delay hospital transport.",
+    val callAnmShort: String = "ANM",
+    val callMoShort: String = "MO",
+    val fontSizeSectionTitle: String = "Font Size Accessibility",
+    val fontSizeSectionSubtitle: String = "Increase text size for improved field readability",
+    val fontSizeNormal: String = "Normal (100%)",
+    val fontSizeLarge: String = "Large (115%)",
+    val fontSizeExtraLarge: String = "Extra Large (130%)",
+    val fontSizePreviewSample: String = "Sample text: High-risk triage & offline clinical companion"
 )
 
 fun getAppStrings(language: AppLanguage): AppStrings {
@@ -556,7 +570,19 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             forgotPinDialogDesc = "ఎన్‌హెచ్‌ఎం నిబంధనల ప్రకారం, ఆశా పాస్‌వర్డ్‌లను స్థానికంగా రీసెట్ చేయలేరు. ధృవీకరణ మరియు సహాయం కోసం దయచేసి మీ ప్రాథమిక ఆరోగ్య కేంద్రం (పీహెచ్‌సీ) మెడికల్ ఆఫీసర్ లేదా సెక్టార్ ఏఎన్‌ఎంను సంప్రదించండి.",
             forgotPinCallMo = "మెడికల్ ఆఫీసర్‌కు కాల్ చేయండి (పీహెచ్‌సీ)",
             forgotPinCallAnm = "సెక్టార్ ఏఎన్‌ఎంకు కాల్ చేయండి",
-            logoutButton = "లాగౌట్"
+            logoutButton = "లాగౌట్",
+            viewReferralPdf = "PDF తెరవండి",
+            shareReferralPdf = "PDF పంపండి",
+            interimReliefTitle = "తక్షణ ఉపశమనం (రవాణా సమయ ప్రథమ చికిత్స)",
+            interimReliefDisclaimer = "అంబులెన్స్ వచ్చేలోపు రోగి ఉపశమనం కోసం మాత్రమే. ఆసుపత్రి తరలింపును ఆలస్యం చేయవద్దు.",
+            callAnmShort = "ANM",
+            callMoShort = "MO",
+            fontSizeSectionTitle = "టెక్స్ట్ పరిమాణం (యాక్సెసిబిలిటీ)",
+            fontSizeSectionSubtitle = "ఫీల్డ్‌లో స్పష్టంగా చదవడానికి అక్షరాల పరిమాణాన్ని పెంచండి",
+            fontSizeNormal = "సాధారణం (100%)",
+            fontSizeLarge = "పెద్దది (115%)",
+            fontSizeExtraLarge = "చాలా పెద్దది (130%)",
+            fontSizePreviewSample = "నమూనా అక్షరాలు: అధిక ప్రమాద హెచ్చరికలు మరియు క్లినికల్ ప్రోటోకాల్స్"
         )
 
         AppLanguage.HINDI -> AppStrings(
@@ -735,7 +761,19 @@ fun getAppStrings(language: AppLanguage): AppStrings {
             forgotPinDialogDesc = "एनएचएम दिशानिर्देशों के अनुसार, आशा पासवर्ड को बिना अनुमति के स्थानीय रूप से रीसेट नहीं किया जा सकता है। पहचान सत्यापन और सहायता के लिए कृपया अपने प्राथमिक स्वास्थ्य केंद्र (पीएचसी) के चिकित्सा अधिकारी या सेक्टर एएनएम से संपर्क करें।",
             forgotPinCallMo = "चिकित्सा अधिकारी को कॉल करें (पीएचसी)",
             forgotPinCallAnm = "सेक्टर एएनएम को कॉल करें",
-            logoutButton = "लॉग आउट"
+            logoutButton = "लॉग आउट",
+            viewReferralPdf = "PDF देखें",
+            shareReferralPdf = "PDF शेयर करें",
+            interimReliefTitle = "तत्काल राहत (परिवहन के दौरान प्राथमिक उपचार)",
+            interimReliefDisclaimer = "यह एम्बुलेंस आने तक अंतरिम राहत हेतु है। अस्पताल स्थानांतरण में विलंब न करें।",
+            callAnmShort = "ANM",
+            callMoShort = "MO",
+            fontSizeSectionTitle = "अक्षर का आकार (एक्सेसिबिलिटी)",
+            fontSizeSectionSubtitle = "मैदान में स्पष्ट रूप से पढ़ने के लिए पाठ का आकार बढ़ाएं",
+            fontSizeNormal = "सामान्य (100%)",
+            fontSizeLarge = "बड़ा (115%)",
+            fontSizeExtraLarge = "बहुत बड़ा (130%)",
+            fontSizePreviewSample = "नमूना पाठ: उच्च जोखिम चेतावनी एवं क्लिनिकल प्रोटोकॉल"
         )
 
         AppLanguage.TAMIL -> AppStrings(

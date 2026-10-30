@@ -8,8 +8,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.widget.Toast
+import org.arogyasathi.app.util.HapticFeedbackHelper
+import org.arogyasathi.app.util.ReferralSlipPdfGenerator
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -210,13 +215,77 @@ fun AssistantScreen(
 
     val messages = remember { mutableStateListOf<ChatMessage>() }
 
-    // TextToSpeech setup for Hindi/English voice guidance
+    // TextToSpeech setup supporting Telugu, Hindi, English, Tamil, Kannada, Malayalam
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var currentlyPlayingText by remember { mutableStateOf<String?>(null) }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+
+    fun speakTextInLanguage(textToSpeak: String, lang: VoiceLanguage) {
+        if (textToSpeak.isBlank()) return
+        val targetLocale = when (lang) {
+            VoiceLanguage.TELUGU -> Locale.forLanguageTag("te-IN")
+            VoiceLanguage.HINDI -> Locale.forLanguageTag("hi-IN")
+            VoiceLanguage.TAMIL -> Locale.forLanguageTag("ta-IN")
+            VoiceLanguage.KANNADA -> Locale.forLanguageTag("kn-IN")
+            VoiceLanguage.MALAYALAM -> Locale.forLanguageTag("ml-IN")
+            VoiceLanguage.ENGLISH -> Locale.forLanguageTag("en-IN")
+        }
+
+        try {
+            tts?.let { speechEngine ->
+                val check = speechEngine.isLanguageAvailable(targetLocale)
+                if (check >= TextToSpeech.LANG_AVAILABLE) {
+                    speechEngine.language = targetLocale
+                } else {
+                    val baseLocale = Locale.Builder().setLanguage(targetLocale.language).build()
+                    if (speechEngine.isLanguageAvailable(baseLocale) >= TextToSpeech.LANG_AVAILABLE) {
+                        speechEngine.language = baseLocale
+                    } else {
+                        speechEngine.language = Locale.forLanguageTag("en-IN")
+                    }
+                }
+                currentlyPlayingText = textToSpeak
+                isSpeaking = true
+                speechEngine.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts_${System.currentTimeMillis()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            isSpeaking = false
+            currentlyPlayingText = null
+        }
+    }
+
     DisposableEffect(context) {
         var speech: TextToSpeech? = null
         speech = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                speech?.language = Locale.forLanguageTag("hi-IN")
+                speech?.let { engine ->
+                    engine.language = Locale.forLanguageTag("hi-IN")
+                    engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String?) {
+                            mainHandler.post { isSpeaking = true }
+                        }
+                        override fun onDone(utteranceId: String?) {
+                            mainHandler.post {
+                                isSpeaking = false
+                                currentlyPlayingText = null
+                            }
+                        }
+                        @Deprecated("Deprecated in Java")
+                        override fun onError(utteranceId: String?) {
+                            mainHandler.post {
+                                isSpeaking = false
+                                currentlyPlayingText = null
+                            }
+                        }
+                        override fun onError(utteranceId: String?, errorCode: Int) {
+                            mainHandler.post {
+                                isSpeaking = false
+                                currentlyPlayingText = null
+                            }
+                        }
+                    })
+                }
             }
         }
         tts = speech
@@ -389,10 +458,16 @@ fun AssistantScreen(
             )
         )
 
+        // Haptic Feedback: Vibrate phone with urgent pattern if danger sign / escalation is detected
+        if (assistantResult.isEscalation) {
+            HapticFeedbackHelper.vibrateDangerSign(context)
+        }
+
         // Stop previous speech if running
         if (isSpeaking) {
             tts?.stop()
             isSpeaking = false
+            currentlyPlayingText = null
         }
 
         if (autoPlayTts) {
@@ -404,21 +479,7 @@ fun AssistantScreen(
                 VoiceLanguage.MALAYALAM -> assistantResult.answerMalayalam.ifBlank { assistantResult.answer }
                 VoiceLanguage.ENGLISH -> assistantResult.answer
             }
-            val langLocale = when (selectedLanguage) {
-                VoiceLanguage.TELUGU -> java.util.Locale.forLanguageTag("te-IN")
-                VoiceLanguage.HINDI -> java.util.Locale.forLanguageTag("hi-IN")
-                VoiceLanguage.TAMIL -> java.util.Locale.forLanguageTag("ta-IN")
-                VoiceLanguage.KANNADA -> java.util.Locale.forLanguageTag("kn-IN")
-                VoiceLanguage.MALAYALAM -> java.util.Locale.forLanguageTag("ml-IN")
-                VoiceLanguage.ENGLISH -> java.util.Locale.forLanguageTag("en-IN")
-            }
-            try {
-                tts?.language = langLocale
-                tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts")
-                isSpeaking = true
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            speakTextInLanguage(textToSpeak, selectedLanguage)
         }
 
         // Scroll to newest message
@@ -740,22 +801,14 @@ fun AssistantScreen(
                     isHindiMode = isHindiMode,
                     activePatient = activePatient,
                     activeProfile = activeProfile,
+                    isMessageSpeaking = isSpeaking && currentlyPlayingText == message.getDisplayText(selectedLanguage),
                     onPlayTts = { textToSpeak ->
-                        if (isSpeaking) {
+                        if (isSpeaking && currentlyPlayingText == textToSpeak) {
                             tts?.stop()
                             isSpeaking = false
+                            currentlyPlayingText = null
                         } else {
-                            val lang = when (selectedLanguage) {
-                                VoiceLanguage.HINDI -> Locale.forLanguageTag("hi-IN")
-                                VoiceLanguage.TELUGU -> Locale.forLanguageTag("te-IN")
-                                VoiceLanguage.TAMIL -> Locale.forLanguageTag("ta-IN")
-                                VoiceLanguage.KANNADA -> Locale.forLanguageTag("kn-IN")
-                                VoiceLanguage.MALAYALAM -> Locale.forLanguageTag("ml-IN")
-                                VoiceLanguage.ENGLISH -> Locale.forLanguageTag("en-IN")
-                            }
-                            tts?.language = lang
-                            tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts")
-                            isSpeaking = true
+                            speakTextInLanguage(textToSpeak, selectedLanguage)
                         }
                     },
                     onCallMo = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
@@ -763,6 +816,10 @@ fun AssistantScreen(
                     onCall108 = { dialEmergency(context, "108") },
                     onOpenReferralSlip = { slip ->
                         activeReferralSlip = slip
+                    },
+                    onViewReferralPdf = { slip ->
+                        val pdfFile = ReferralSlipPdfGenerator.generatePdf(context, slip, currentAppLang)
+                        ReferralSlipPdfGenerator.openPdf(context, pdfFile)
                     }
                 )
             }
@@ -985,7 +1042,16 @@ fun AssistantScreen(
             slip = slip,
             onDismiss = { activeReferralSlip = null },
             onCallMo = { dialEmergency(context, slip.medicalOfficerPhone) },
+            onCallAnm = { dialEmergency(context, slip.anmPhone) },
             onCall108 = { dialEmergency(context, "108") },
+            onOpenPdf = {
+                val pdfFile = ReferralSlipPdfGenerator.generatePdf(context, slip, currentAppLang)
+                ReferralSlipPdfGenerator.openPdf(context, pdfFile)
+            },
+            onSharePdf = {
+                val pdfFile = ReferralSlipPdfGenerator.generatePdf(context, slip, currentAppLang)
+                ReferralSlipPdfGenerator.sharePdf(context, pdfFile)
+            },
             onSaveToOutbox = {
                 val result = repository.saveReferralSlip(slip)
                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
@@ -1390,11 +1456,13 @@ fun ChatBubble(
     isHindiMode: Boolean = selectedLanguage == VoiceLanguage.HINDI,
     activePatient: Member?,
     activeProfile: AshaProfile,
+    isMessageSpeaking: Boolean = false,
     onPlayTts: (String) -> Unit,
     onCallMo: () -> Unit = {},
     onCallAnm: () -> Unit = {},
     onCall108: () -> Unit,
-    onOpenReferralSlip: (ReferralSlip) -> Unit
+    onOpenReferralSlip: (ReferralSlip) -> Unit,
+    onViewReferralPdf: (ReferralSlip) -> Unit = {}
 ) {
     val strings = LocalAppStrings.current
     val isUser = message.sender == MessageSender.USER
@@ -1532,8 +1600,8 @@ fun ChatBubble(
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_speaker),
                                             contentDescription = "Read aloud",
-                                            tint = PrimaryTeal,
-                                            modifier = Modifier.size(15.dp)
+                                            tint = if (isMessageSpeaking) EmergencyRed else PrimaryTeal,
+                                            modifier = Modifier.size(if (isMessageSpeaking) 18.dp else 15.dp)
                                         )
                                     }
                                 }
@@ -1549,74 +1617,112 @@ fun ChatBubble(
                                 isRefusal = isRefusal
                             )
 
-                            // Action Footer (Compact single row)
+                            // Action Footer for Acute Escalation / Danger Signs
                             if (isEscalation) {
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Button(
-                                        onClick = onCall108,
-                                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                        modifier = Modifier.weight(1f).height(30.dp)
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                            Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("108", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-
-                                    Button(
-                                        onClick = onCallMo,
-                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                        modifier = Modifier.weight(1f).height(30.dp)
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                            Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text(strings.profileCallMo, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-
-                                    Button(
-                                        onClick = {
-                                            val slip = ReferralSlip(
-                                                patientId = activePatient?.memberId ?: "M-EMERGENCY",
-                                                patientName = activePatient?.name ?: message.patientName ?: "Emergency Patient",
-                                                ageGender = if (activePatient != null) {
-                                                    val age = org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient.dob)?.ageDisplay ?: activePatient.dob
-                                                    "$age / ${if (activePatient.sex == "M") "Male" else "Female"}"
-                                                } else "Adult / Female",
-                                                village = activePatient?.village ?: "Chandrapuri Block",
-                                                householdId = activePatient?.householdId ?: "HH-EMERGENCY",
-                                                suspectedCondition = "Acute Danger Sign",
-                                                dangerSigns = listOf(res.citedSection),
-                                                vitalSigns = when {
-                                                    activePatient?.isPregnant == true -> "BP: ${activePatient.lastAncBp ?: "Check Urgently"}, Hb: ${activePatient.lastHbGdl ?: "Check"} g/dL"
-                                                    activePatient?.lastBpReading != null -> "BP: ${activePatient.lastBpReading}"
-                                                    activePatient?.lastMuacCm != null -> "MUAC: ${activePatient.lastMuacCm} cm"
-                                                    else -> "Critical Triage"
-                                                },
-                                                protocolCitation = res.citedSection,
-                                                referredFacility = activeProfile.parentPhc,
-                                                immediateActionTaken = "Medical Officer Alerted & 108 Emergency Ambulance Dispatched",
-                                                ashaName = activeProfile.name,
-                                                ashaPhone = activeProfile.phone,
-                                                medicalOfficerName = activeProfile.medicalOfficerName,
-                                                medicalOfficerPhone = activeProfile.medicalOfficerPhone
-                                            )
-                                            onOpenReferralSlip(slip)
+                                val slip = remember(message, activePatient, activeProfile) {
+                                    ReferralSlip(
+                                        patientId = activePatient?.memberId ?: "M-EMERGENCY",
+                                        patientName = activePatient?.name ?: message.patientName ?: "Emergency Patient",
+                                        ageGender = if (activePatient != null) {
+                                            val age = org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient.dob)?.ageDisplay ?: activePatient.dob
+                                            "$age / ${if (activePatient.sex == "M") "Male" else "Female"}"
+                                        } else "Adult / Female",
+                                        village = activePatient?.village ?: "Chandrapuri Block",
+                                        householdId = activePatient?.householdId ?: "HH-EMERGENCY",
+                                        suspectedCondition = "Acute Danger Sign",
+                                        dangerSigns = listOf(res.citedSection),
+                                        vitalSigns = when {
+                                            activePatient?.isPregnant == true -> "BP: ${activePatient.lastAncBp ?: "Check Urgently"}, Hb: ${activePatient.lastHbGdl ?: "Check"} g/dL"
+                                            activePatient?.lastBpReading != null -> "BP: ${activePatient.lastBpReading}"
+                                            activePatient?.lastMuacCm != null -> "MUAC: ${activePatient.lastMuacCm} cm"
+                                            else -> "Critical Triage"
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                        modifier = Modifier.weight(1.2f).height(30.dp)
+                                        protocolCitation = res.citedSection,
+                                        referredFacility = activeProfile.parentPhc,
+                                        immediateActionTaken = "Medical Officer & ANM Alerted; 108 Emergency Ambulance Dispatched",
+                                        ashaName = activeProfile.name,
+                                        ashaPhone = activeProfile.phone,
+                                        medicalOfficerName = activeProfile.medicalOfficerName,
+                                        medicalOfficerPhone = activeProfile.medicalOfficerPhone,
+                                        anmName = activeProfile.anmName,
+                                        anmPhone = activeProfile.anmPhone
+                                    )
+                                }
+
+                                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    // Row 1: Direct Emergency Dialers (Both phone numbers + 108)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
-                                        Text(strings.referralSlipButton, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Button(
+                                            onClick = onCall108,
+                                            colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier.weight(1f).height(30.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                                Text("108", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+
+                                        Button(
+                                            onClick = onCallMo,
+                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier.weight(1.1f).height(30.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                                Text(strings.callMoShort, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+
+                                        Button(
+                                            onClick = onCallAnm,
+                                            colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier.weight(1.1f).height(30.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                                Text(strings.callAnmShort, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+
+                                    // Row 2: Referral Actions (View structured slip & Dedicated Open PDF button)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Button(
+                                            onClick = { onOpenReferralSlip(slip) },
+                                            colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            modifier = Modifier.weight(1f).height(30.dp)
+                                        ) {
+                                            Text(strings.referralSlipButton, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
+
+                                        Button(
+                                            onClick = { onViewReferralPdf(slip) },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            modifier = Modifier.weight(1.1f).height(30.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                                Icon(painterResource(R.drawable.ic_records), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                                Text(strings.viewReferralPdf, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
                                     }
                                 }
                             } else if (isRefusal) {
@@ -1964,11 +2070,18 @@ fun ReferralSlipDialog(
     slip: ReferralSlip,
     onDismiss: () -> Unit,
     onCallMo: () -> Unit = {},
+    onCallAnm: () -> Unit = {},
     onCall108: () -> Unit,
+    onOpenPdf: () -> Unit = {},
+    onSharePdf: () -> Unit = {},
     onSaveToOutbox: () -> Unit
 ) {
     val context = LocalContext.current
     val strings = LocalAppStrings.current
+    val currentAppLang = LocalCurrentLanguage.current
+    val (reliefTitle, reliefGuidance) = remember(currentAppLang) {
+        ReferralSlipPdfGenerator.getInterimReliefGuidance(currentAppLang)
+    }
 
     val formattedSms = """
 AROGYASATHI EMERGENCY REFERRAL SLIP
@@ -1980,7 +2093,9 @@ Vitals / Findings: ${slip.vitalSigns}
 Action Taken: ${slip.immediateActionTaken}
 Referred Facility: ${slip.referredFacility}
 Medical Officer: ${slip.medicalOfficerName} (${slip.medicalOfficerPhone})
+Sector ANM: ${slip.anmName} (${slip.anmPhone})
 ASHA Worker: ${slip.ashaName} (${slip.ashaPhone})
+Ambulance: 108 (Dispatched)
 Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(java.util.Date(slip.timestamp))}
     """.trimIndent()
 
@@ -2024,6 +2139,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Patient & Triage Details Card
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = Color(0xFFFEF2F2),
@@ -2065,11 +2181,19 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                             fontSize = 11.sp,
                             color = TextPrimary
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        // Both Phone Numbers Display
                         Text(
-                            text = "${strings.attendingMoLabel} ${slip.medicalOfficerName} (${maskPhoneNumber(slip.medicalOfficerPhone)})",
+                            text = "👨‍⚕️ ${strings.attendingMoLabel} ${slip.medicalOfficerName} (${slip.medicalOfficerPhone})",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryTeal
+                        )
+                        Text(
+                            text = "👩‍⚕️ Sector ANM: ${slip.anmName} (${slip.anmPhone})",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = RoutineGreen
                         )
                         Text(
                             text = "${strings.attendingAshaLabel} ${slip.ashaName} (${slip.ashaPhone})",
@@ -2078,53 +2202,135 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                         )
                     }
                 }
+
+                // Interim Normal Relief Guidance Card (in App Active Language)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFEFF6FF),
+                    border = BorderStroke(1.dp, Color(0xFF93C5FD)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(painterResource(R.drawable.ic_check_circle), contentDescription = null, tint = Color(0xFF1E40AF), modifier = Modifier.size(13.dp))
+                            Text(
+                                text = reliefTitle,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1E40AF)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = reliefGuidance,
+                            fontSize = 9.5.sp,
+                            lineHeight = 14.sp,
+                            color = Color(0xFF1E3A8A)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = strings.interimReliefDisclaimer,
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = EmergencyRed
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(
-                    onClick = onCallMo,
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                    shape = RoundedCornerShape(6.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                    modifier = Modifier.height(28.dp)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Dialers Row (Both MO + ANM + 108)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(strings.profileCallMo, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = onCall108,
+                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(1f).height(28.dp)
+                    ) {
+                        Text("108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = onCallMo,
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(1.2f).height(28.dp)
+                    ) {
+                        Text("Call MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = onCallAnm,
+                        colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(1.2f).height(28.dp)
+                    ) {
+                        Text("Call ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
 
-                Button(
-                    onClick = onCall108,
-                    colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                    shape = RoundedCornerShape(6.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                    modifier = Modifier.height(28.dp)
+                // PDF & Outbox Actions Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+                    Button(
+                        onClick = onOpenPdf,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(1.3f).height(28.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Icon(painterResource(R.drawable.ic_records), null, tint = Color.White, modifier = Modifier.size(10.dp))
+                            Text(strings.viewReferralPdf, fontSize = 9.5.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
 
-                Button(
-                    onClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Arogyasathi Referral Slip", formattedSms)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(context, "Referral slip copied to clipboard for SMS/WhatsApp", Toast.LENGTH_SHORT).show()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
-                    shape = RoundedCornerShape(6.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                    modifier = Modifier.height(28.dp)
-                ) {
-                    Text(strings.copyButton, fontSize = 10.sp)
-                }
+                    Button(
+                        onClick = onSharePdf,
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(1.1f).height(28.dp)
+                    ) {
+                        Text(strings.shareReferralPdf, fontSize = 9.5.sp, fontWeight = FontWeight.Bold)
+                    }
 
-                Button(
-                    onClick = onSaveToOutbox,
-                    colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
-                    shape = RoundedCornerShape(6.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                    modifier = Modifier.height(28.dp)
-                ) {
-                    Text(strings.outboxButton, fontSize = 10.sp)
+                    Button(
+                        onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("Arogyasathi Referral Slip", formattedSms)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(context, "Referral slip copied to clipboard", Toast.LENGTH_SHORT).show()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF64748B)),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(0.9f).height(28.dp)
+                    ) {
+                        Text(strings.copyButton, fontSize = 9.5.sp)
+                    }
+
+                    Button(
+                        onClick = onSaveToOutbox,
+                        colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                        shape = RoundedCornerShape(6.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                        modifier = Modifier.weight(1f).height(28.dp)
+                    ) {
+                        Text(strings.outboxButton, fontSize = 9.5.sp)
+                    }
                 }
             }
         },

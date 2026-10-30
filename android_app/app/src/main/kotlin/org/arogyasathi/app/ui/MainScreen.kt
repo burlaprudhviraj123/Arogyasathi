@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,10 +55,20 @@ fun MainScreen() {
     var showEmergencyDialog by remember { mutableStateOf(false) }
     var activeProfile by remember { mutableStateOf(repository.getActiveProfile()) }
     var isLoggedIn by remember { mutableStateOf(repository.isLoggedIn()) }
+    var fontScale by remember { mutableFloatStateOf(repository.getFontSizeScale()) }
+
+    val currentDensity = LocalDensity.current
+    val customDensity = remember(currentDensity, fontScale) {
+        Density(
+            density = currentDensity.density,
+            fontScale = currentDensity.fontScale * fontScale
+        )
+    }
 
     CompositionLocalProvider(
         LocalCurrentLanguage provides currentLanguage,
-        LocalAppStrings provides strings
+        LocalAppStrings provides strings,
+        LocalDensity provides customDensity
     ) {
         if (!isLoggedIn) {
             LoginScreen(
@@ -246,6 +258,10 @@ fun MainScreen() {
                                 onLogout = {
                                     repository.logout()
                                     isLoggedIn = false
+                                },
+                                fontScale = fontScale,
+                                onFontScaleChanged = { newScale ->
+                                    fontScale = newScale
                                 }
                             )
                         }

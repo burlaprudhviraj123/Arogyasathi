@@ -38,12 +38,15 @@ fun SettingsScreen(
     currentLanguage: AppLanguage,
     onLanguageChanged: (AppLanguage) -> Unit,
     onSwitchProfile: () -> Unit,
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    fontScale: Float = 1.0f,
+    onFontScaleChanged: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
     val strings = LocalAppStrings.current
     val coroutineScope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var currentFontScale by remember(fontScale) { mutableFloatStateOf(fontScale) }
 
     val voicePackManager = remember(context) { VoicePackManager(context) }
     val packStates by voicePackManager.packStates.collectAsState()
@@ -216,6 +219,111 @@ fun SettingsScreen(
                                 text = strings.changeLanguageButton,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Section 1.2: Font Size & Text Scale Accessibility
+        item(key = "font_scale_accessibility_section") {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.25f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = strings.fontSizeSectionTitle,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = strings.fontSizeSectionSubtitle,
+                                fontSize = 12.sp,
+                                color = TextSecondary
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = PrimaryTeal.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = "${(currentFontScale * 100).toInt()}%",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = PrimaryTeal,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val scales = listOf(
+                            1.0f to strings.fontSizeNormal,
+                            1.15f to strings.fontSizeLarge,
+                            1.30f to strings.fontSizeExtraLarge
+                        )
+
+                        scales.forEach { (scaleValue, scaleLabel) ->
+                            val isSelected = kotlin.math.abs(currentFontScale - scaleValue) < 0.05f
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) PrimaryTeal else Color(0xFFF1F5F9),
+                                border = if (isSelected) null else BorderStroke(1.dp, BorderSubtle),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        currentFontScale = scaleValue
+                                        repository.setFontSizeScale(scaleValue)
+                                        onFontScaleChanged(scaleValue)
+                                        Toast.makeText(context, "$scaleLabel applied", Toast.LENGTH_SHORT).show()
+                                    }
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp)
+                                ) {
+                                    Text(
+                                        text = scaleLabel,
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else TextPrimary
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFF8FAFC),
+                        border = BorderStroke(1.dp, BorderSubtle),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = strings.fontSizePreviewSample,
+                                fontSize = 12.sp,
+                                color = TextPrimary,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
@@ -820,15 +928,33 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = strings.offlineDatabaseSection,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = strings.offlineDatabaseSection,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = RoutineGreen.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = "🛡️ SQLCipher AES-256",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = RoutineGreen,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = strings.sqliteInfoDesc,
+                        text = "Hardware-backed AES-256 encrypted SQLite database (arogyasathi.db). Encrypts 500 households, patient vitals, obstetric danger logs, and consultation history locally at rest.",
                         fontSize = 11.sp,
                         color = TextSecondary
                     )

@@ -188,6 +188,16 @@ class ArogyasathiRepository(private val context: Context) {
         prefs.edit().putString("app_language", language.code).apply()
     }
 
+    fun getFontSizeScale(): Float {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        return prefs.getFloat("font_size_scale", 1.0f)
+    }
+
+    fun setFontSizeScale(scale: Float) {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putFloat("font_size_scale", scale).apply()
+    }
+
     fun isVoiceModelDownloaded(): Boolean {
         val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
         return prefs.getBoolean("voice_model_downloaded", false)
@@ -412,7 +422,7 @@ class ArogyasathiRepository(private val context: Context) {
                 put("notes", notes)
                 put("timestamp", ts)
             }
-            db.insertWithOnConflict(ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES, null, cvOutcome, android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE)
+            db.insertWithOnConflict(ArogyasathiDbHelper.TABLE_VISIT_OUTCOMES, null, cvOutcome, net.zetetic.database.sqlcipher.SQLiteDatabase.CONFLICT_REPLACE)
 
             // 2. Queue for deferred sync to central Neon Postgres
             val payload = JSONObject().apply {
@@ -738,7 +748,7 @@ class ArogyasathiRepository(private val context: Context) {
             ArogyasathiDbHelper.TABLE_PATIENT_CHAT,
             null,
             cv,
-            android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+            net.zetetic.database.sqlcipher.SQLiteDatabase.CONFLICT_REPLACE
         )
         return record
     }

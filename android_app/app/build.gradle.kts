@@ -88,4 +88,8 @@ dependencies {
   // Room Database Schema & Offline Caching
   implementation(libs.androidx.room.common)
   implementation(libs.androidx.room.runtime)
+
+  // SQLCipher Database Encryption (AES-256)
+  implementation("net.zetetic:sqlcipher-android:4.6.1")
+  implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 }

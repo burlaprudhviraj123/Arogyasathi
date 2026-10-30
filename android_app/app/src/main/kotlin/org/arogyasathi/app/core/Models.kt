@@ -188,6 +188,8 @@ data class ReferralSlip(
     val ashaPhone: String = "+919876543220",
     val medicalOfficerName: String = "Dr. Rajesh Sharma, MBBS",
     val medicalOfficerPhone: String = "+91 94310 82101",
+    val anmName: String = "Anita Sharma, ANM",
+    val anmPhone: String = "+91 94310 82102",
     val timestamp: Long = System.currentTimeMillis()
 )
 
