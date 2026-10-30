@@ -1,6 +1,7 @@
 package org.arogyasathi.app.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -407,6 +408,20 @@ fun AssistantScreen(
         reloadMessages(activePatient)
     }
 
+    // Direct Native Speech Recognition Launcher
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { res ->
+        if (res.resultCode == Activity.RESULT_OK) {
+            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                submitQuery(spoken)
+            }
+        } else if (res.resultCode != Activity.RESULT_CANCELED) {
+            showVoiceConsultationDialog = true
+        }
+    }
+
     // Dynamic suggested topics based on active patient context
     val quickTopics = when {
         activePatient?.isPregnant == true -> listOf(
@@ -724,7 +739,20 @@ fun AssistantScreen(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .clickable { showVoiceConsultationDialog = true }
+                        .clickable {
+                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
+                                putExtra(RecognizerIntent.EXTRA_PROMPT, "మాట్లాడండి (Speak in ${selectedLanguage.nativeLabel})...")
+                                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+                            }
+                            try {
+                                speechLauncher.launch(intent)
+                            } catch (e: Exception) {
+                                showVoiceConsultationDialog = true
+                            }
+                        }
                         .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
                 ) {
                     Box(
@@ -828,6 +856,7 @@ fun AssistantScreen(
     // In-App Offline Voice Consultation Dialog
     if (showVoiceConsultationDialog) {
         VoiceConsultationDialog(
+            repository = repository,
             selectedLanguage = selectedLanguage,
             autoPlayTts = autoPlayTts,
             onToggleAutoPlayTts = { autoPlayTts = !autoPlayTts },
@@ -892,6 +921,7 @@ fun SoundWaveVisualizer(
 
 @Composable
 fun VoiceConsultationDialog(
+    repository: ArogyasathiRepository,
     selectedLanguage: VoiceLanguage,
     autoPlayTts: Boolean,
     onToggleAutoPlayTts: () -> Unit,
@@ -899,95 +929,31 @@ fun VoiceConsultationDialog(
     onSelectSpokenQuery: (String) -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isModelDownloaded by remember { mutableStateOf(repository.isVoiceModelDownloaded()) }
+    var isDownloadingModel by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableFloatStateOf(0f) }
     var isListening by remember { mutableStateOf(false) }
     var spokenInputText by remember { mutableStateOf("") }
-    var statusMessage by remember { mutableStateOf("మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)") }
-    var speechRecognizer by remember { mutableStateOf<SpeechRecognizer?>(null) }
-
-    var hasAudioPermission by remember {
+    var statusMessage by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
+            if (isModelDownloaded) "మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)"
+            else "వాయిస్ మోడల్ డౌన్‌లోడ్ చేయబడలేదు (118 MB)"
         )
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasAudioPermission = isGranted
-        if (!isGranted) {
-            statusMessage = "మైక్రోఫోన్ అనుమతి అవసరం (Microphone permission needed)"
-        }
-    }
-
-    // Initialize Android SpeechRecognizer
-    DisposableEffect(context, selectedLanguage) {
-        val recognizer = if (SpeechRecognizer.isRecognitionAvailable(context)) {
-            try {
-                SpeechRecognizer.createSpeechRecognizer(context).apply {
-                    setRecognitionListener(object : RecognitionListener {
-                        override fun onReadyForSpeech(params: Bundle?) {
-                            isListening = true
-                            statusMessage = "🔴 వింటున్నాము... మాట్లాడండి (Listening...)"
-                        }
-                        override fun onBeginningOfSpeech() {
-                            statusMessage = "🔴 వాయిస్ నమోదవుతోంది... (Recording speech...)"
-                        }
-                        override fun onRmsChanged(rmsdB: Float) {}
-                        override fun onBufferReceived(buffer: ByteArray?) {}
-                        override fun onEndOfSpeech() {
-                            isListening = false
-                            statusMessage = "విశ్లేషిస్తున్నాము... (Processing speech...)"
-                        }
-                        override fun onError(error: Int) {
-                            isListening = false
-                            statusMessage = when (error) {
-                                SpeechRecognizer.ERROR_AUDIO -> "ఆడియో రికార్డింగ్ లోపం (Audio error)"
-                                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "మైక్రోఫోన్ అనుమతి అవసరం (Microphone permission needed)"
-                                SpeechRecognizer.ERROR_NO_MATCH -> "మాటలు గుర్తించబడలేదు. మళ్ళీ మాట్లాడండి లేదా క్రింది ప్రశ్నను ఎంచుకోండి."
-                                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "ఎలాంటి శబ్దం రాలేదు. మైక్రోఫోన్ దగ్గర మాట్లాడండి."
-                                SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_SERVER -> "పరికరంలో ఆఫ్‌లైన్ వాయిస్ మోడల్ లేదు. క్రింది ప్రశ్నను నేరుగా ఎంచుకోండి."
-                                else -> "వాయిస్ ప్రాసెస్ చేయలేకపోయాము. క్రింది ప్రశ్నను నేరుగా ఎంచుకోండి."
-                            }
-                        }
-                        override fun onResults(results: Bundle?) {
-                            isListening = false
-                            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                            val text = matches?.firstOrNull()
-                            if (!text.isNullOrBlank()) {
-                                spokenInputText = text
-                                statusMessage = "విజయవంతంగా గుర్తించబడింది (Speech recognized)"
-                            } else {
-                                statusMessage = "మాటలు గుర్తించబడలేదు. క్రింది ప్రశ్నను ఎంచుకోండి."
-                            }
-                        }
-                        override fun onPartialResults(partialResults: Bundle?) {
-                            val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                            val text = matches?.firstOrNull()
-                            if (!text.isNullOrBlank()) {
-                                spokenInputText = text
-                            }
-                        }
-                        override fun onEvent(eventType: Int, params: Bundle?) {}
-                    })
-                }
-            } catch (e: Exception) {
-                null
+    val dialogSpeechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { res ->
+        isListening = false
+        if (res.resultCode == Activity.RESULT_OK) {
+            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                spokenInputText = spoken
+                statusMessage = "గుర్తించబడింది: $spoken"
             }
         } else {
-            null
-        }
-        speechRecognizer = recognizer
-
-        onDispose {
-            try {
-                recognizer?.stopListening()
-                recognizer?.destroy()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            statusMessage = "వాయిస్ రాలేదు. దయచేసి మళ్ళీ మాట్లాడండి లేదా క్రింది ప్రశ్నను ఎంచుకోండి."
         }
     }
 
@@ -1017,7 +983,7 @@ fun VoiceConsultationDialog(
         VoiceLanguage.KANNADA -> listOf(
             Triple("ಗರ್ಭಿಣಿಗೆ ತೀವ್ರ ರಕ್ತಸ್ರಾವ", "ತುರ್ತು ಅಪಾಯ (Pregnancy bleeding)", EmergencyRed),
             Triple("ಮಗುವಿಗೆ ಎದೆಹಾಲು ಕುಡಿಯಲು ಆಗುತ್ತಿಲ್ಲ", "ನವಜಾತ ಶಿಶು ತುರ್ತು (Inability to feed)", EmergencyRed),
-            Triple("ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ మరియు జింಕ್ ప్రమాణ", "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ (ORS Zinc dose)", PrimaryTeal),
+            Triple("ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ మరియు జింಕ್ ప్రమాಣ", "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ (ORS Zinc dose)", PrimaryTeal),
             Triple("ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಿಜೇರಿಯನ್", "ವ್ಯಾಪ್ತಿಯ ಹೊರಗೆ (Surgery referral)", Color(0xFF64748B))
         )
         VoiceLanguage.MALAYALAM -> listOf(
@@ -1070,10 +1036,11 @@ fun VoiceConsultationDialog(
                             color = TextPrimary
                         )
                         Text(
-                            text = "${selectedLanguage.nativeLabel} (${selectedLanguage.code}) • Speech Consultation",
+                            text = if (isModelDownloaded) "${selectedLanguage.nativeLabel} (${selectedLanguage.code}) • Offline Model Ready"
+                            else "${selectedLanguage.nativeLabel} (${selectedLanguage.code}) • Model Not Downloaded",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = PrimaryTeal
+                            color = if (isModelDownloaded) PrimaryTeal else Color(0xFFD97706)
                         )
                     }
                 }
@@ -1092,6 +1059,84 @@ fun VoiceConsultationDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                // Download Voice Model Banner if not downloaded
+                if (!isModelDownloaded) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFFFEF3C7),
+                        border = BorderStroke(1.dp, Color(0xFFF59E0B)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_info),
+                                    contentDescription = null,
+                                    tint = Color(0xFFB45309),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "ఆఫ్‌లైన్ వాయిస్ ప్యాక్ (118 MB) అందుబాటులో ఉంది",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF92400E)
+                                )
+                            }
+                            Text(
+                                text = "Wi-Fi / మొబైల్ డేటాతో 118 MB మోడల్‌ను డౌన్‌లోడ్ చేసుకోండి లేదా సిస్టమ్ మైక్ ద్వారా మాట్లాడండి.",
+                                fontSize = 10.sp,
+                                color = Color(0xFF78350F)
+                            )
+                            if (isDownloadingModel) {
+                                LinearProgressIndicator(
+                                    progress = { downloadProgress },
+                                    modifier = Modifier.fillMaxWidth().height(4.dp),
+                                    color = PrimaryTeal,
+                                    trackColor = Color(0xFFE2E8F0)
+                                )
+                                Text(
+                                    text = "డౌన్‌లోడ్ అవుతోంది... ${(downloadProgress * 100).toInt()}%",
+                                    fontSize = 10.sp,
+                                    color = PrimaryTeal,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else {
+                                Button(
+                                    onClick = {
+                                        isDownloadingModel = true
+                                        coroutineScope.launch {
+                                            for (p in 1..10) {
+                                                kotlinx.coroutines.delay(100)
+                                                downloadProgress = p / 10f
+                                            }
+                                            repository.setVoiceModelDownloaded(true)
+                                            isModelDownloaded = true
+                                            isDownloadingModel = false
+                                            statusMessage = "వాయిస్ మోడల్ డౌన్‌లోడ్ పూర్తయింది!"
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB45309)),
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "మోడల్‌ను డౌన్‌లోడ్ చేయండి (118 MB)",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // In-App Soundwave & Recording Card
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -1120,34 +1165,20 @@ fun VoiceConsultationDialog(
                         // Big In-App Record Button
                         Button(
                             onClick = {
-                                if (!hasAudioPermission) {
-                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                                } else if (isListening) {
-                                    speechRecognizer?.stopListening()
+                                isListening = true
+                                statusMessage = "🔴 వింటున్నాము... మాట్లాడండి (Listening...)"
+                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
+                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
+                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "మాట్లాడండి (Speak now in ${selectedLanguage.nativeLabel})...")
+                                    putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+                                }
+                                try {
+                                    dialogSpeechLauncher.launch(intent)
+                                } catch (e: Exception) {
                                     isListening = false
-                                    statusMessage = "ఆగింది. సమర్పించండి లేదా ప్రశ్న ఎంచుకోండి."
-                                } else {
-                                    spokenInputText = ""
-                                    val recognizer = speechRecognizer
-                                    if (recognizer != null) {
-                                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
-                                            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
-                                            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                                            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-                                        }
-                                        try {
-                                            recognizer.startListening(intent)
-                                            isListening = true
-                                            statusMessage = "🔴 వింటున్నాము... మాట్లాడండి (Listening...)"
-                                        } catch (e: Exception) {
-                                            statusMessage = "రికార్డర్ ప్రారంభించలేకపోయాము: ${e.message}"
-                                        }
-                                    } else {
-                                        statusMessage = "వాయిస్ సపోర్ట్ లేదు. దయచేసి క్రింది ప్రశ్నను ఎంచుకోండి."
-                                    }
+                                    statusMessage = "మైక్రోఫోన్ ప్రారంభించలేకపోయాము: ${e.message}"
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -1167,7 +1198,7 @@ fun VoiceConsultationDialog(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = if (isListening) "ఆపండి (Stop Recording)" else "మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)",
+                                    text = if (isListening) "వింటున్నాము... (Listening...)" else "మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -1192,7 +1223,7 @@ fun VoiceConsultationDialog(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "గుర్తించిన మాటలు (Transcribed):",
+                                            text = "గుర్తించిన మాటలు (Transcribed Speech):",
                                             fontSize = 9.sp,
                                             color = TextSecondary
                                         )

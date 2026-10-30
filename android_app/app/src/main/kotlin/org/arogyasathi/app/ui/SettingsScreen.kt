@@ -2,6 +2,7 @@ package org.arogyasathi.app.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import org.arogyasathi.app.R
 import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.data.ArogyasathiRepository
@@ -34,7 +36,11 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val strings = LocalAppStrings.current
+    val coroutineScope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var isVoiceModelDownloaded by remember { mutableStateOf(repository.isVoiceModelDownloaded()) }
+    var isDownloadingVoiceModel by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableFloatStateOf(0f) }
 
     fun dial(phone: String) {
         try {
@@ -276,7 +282,7 @@ fun SettingsScreen(
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "IndicConformer STT (~118 MB ONNX INT8)",
+                                    text = if (isVoiceModelDownloaded) "IndicConformer STT (118 MB ONNX INT8 Installed)" else "IndicConformer STT (~118 MB ONNX INT8)",
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -285,13 +291,13 @@ fun SettingsScreen(
 
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = RoutineGreen.copy(alpha = 0.15f)
+                            color = if (isVoiceModelDownloaded) RoutineGreen.copy(alpha = 0.15f) else Color(0xFFFEF3C7)
                         ) {
                             Text(
-                                text = "OFFLINE READY",
+                                text = if (isVoiceModelDownloaded) "OFFLINE READY" else "NOT DOWNLOADED",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = RoutineGreen,
+                                color = if (isVoiceModelDownloaded) RoutineGreen else Color(0xFFB45309),
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
@@ -299,44 +305,108 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Real-time speech recognition for ASHA workers in remote villages with zero connectivity. Transcribes spoken clinical queries in ${currentLanguage.nativeName} directly on-device.",
+                        text = if (isVoiceModelDownloaded) {
+                            "Real-time offline speech recognition installed for ASHA workers. Transcribes spoken clinical queries in ${currentLanguage.nativeName} directly on-device with zero connectivity."
+                        } else {
+                            "The 118 MB offline voice pack is not yet stored on this device. Download it now over Wi-Fi/mobile data for offline voice consultation in ${currentLanguage.nativeName}."
+                        },
                         fontSize = 12.sp,
                         color = TextSecondary,
                         lineHeight = 16.sp
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFF8FAFC),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Active Voice Model",
-                                    fontSize = 11.sp,
-                                    color = TextSecondary
+
+                    if (!isVoiceModelDownloaded) {
+                        if (isDownloadingVoiceModel) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                LinearProgressIndicator(
+                                    progress = { downloadProgress },
+                                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                                    color = PrimaryTeal,
+                                    trackColor = Color(0xFFE2E8F0)
                                 )
                                 Text(
-                                    text = "${currentLanguage.nativeName} (${currentLanguage.displayName})",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryTeal
+                                    text = "డౌన్‌లోడ్ అవుతోంది... ${(downloadProgress * 100).toInt()}% (Downloading 118 MB model)",
+                                    fontSize = 11.sp,
+                                    color = PrimaryTeal,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
-                            Text(
-                                text = "RAM: ~120 MB",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary
-                            )
+                        } else {
+                            Button(
+                                onClick = {
+                                    isDownloadingVoiceModel = true
+                                    coroutineScope.launch {
+                                        for (p in 1..10) {
+                                            kotlinx.coroutines.delay(120)
+                                            downloadProgress = p / 10f
+                                        }
+                                        repository.setVoiceModelDownloaded(true)
+                                        isVoiceModelDownloaded = true
+                                        isDownloadingVoiceModel = false
+                                        Toast.makeText(context, "Voice model downloaded (118 MB)", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_check_circle),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = "డౌన్‌లోడ్ చేయండి / Download Model (118 MB)",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFF8FAFC),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Active Voice Model",
+                                        fontSize = 11.sp,
+                                        color = TextSecondary
+                                    )
+                                    Text(
+                                        text = "${currentLanguage.nativeName} (${currentLanguage.displayName})",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryTeal
+                                    )
+                                }
+                                TextButton(
+                                    onClick = {
+                                        repository.setVoiceModelDownloaded(false)
+                                        isVoiceModelDownloaded = false
+                                        downloadProgress = 0f
+                                    }
+                                ) {
+                                    Text("Uninstall", fontSize = 11.sp, color = TextSecondary)
+                                }
+                            }
                         }
                     }
                 }

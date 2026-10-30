@@ -173,6 +173,16 @@ class ArogyasathiRepository(private val context: Context) {
         prefs.edit().putString("app_language", language.code).apply()
     }
 
+    fun isVoiceModelDownloaded(): Boolean {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("voice_model_downloaded", false)
+    }
+
+    fun setVoiceModelDownloaded(downloaded: Boolean) {
+        val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("voice_model_downloaded", downloaded).apply()
+    }
+
     fun verifyPhoneNumber(rawPhone: String): AshaProfile? {
         val clean = rawPhone.replace(Regex("[^0-9]"), "")
         return allProfiles.find {
