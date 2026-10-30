@@ -33,6 +33,10 @@ android {
     shaders = false
   }
 
+  sourceSets {
+    getByName("test").resources.srcDir("../../H5_Frontline_Health_Worker_Companion/data/protocols")
+  }
+
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"

@@ -9,8 +9,10 @@
 
 Arogyasathi implements a deterministic clinical governance and retrieval architecture designed for low-resource Android edge devices (2–3 GB RAM, no GPU):
 - **JEV (Judicial Evidence Validator):** Deterministic danger-sign escalation kernel (`JEVEscalate`), out-of-scope refusal guard (`JEVScope`), and citation validation (`JEVVerify`).
-- **Laya:** Edge multilingual engine supporting Hindi (Devanagari & Hinglish), Marathi, Telugu, and Bengali (`LayaLexicon`, `LayaRetriever`, `LayaSynthesizer`).
+- **Laya V2 (Android):** Offline query normalization, category-aware BM25 ranking, evidence checks, source-extractive answers, and source-file/heading citations. Emergency and scope gates run before retrieval.
 - **Chandrapuri Visit Engine:** Prioritized daily visit list scheduler over a 500-household register (2,234 members) following all block counting and priority conventions (`09_VIS`).
+
+The Android assistant uses the 107-section `protocols.json` asset, seeded into local SQLite from the project's Markdown protocol corpus. Its BM25 index is built once per protocol cache and rebuilt after a protocol refresh. It does not call a cloud service or load a generative model for question answering. Since the bundled protocols do not include reviewed Hindi or Telugu translations, answers show the exact English protocol text with a clear language caution rather than silently translating clinical instructions. See [the Android offline architecture](./docs/architecture/09_ANDROID_OFFLINE_APP_ARCHITECTURE.md#14-implemented-laya-v2-android-assistant).
 
 ---
 
@@ -158,4 +160,3 @@ This implementation strictly preserves:
 - **Laya:** Multilingual edge language adaptation and retrieval engine.
 - **3-Mode Operating Topology:** Mode 1 (Offline On-Device), Mode 2 (Online Server), Mode 3 (Twilio IVR Call).
 - **4-Tier RBAC:** Frontline ASHA, Auxiliary Nurse Midwife (ANM), Medical Officer (MO), System Administrator.
-

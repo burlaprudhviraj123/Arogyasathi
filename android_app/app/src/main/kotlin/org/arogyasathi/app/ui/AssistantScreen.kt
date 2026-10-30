@@ -13,6 +13,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,6 +52,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.arogyasathi.app.R
 import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.core.Member
@@ -175,6 +178,7 @@ fun AssistantScreen(
     var showEmergencyContactsDialog by remember { mutableStateOf(false) }
 
     var queryText by remember { mutableStateOf("") }
+    var isProcessingQuery by remember { mutableStateOf(false) }
     var isSpeaking by remember { mutableStateOf(false) }
     val activeProfile = remember(repository) { repository.getActiveProfile() }
 
@@ -216,6 +220,7 @@ fun AssistantScreen(
                                 isRefusal = item.isRefusal,
                                 triageLevel = item.triageLevel,
                                 answerHindi = item.answerHindi,
+                                citedSections = item.citedSections,
                                 patientContext = item.patientName?.let { "Patient: $it" }
                             )
                         } else null,
@@ -228,7 +233,7 @@ fun AssistantScreen(
             val welcomeText = if (patient != null) {
                 "Namaste Didi! Clinical consultation opened for ${patient.name} (${patient.village}).\n\n" +
                 when {
-                    patient.isPregnant -> "Gestation Status: Pregnant (EDD: ${patient.edd ?: "N/A"}). Last BP: ${patient.lastAncBp ?: "Normal"}, Hb: ${patient.lastHbGdl ?: "Normal"}.\nAsk any ANC guidance, medicine questions, or danger signs."
+                    patient.isPregnant -> "Gestation Status: Pregnant (EDD: ${patient.edd ?: "N/A"}). Last BP: ${patient.lastAncBp ?: "Normal"}, Hb: ${patient.lastHbGdl ?: "Normal"}.\nAsk about approved ANC protocols or danger signs. Medicine choices and doses must be confirmed with the ANM or Medical Officer."
                     patient.ncdCondition != null -> "NCD Profile: ${patient.ncdCondition}. Last BP: ${patient.lastBpReading ?: "N/A"}.\nAsk any NCD follow-up or lifestyle advice."
                     else -> "Family Profile: ${patient.relation} in ${patient.village}.\nAsk protocol guidance or immunization schedules."
                 }
@@ -283,110 +288,100 @@ fun AssistantScreen(
 
     fun submitQuery(q: String) {
         val trimmed = q.trim()
-        if (trimmed.isEmpty()) return
+        if (trimmed.isEmpty() || isProcessingQuery) return
 
-        // Resolve patient: if query explicitly mentions a registered patient, switch context to that patient
-        val mentionedPatient = repository.resolveMemberFromQuery(trimmed)
-        val p = if (mentionedPatient != null) {
-            if (activePatient != mentionedPatient) {
-                activePatient = mentionedPatient
-            }
-            mentionedPatient
-        } else {
-            activePatient
-        }
+        val selectedPatient = activePatient
 
         // 1. Add user message
         messages.add(
             ChatMessage(
                 sender = MessageSender.USER,
                 text = trimmed,
-                patientName = p?.name
+                patientName = selectedPatient?.name
             )
         )
         queryText = ""
 
-        // 2. Query clinical engine (JEV deterministic gate + Laya retrieval + patient context)
-        val assistantResult = repository.askAssistant(trimmed, p)
-
-        // 3. Save into SQLite patient history
-        repository.savePatientChatMessage(
-            patientId = p?.memberId,
-            patientName = p?.name,
-            sender = "USER",
-            queryText = trimmed,
-            answerText = "",
-            answerHindi = "",
-            citedSections = emptyList(),
-            isEscalation = false,
-            isRefusal = false,
-            triageLevel = "QUERY"
-        )
-
-        repository.savePatientChatMessage(
-            patientId = p?.memberId,
-            patientName = p?.name,
-            sender = "ASSISTANT",
-            queryText = trimmed,
-            answerText = assistantResult.answer,
-            answerHindi = assistantResult.answerHindi,
-            citedSections = listOf(assistantResult.citedSection),
-            isEscalation = assistantResult.isEscalation,
-            isRefusal = assistantResult.isRefusal,
-            triageLevel = assistantResult.triageLevel
-        )
-
-        // 4. Add bot reply
-        messages.add(
-            ChatMessage(
-                sender = MessageSender.ASSISTANT,
-                text = assistantResult.answer,
-                textHindi = assistantResult.answerHindi,
-                textTelugu = assistantResult.answerTelugu,
-                textTamil = assistantResult.answerTamil,
-                textKannada = assistantResult.answerKannada,
-                textMalayalam = assistantResult.answerMalayalam,
-                result = assistantResult,
-                patientName = p?.name
-            )
-        )
-
-        // Stop previous speech if running
-        if (isSpeaking) {
-            tts?.stop()
-            isSpeaking = false
-        }
-
-        if (autoPlayTts) {
-            val textToSpeak = when (selectedLanguage) {
-                VoiceLanguage.TELUGU -> assistantResult.answerTelugu ?: assistantResult.answer
-                VoiceLanguage.HINDI -> assistantResult.answerHindi ?: assistantResult.answer
-                VoiceLanguage.TAMIL -> assistantResult.answerTamil ?: assistantResult.answer
-                VoiceLanguage.KANNADA -> assistantResult.answerKannada ?: assistantResult.answer
-                VoiceLanguage.MALAYALAM -> assistantResult.answerMalayalam ?: assistantResult.answer
-                VoiceLanguage.ENGLISH -> assistantResult.answer
-            }
-            val langLocale = when (selectedLanguage) {
-                VoiceLanguage.TELUGU -> java.util.Locale.forLanguageTag("te-IN")
-                VoiceLanguage.HINDI -> java.util.Locale.forLanguageTag("hi-IN")
-                VoiceLanguage.TAMIL -> java.util.Locale.forLanguageTag("ta-IN")
-                VoiceLanguage.KANNADA -> java.util.Locale.forLanguageTag("kn-IN")
-                VoiceLanguage.MALAYALAM -> java.util.Locale.forLanguageTag("ml-IN")
-                VoiceLanguage.ENGLISH -> java.util.Locale.forLanguageTag("en-IN")
-            }
-            try {
-                tts?.language = langLocale
-                tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts")
-                isSpeaking = true
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        // Scroll to newest message
+        isProcessingQuery = true
         coroutineScope.launch {
-            if (messages.isNotEmpty()) {
-                listState.animateScrollToItem(messages.size - 1)
+            var p = selectedPatient
+            try {
+                val assistantResult = withContext(Dispatchers.Default) {
+                    repository.askAssistant(trimmed, p)
+                }
+                p = withContext(Dispatchers.IO) {
+                    repository.resolveMemberFromQuery(trimmed) ?: selectedPatient
+                }
+                if (p != selectedPatient) activePatient = p
+
+                withContext(Dispatchers.IO) {
+                    repository.savePatientChatMessage(
+                        patientId = p?.memberId,
+                        patientName = p?.name,
+                        sender = "USER",
+                        queryText = trimmed,
+                        answerText = "",
+                        answerHindi = "",
+                        citedSections = emptyList(),
+                        isEscalation = false,
+                        isRefusal = false,
+                        triageLevel = "QUERY"
+                    )
+                    repository.savePatientChatMessage(
+                        patientId = p?.memberId,
+                        patientName = p?.name,
+                        sender = "ASSISTANT",
+                        queryText = trimmed,
+                        answerText = assistantResult.answer,
+                        answerHindi = assistantResult.answerHindi,
+                        citedSections = assistantResult.citedSections,
+                        isEscalation = assistantResult.isEscalation,
+                        isRefusal = assistantResult.isRefusal,
+                        triageLevel = assistantResult.triageLevel
+                    )
+                }
+
+                messages.add(
+                    ChatMessage(
+                        sender = MessageSender.ASSISTANT,
+                        text = assistantResult.answer,
+                        textHindi = assistantResult.answerHindi,
+                        textTelugu = assistantResult.answerTelugu,
+                        textTamil = assistantResult.answerTamil,
+                        textKannada = assistantResult.answerKannada,
+                        textMalayalam = assistantResult.answerMalayalam,
+                        result = assistantResult,
+                        patientName = p?.name
+                    )
+                )
+
+                if (isSpeaking) {
+                    tts?.stop()
+                    isSpeaking = false
+                }
+
+                if (messages.isNotEmpty()) {
+                    listState.animateScrollToItem(messages.size - 1)
+                }
+            } catch (error: Exception) {
+                Log.e("ArogyasathiAssistant", "Question processing failed", error)
+                messages.add(
+                    ChatMessage(
+                        sender = MessageSender.ASSISTANT,
+                        text = "I could not complete the local protocol lookup. Please retry or consult your ANM or Medical Officer.",
+                        result = AssistantResult(
+                            answer = "I could not complete the local protocol lookup. Please retry or consult your ANM or Medical Officer.",
+                            citedSection = "",
+                            isEscalation = false,
+                            isRefusal = true,
+                            triageLevel = "LOOKUP_ERROR",
+                            citedSections = emptyList()
+                        ),
+                        patientName = p?.name
+                    )
+                )
+            } finally {
+                isProcessingQuery = false
             }
         }
     }
@@ -786,7 +781,7 @@ fun AssistantScreen(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .clickable(enabled = isSendEnabled) { submitQuery(queryText) }
+                        .clickable(enabled = isSendEnabled && !isProcessingQuery) { submitQuery(queryText) }
                         .semantics { contentDescription = "Send message" }
                 ) {
                     Box(
@@ -1477,7 +1472,7 @@ fun ChatBubble(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
-                                    if (res != null) {
+                                    if (res != null && res.citedSection.isNotBlank()) {
                                         Surface(
                                             shape = RoundedCornerShape(6.dp),
                                             color = Color(0xFFF1F5F9)

@@ -1,9 +1,18 @@
 # Arogyasathi — Project Manifest
 
-> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone` and `emulator-5554`). Primary Evaluator Score: **0.9735** (Gate: PASS). Multilingual Anatomical Guardrail & JEV Intent Classification Verified across Telugu, Tamil, Kannada, Malayalam, Hindi, English, and Romanized Transliterations (100% Danger Recall, 0% False Escalation, 100% Scope Refusal on 2,000 Questions Campaign, Agglutinative Root Expansion). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**.
+> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone` and `emulator-5554`). Latest Kotlin core dev evaluation: **0.9801 composite** (Gate: PASS; includes the separate Python visit-list score, not a Kotlin visit-list measurement). Multilingual Anatomical Guardrail & JEV Intent Classification Verified across Telugu, Tamil, Kannada, Malayalam, Hindi, English, and Romanized Transliterations (100% Danger Recall, 0% False Escalation, 100% Scope Refusal on 2,000 Questions Campaign, Agglutinative Root Expansion). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**.
 > **Last Updated:** 2026-10-30
 
 ---
+
+## Latest Kotlin Laya V2 Evaluation
+
+- The Kotlin core (`JEVEscalate`, `JEVScope`, and `LayaV2Engine`) was run against all 40 rows in `questions_dev.csv` and scored with the official `evaluate.py`.
+- Dev results: primary score **0.9801**; escalation recall **1.0000**; false escalation **0.0000**; refusal accuracy **1.0000**; citation accuracy **1.0000**; key-fact coverage **0.8676**. All 40 answers were present. Under a strict all-criteria-per-question check using the evaluator's 400-character fact window, **35 were fully correct and 5 were partial**.
+- The composite primary score includes a **1.0000 visit-list score from the separate Python pipeline**; it is not a Kotlin visit-list or complete Android-app score.
+- Kotlin generated responses for all 200 `questions_test.csv` rows. The test split has no `test_truth.jsonl`, so its accuracy is unscored. Fifteen non-cited responses were refusals; ordinary responses had citations.
+- The evaluator-reported median latency was **5.7946 ms** in the host JVM harness, not on an Android device. The evaluator reported no footprint measurement. These results do not replace device latency/RAM/APK measurements or a full `LocalRepository`/UI integration run.
+- This was a Kotlin core evaluation, not medical validation; bundled protocol content remains subject to clinical review.
 
 ## Problem Statement (Confirmed)
 
