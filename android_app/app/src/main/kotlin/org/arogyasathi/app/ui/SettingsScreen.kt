@@ -580,7 +580,7 @@ fun SettingsScreen(
             }
         }
 
-        // Section 2: Health Worker Profile & Beat
+        // Section 2: Health Worker Profile & Coverage Area
         item(key = "profile_section") {
             Card(
                 shape = RoundedCornerShape(16.dp),

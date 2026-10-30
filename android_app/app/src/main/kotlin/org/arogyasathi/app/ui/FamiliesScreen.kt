@@ -65,9 +65,9 @@ fun FamiliesScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Village Filter Chips (Scrollable across all villages and beat)
+        // Village Filter Chips (Scrollable across all villages and assigned villages)
         val villageOptions = remember {
-            listOf("All", "My Beat") + repository.getAllVillages()
+            listOf("All", "My Villages") + repository.getAllVillages()
         }
         Row(
             modifier = Modifier

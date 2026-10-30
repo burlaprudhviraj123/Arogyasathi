@@ -587,7 +587,7 @@ fun AshaProfileScreen(
                 }
             }
 
-            // Switch Active Beat Section
+            // Switch Active Coverage Area Section
             item(key = "switch_beat_title") {
                 Column {
                     Text(

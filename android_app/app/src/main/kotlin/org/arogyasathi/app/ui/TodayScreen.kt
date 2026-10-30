@@ -179,7 +179,7 @@ fun TodayScreen(
         // Village Filter Chips (Scrolls with list)
         item(key = "village_filters") {
             val villageOptions = remember(activeProfile) {
-                listOf("All", "My Beat") + repository.getAllVillages()
+                listOf("All", "My Villages") + repository.getAllVillages()
             }
             Row(
                 modifier = Modifier
