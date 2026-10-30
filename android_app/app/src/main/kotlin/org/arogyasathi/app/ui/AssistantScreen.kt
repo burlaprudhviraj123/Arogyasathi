@@ -145,6 +145,7 @@ fun AssistantScreen(
     var showPatientPicker by remember { mutableStateOf(false) }
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
     var showOfflineVoiceGuide by remember { mutableStateOf(false) }
+    var showEmergencyContactsDialog by remember { mutableStateOf(false) }
 
     var queryText by remember { mutableStateOf("") }
     var isSpeaking by remember { mutableStateOf(false) }
@@ -442,217 +443,109 @@ fun AssistantScreen(
             .fillMaxSize()
             .background(CanvasBackground)
     ) {
-        // Top Clinical Escalation & Sector Contacts Bar
+        // Compact Clinical Header: Patient Context + Emergency SOS Speed Dial
         Surface(
-            color = Color(0xFF1E293B),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = EmergencyRed,
-                        modifier = Modifier.size(22.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_emergency),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(13.dp)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = "CLINICAL ESCALATION & CONTACTS",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "${activeProfile.medicalOfficerName} • ${activeProfile.parentPhc}",
-                            fontSize = 10.sp,
-                            color = Color(0xFF94A3B8),
-                            maxLines = 1
-                        )
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Button(
-                        onClick = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.height(26.dp)
-                    ) {
-                        Text(
-                            text = "CALL MO",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                    }
-                    Button(
-                        onClick = { dialEmergency(context, activeProfile.anmPhone) },
-                        colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
-                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.height(26.dp)
-                    ) {
-                        Text(
-                            text = "CALL ANM",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                    }
-                    Button(
-                        onClick = { dialEmergency(context, "108") },
-                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                        contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.height(26.dp)
-                    ) {
-                        Text(
-                            text = "108",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-        }
-
-        // Active Patient Context Bar / Selector
-        Surface(
-            color = Color.White,
+            color = SurfaceCrisp,
             border = BorderStroke(0.5.dp, BorderSubtle),
+            shadowElevation = 1.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (activePatient != null) {
-                    val p = activePatient!!
+                // Patient Context Pill
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (activePatient != null) Color(0xFFE6F4F1) else Color(0xFFF1F5F9),
+                    border = BorderStroke(1.dp, if (activePatient != null) PrimaryTeal.copy(alpha = 0.4f) else BorderSubtle),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { showPatientPicker = true }
+                ) {
                     Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = PrimaryTeal,
-                            modifier = Modifier.size(28.dp)
+                            color = if (activePatient != null) PrimaryTeal else Color(0xFF94A3B8),
+                            modifier = Modifier.size(18.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_person),
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(11.dp)
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                text = p.name,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = DarkTeal,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            val meta = when {
-                                p.isPregnant -> "Pregnant (EDD ${p.edd ?: "TBD"}) • ${p.village}"
-                                p.ncdCondition != null -> "${p.ncdCondition} • ${p.village}"
-                                else -> "${p.relation} • ${p.village}"
-                            }
-                            Text(
-                                text = meta,
-                                fontSize = 11.sp,
-                                color = TextSecondary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        TextButton(
-                            onClick = { showPatientPicker = true },
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                            modifier = Modifier.height(28.dp)
-                        ) {
-                            Text("Switch", fontSize = 11.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
-                        }
-                        IconButton(
-                            onClick = {
-                                activePatient = null
-                                reloadMessages(null)
-                            },
-                            modifier = Modifier.size(26.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_close),
-                                contentDescription = "Clear patient",
-                                tint = TextSecondary,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
-                } else {
-                    // No patient selected - prompt to select
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showPatientPicker = true },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_person),
-                                contentDescription = null,
-                                tint = PrimaryTeal,
+                        Text(
+                            text = if (activePatient != null) "${activePatient!!.name} • ${activePatient!!.village}" else "General Consultation",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (activePatient != null) DarkTeal else TextPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (activePatient != null) {
+                            IconButton(
+                                onClick = {
+                                    activePatient = null
+                                    reloadMessages(null)
+                                },
                                 modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "General Mode — Tap to link patient & view history",
-                                fontSize = 12.sp,
-                                color = DarkTeal,
-                                fontWeight = FontWeight.Medium
-                            )
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_close),
+                                    contentDescription = "Clear patient",
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                            }
                         }
+                    }
+                }
+
+                // Emergency SOS Speed Dial Button
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color(0xFFFEF2F2),
+                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.35f)),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { showEmergencyContactsDialog = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFE6F4F1),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            shape = CircleShape,
+                            color = EmergencyRed,
+                            modifier = Modifier.size(16.dp)
                         ) {
-                            Text(
-                                text = "Select Patient",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryTeal,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_emergency),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(10.dp)
+                                )
+                            }
                         }
+                        Text(
+                            text = "SOS 108",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = EmergencyRed
+                        )
                     }
                 }
             }
@@ -729,33 +622,6 @@ fun AssistantScreen(
             }
         }
 
-        // Quick Question Chips
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            items(quickTopics) { topic ->
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color.White,
-                    border = BorderStroke(1.dp, BorderSubtle),
-                    modifier = Modifier.clip(RoundedCornerShape(14.dp)),
-                    onClick = { submitQuery(topic) }
-                ) {
-                    Text(
-                        text = topic,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextPrimary,
-                        maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
-                }
-            }
-        }
-
         HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
 
         // Chat Message Stream
@@ -800,6 +666,34 @@ fun AssistantScreen(
                         activeReferralSlip = slip
                     }
                 )
+            }
+        }
+
+        // Quick Clinical Suggestion Chips (Anchored ergonomically directly above input bar)
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            items(quickTopics) { topic ->
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = SurfaceCrisp,
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    shadowElevation = 1.dp,
+                    modifier = Modifier.clip(RoundedCornerShape(14.dp)),
+                    onClick = { submitQuery(topic) }
+                ) {
+                    Text(
+                        text = topic,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                    )
+                }
             }
         }
 
@@ -905,6 +799,18 @@ fun AssistantScreen(
                 reloadMessages(selected)
             },
             onDismiss = { showPatientPicker = false }
+        )
+    }
+
+    // Emergency Clinical Contacts Dialog
+    if (showEmergencyContactsDialog) {
+        EmergencyContactsDialog(
+            activeProfile = activeProfile,
+            onCallMo = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
+            onCallAnm = { dialEmergency(context, activeProfile.anmPhone) },
+            onCall108 = { dialEmergency(context, "108") },
+            onCall102 = { dialEmergency(context, "102") },
+            onDismiss = { showEmergencyContactsDialog = false }
         )
     }
 
@@ -1054,6 +960,7 @@ fun ChatBubble(
 ) {
     val isUser = message.sender == MessageSender.USER
     val res = message.result
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1062,7 +969,7 @@ fun ChatBubble(
         if (!isUser) {
             Surface(
                 modifier = Modifier
-                    .size(30.dp)
+                    .size(28.dp)
                     .clip(CircleShape),
                 color = PrimaryTeal
             ) {
@@ -1071,15 +978,15 @@ fun ChatBubble(
                         painter = painterResource(id = R.drawable.ic_assistant),
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
 
         Column(
-            modifier = Modifier.widthIn(max = 310.dp),
+            modifier = Modifier.widthIn(max = 320.dp),
             horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
         ) {
             if (isUser) {
@@ -1093,265 +1000,46 @@ fun ChatBubble(
                         color = Color.White,
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
                     )
                 }
             } else {
                 val isEscalation = res?.isEscalation == true
                 val isRefusal = res?.isRefusal == true
-
-                val bubbleBg = when {
-                    isEscalation -> Color(0xFFFEF2F2)
-                    isRefusal -> Color(0xFFFFFBEB)
-                    else -> Color.White
-                }
-                val bubbleBorder = when {
-                    isEscalation -> EmergencyRed.copy(alpha = 0.5f)
-                    isRefusal -> HighPriorityOrange.copy(alpha = 0.5f)
-                    else -> BorderSubtle
+                val priorityColor = when {
+                    isEscalation -> EmergencyRed
+                    isRefusal -> HighPriorityOrange
+                    else -> PrimaryTeal
                 }
 
-                Card(
+                Surface(
                     shape = RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = bubbleBg),
-                    border = BorderStroke(1.dp, bubbleBorder),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    color = SurfaceCrisp,
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    shadowElevation = 2.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        // Badge Strip
-                        if (isEscalation) {
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = EmergencyRed,
-                                modifier = Modifier.padding(bottom = 6.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_emergency),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = "EMERGENCY DANGER SIGN — REFER NOW",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp
-                                    )
-                                }
-                            }
-                        } else if (isRefusal) {
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = HighPriorityOrange,
-                                modifier = Modifier.padding(bottom = 6.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_shield),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = "OUT OF SCOPE — MO REFERRAL",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp
-                                    )
-                                }
-                            }
-                        }
-
-                        // Clinical Text (Formatted with Patient Badge, Step Cards, & Danger Alerts)
-                        val displayText = message.getDisplayText(selectedLanguage)
-
-                        FormattedClinicalGuidance(
-                            text = displayText,
-                            isEscalation = isEscalation,
-                            isRefusal = isRefusal
+                    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                        // Left Priority Triage Strip
+                        Box(
+                            modifier = Modifier
+                                .width(5.dp)
+                                .fillMaxHeight()
+                                .background(priorityColor)
                         )
 
-                        // If Danger Sign: Immediate Doctor & ANM Contact Card
-                        if (isEscalation) {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFFFF5F5),
-                                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.35f)),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
+                        Column(modifier = Modifier.weight(1f).padding(12.dp)) {
+                            // Header Row: Triage Pill + Citation + Speaker
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_emergency),
-                                            contentDescription = null,
-                                            tint = EmergencyRed,
-                                            modifier = Modifier.size(13.dp)
-                                        )
-                                        Text(
-                                            text = "CLINICAL EMERGENCY ESCALATION",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = EmergencyRed
-                                        )
-                                    }
-                                    Text(
-                                        text = "Alert your Medical Officer / ANM immediately before transport:",
-                                        fontSize = 10.sp,
-                                        color = TextPrimary
-                                    )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Button(
-                                            onClick = onCallMo,
-                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                                            shape = RoundedCornerShape(6.dp),
-                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(26.dp)
-                                        ) {
-                                            Text(
-                                                text = "CALL MO (${activeProfile.maskedMoPhone()})",
-                                                color = Color.White,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1
-                                            )
-                                        }
-                                        Button(
-                                            onClick = onCallAnm,
-                                            colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
-                                            shape = RoundedCornerShape(6.dp),
-                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(26.dp)
-                                        ) {
-                                            Text(
-                                                text = "CALL ANM (${activeProfile.maskedAnmPhone()})",
-                                                color = Color.White,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // If Out of Scope: Doctor Redirection Card
-                        if (isRefusal) {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFFFFBEB),
-                                border = BorderStroke(1.dp, HighPriorityOrange.copy(alpha = 0.4f)),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_shield),
-                                            contentDescription = null,
-                                            tint = HighPriorityOrange,
-                                            modifier = Modifier.size(13.dp)
-                                        )
-                                        Text(
-                                            text = "DOCTOR CONSULTATION REQUIRED (SCP-1.2)",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = HighPriorityOrange
-                                        )
-                                    }
-                                    Text(
-                                        text = "Prescription medicines or diagnosis must be approved by the doctor:",
-                                        fontSize = 10.sp,
-                                        color = TextPrimary
-                                    )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Button(
-                                            onClick = onCallMo,
-                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                                            shape = RoundedCornerShape(6.dp),
-                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(26.dp)
-                                        ) {
-                                            Text(
-                                                text = "CALL MO (${activeProfile.maskedMoPhone()})",
-                                                color = Color.White,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1
-                                            )
-                                        }
-                                        Button(
-                                            onClick = onCallAnm,
-                                            colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
-                                            shape = RoundedCornerShape(6.dp),
-                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(26.dp)
-                                        ) {
-                                            Text(
-                                                text = "CALL ANM (${activeProfile.maskedAnmPhone()})",
-                                                color = Color.White,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Footer with Citation & Action Buttons
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (res != null) {
+                                // Triage Status Pill
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFFE6F4F1),
-                                    border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.3f))
+                                    color = priorityColor.copy(alpha = 0.12f)
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -1359,42 +1047,102 @@ fun ChatBubble(
                                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.ic_records),
+                                            painter = painterResource(
+                                                id = if (isEscalation) R.drawable.ic_emergency else if (isRefusal) R.drawable.ic_shield else R.drawable.ic_check_circle
+                                            ),
                                             contentDescription = null,
-                                            tint = PrimaryTeal,
+                                            tint = priorityColor,
                                             modifier = Modifier.size(11.dp)
                                         )
                                         Text(
-                                            text = "Protocol: ${res.citedSection}",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = DarkTeal
+                                            text = when {
+                                                isEscalation -> "DANGER SIGN — CALL 108"
+                                                isRefusal -> "DOCTOR REFERRAL (PHC)"
+                                                else -> "CLINICAL PROTOCOL"
+                                            },
+                                            color = priorityColor,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 9.sp
                                         )
                                     }
                                 }
-                            } else {
-                                Spacer(modifier = Modifier.width(1.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    if (res != null) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(0xFFF1F5F9)
+                                        ) {
+                                            Text(
+                                                text = res.citedSection,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextSecondary,
+                                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                    // Audio TTS Button
+                                    IconButton(
+                                        onClick = { onPlayTts(message.getDisplayText(selectedLanguage)) },
+                                        modifier = Modifier.size(26.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_speaker),
+                                            contentDescription = "Read aloud",
+                                            tint = PrimaryTeal,
+                                            modifier = Modifier.size(15.dp)
+                                        )
+                                    }
+                                }
                             }
 
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Listen via TTS
-                                IconButton(
-                                    onClick = { onPlayTts(displayText) },
-                                    modifier = Modifier.size(28.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_speaker),
-                                        contentDescription = "Read aloud",
-                                        tint = PrimaryTeal,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                                // Structured Referral Slip Button for emergencies
-                                if (isEscalation) {
+                            // Clinical Text
+                            val displayText = message.getDisplayText(selectedLanguage)
+                            FormattedClinicalGuidance(
+                                text = displayText,
+                                isEscalation = isEscalation,
+                                isRefusal = isRefusal
+                            )
+
+                            // Action Footer (Compact single row)
+                            if (isEscalation) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Button(
+                                        onClick = onCall108,
+                                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.weight(1f).height(30.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                            Text("108", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+
+                                    Button(
+                                        onClick = onCallMo,
+                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.weight(1f).height(30.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                            Text("Call MO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+
                                     Button(
                                         onClick = {
                                             val slip = ReferralSlip(
@@ -1407,14 +1155,14 @@ fun ChatBubble(
                                                 village = activePatient?.village ?: "Chandrapuri Block",
                                                 householdId = activePatient?.householdId ?: "HH-EMERGENCY",
                                                 suspectedCondition = "Acute Danger Sign",
-                                                dangerSigns = listOf(res.citedSection),
+                                                dangerSigns = listOf(res?.citedSection ?: "ESC-2.1"),
                                                 vitalSigns = when {
                                                     activePatient?.isPregnant == true -> "BP: ${activePatient.lastAncBp ?: "Check Urgently"}, Hb: ${activePatient.lastHbGdl ?: "Check"} g/dL"
                                                     activePatient?.lastBpReading != null -> "BP: ${activePatient.lastBpReading}"
                                                     activePatient?.lastMuacCm != null -> "MUAC: ${activePatient.lastMuacCm} cm"
                                                     else -> "Critical Triage"
                                                 },
-                                                protocolCitation = res.citedSection,
+                                                protocolCitation = res?.citedSection ?: "ESC-2.1",
                                                 referredFacility = activeProfile.parentPhc,
                                                 immediateActionTaken = "Medical Officer Alerted & 108 Emergency Ambulance Dispatched",
                                                 ashaName = activeProfile.name,
@@ -1425,21 +1173,62 @@ fun ChatBubble(
                                             onOpenReferralSlip(slip)
                                         },
                                         colors = ButtonDefaults.buttonColors(containerColor = DarkTeal),
-                                        shape = RoundedCornerShape(6.dp),
-                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                        modifier = Modifier.height(26.dp)
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.weight(1.2f).height(30.dp)
                                     ) {
-                                        Text("Referral Slip", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Slip", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            } else if (isRefusal) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Button(
+                                        onClick = onCallMo,
+                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.weight(1f).height(30.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                            Text("Call MO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
                                     }
 
                                     Button(
-                                        onClick = onCall108,
-                                        colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
-                                        shape = RoundedCornerShape(6.dp),
-                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                        modifier = Modifier.height(26.dp)
+                                        onClick = onCallAnm,
+                                        colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.weight(1f).height(30.dp)
                                     ) {
-                                        Text("108", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                            Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
+                                            Text("Call ANM", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    TextButton(
+                                        onClick = {
+                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = ClipData.newPlainText("Arogyasathi Protocol Guidance", displayText)
+                                            clipboard.setPrimaryClip(clip)
+                                            Toast.makeText(context, "Copied protocol guidance to clipboard", Toast.LENGTH_SHORT).show()
+                                        },
+                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                        modifier = Modifier.height(24.dp)
+                                    ) {
+                                        Text("Copy Guidance", fontSize = 10.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
                             }
@@ -1449,6 +1238,163 @@ fun ChatBubble(
             }
         }
     }
+}
+
+@Composable
+fun EmergencyContactsDialog(
+    activeProfile: AshaProfile,
+    onCallMo: () -> Unit,
+    onCallAnm: () -> Unit,
+    onCall108: () -> Unit,
+    onCall102: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = EmergencyRed,
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_emergency),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                Column {
+                    Text(
+                        text = "Clinical Escalation & SOS",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Direct emergency contact line",
+                        fontSize = 11.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // MO In-Charge
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFF8FAFC),
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Medical Officer In-Charge", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PrimaryTeal)
+                            Text(activeProfile.medicalOfficerName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text(activeProfile.parentPhc, fontSize = 11.sp, color = TextSecondary)
+                        }
+                        Button(
+                            onClick = onCallMo,
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text("CALL MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Sector ANM
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFF8FAFC),
+                    border = BorderStroke(1.dp, BorderSubtle),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Designated Sector ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = RoutineGreen)
+                            Text(activeProfile.anmName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text(activeProfile.subCentre, fontSize = 11.sp, color = TextSecondary)
+                        }
+                        Button(
+                            onClick = onCallAnm,
+                            colors = ButtonDefaults.buttonColors(containerColor = RoutineGreen),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text("CALL ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // National Emergency 108 / 102
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFFEF2F2),
+                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.25f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("National Ambulances", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = EmergencyRed)
+                            Text("108 (Emergency) • 102 (JSSK)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text("Toll-free 24x7 government helpline", fontSize = 11.sp, color = TextSecondary)
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Button(
+                                onClick = onCall108,
+                                colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.height(32.dp)
+                            ) {
+                                Text("108", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = onCall102,
+                                colors = ButtonDefaults.buttonColors(containerColor = HighPriorityOrange),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.height(32.dp)
+                            ) {
+                                Text("102", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close", color = TextSecondary)
+            }
+        }
+    )
 }
 
 @Composable

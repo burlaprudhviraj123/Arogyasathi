@@ -5,22 +5,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 val PrimaryTeal = Color(0xFF0F766E)
-val DarkTeal = Color(0xFF005C55)
-val EmergencyRed = Color(0xFFB42318)
+val DarkTeal = Color(0xFF0D5E56)
+val EmergencyRed = Color(0xFFDC2626)
 val HighPriorityOrange = Color(0xFFD97706)
 val MediumPriorityAmber = Color(0xFFF59E0B)
-val RoutineGreen = Color(0xFF237A57)
-val DeepNavy = Color(0xFF0F766E) // Mapped to primary teal for clinical branding
-val CanvasBackground = Color(0xFFF7F8F6)
+val RoutineGreen = Color(0xFF059669)
+val DeepNavy = Color(0xFF0F172A)
+val CanvasBackground = Color(0xFFF8FAFC)
 val SurfaceCrisp = Color(0xFFFFFFFF)
-val TextPrimary = Color(0xFF172321)
-val TextSecondary = Color(0xFF52615E)
-val BorderSubtle = Color(0xFFDCE5E1)
-val GlassBackground = Color(0xEBFFFFFF)
-val GlassBorder = Color(0x73FFFFFF)
-val DarkGlassBackground = Color(0xEB1E292B)
+val TextPrimary = Color(0xFF0F172A)
+val TextSecondary = Color(0xFF475569)
+val BorderSubtle = Color(0xFFE2E8F0)
+val GlassBackground = Color(0xF2FFFFFF)
+val GlassBorder = Color(0x66E2E8F0)
+val DarkGlassBackground = Color(0xF20F172A)
 val DarkGlassBorder = Color(0x33FFFFFF)
-val PaleBackground = Color(0xFFF7F8F6)
+val PaleBackground = Color(0xFFF8FAFC)
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryTeal,

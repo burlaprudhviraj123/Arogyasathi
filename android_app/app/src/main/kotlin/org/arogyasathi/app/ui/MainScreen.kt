@@ -34,6 +34,7 @@ fun MainScreen() {
     var assistantQuery by remember { mutableStateOf<String?>(null) }
     var assistantPatient by remember { mutableStateOf<org.arogyasathi.app.core.Member?>(null) }
     var showProfileDialog by remember { mutableStateOf(false) }
+    var showEmergencyDialog by remember { mutableStateOf(false) }
     var activeProfile by remember { mutableStateOf(repository.getActiveProfile()) }
 
     Scaffold(
@@ -70,15 +71,39 @@ fun MainScreen() {
                     }
                 },
                 actions = {
+                    // Global Emergency SOS Action Button
+                    IconButton(
+                        onClick = { showEmergencyDialog = true },
+                        modifier = Modifier.size(38.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(34.dp),
+                            shape = CircleShape,
+                            color = Color(0xFFFEF2F2),
+                            border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.4f))
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_emergency),
+                                    contentDescription = "Emergency SOS Contacts",
+                                    tint = EmergencyRed,
+                                    modifier = Modifier.size(17.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
                     // Minimalist Circular Avatar Button (Standard Material 3 UX)
                     IconButton(
                         onClick = { showProfileDialog = true },
                         modifier = Modifier
                             .padding(end = 8.dp)
-                            .size(40.dp)
+                            .size(38.dp)
                     ) {
                         Surface(
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(34.dp),
                             shape = CircleShape,
                             color = Color(0xFFE6F4F1),
                             border = BorderStroke(1.5.dp, PrimaryTeal.copy(alpha = 0.35f))
@@ -86,7 +111,7 @@ fun MainScreen() {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
                                     text = activeProfile.name.firstOrNull()?.uppercase() ?: "A",
-                                    fontSize = 15.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryTeal
                                 )
@@ -150,6 +175,30 @@ fun MainScreen() {
                 )
             }
         }
+    }
+
+    // Global Emergency SOS Contacts Dialog
+    if (showEmergencyDialog) {
+        fun dialNumber(number: String) {
+            try {
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:${number.replace(" ", "")}")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        EmergencyContactsDialog(
+            activeProfile = activeProfile,
+            onCallMo = { dialNumber(activeProfile.medicalOfficerPhone) },
+            onCallAnm = { dialNumber(activeProfile.anmPhone) },
+            onCall108 = { dialNumber("108") },
+            onCall102 = { dialNumber("102") },
+            onDismiss = { showEmergencyDialog = false }
+        )
     }
 
     // ASHA Profile Dialog

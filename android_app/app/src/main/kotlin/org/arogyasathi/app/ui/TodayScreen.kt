@@ -1,5 +1,6 @@
 package org.arogyasathi.app.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -316,28 +317,34 @@ fun MetricCard(
     color: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    val bgTint = when (color) {
+        EmergencyRed -> Color(0xFFFEF2F2)
+        RoutineGreen -> Color(0xFFECFDF5)
+        else -> Color(0xFFE6F4F1)
+    }
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = bgTint,
+        border = BorderStroke(1.dp, color.copy(alpha = 0.25f)),
+        shadowElevation = 1.dp,
         modifier = modifier
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+                .padding(vertical = 12.dp, horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = count.toString(),
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 24.sp,
                 color = color
             )
             Text(
                 text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = TextSecondary
             )
         }
@@ -350,133 +357,185 @@ fun VisitCard(
     onCompleteClick: () -> Unit,
     onConsultProtocolClick: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    val priorityColor = when (item.priority) {
+        Priority.HIGH -> EmergencyRed
+        Priority.MEDIUM -> HighPriorityOrange
+        Priority.LOW -> RoutineGreen
+    }
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = SurfaceCrisp,
+        border = BorderStroke(1.dp, BorderSubtle),
+        shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = item.memberName,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = TextPrimary
-                )
-                // Priority Badge
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = when (item.priority) {
-                        Priority.HIGH -> Color(0xFFFFEBEE)
-                        Priority.MEDIUM -> Color(0xFFFFF8E1)
-                        Priority.LOW -> Color(0xFFE8F5E9)
-                    }
-                ) {
-                    Text(
-                        text = when (item.priority) {
-                            Priority.HIGH -> "URGENT"
-                            Priority.MEDIUM -> "MEDIUM"
-                            Priority.LOW -> "ROUTINE"
-                        },
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = when (item.priority) {
-                            Priority.HIGH -> EmergencyRed
-                            Priority.MEDIUM -> HighPriorityOrange
-                            Priority.LOW -> RoutineGreen
-                        },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "${item.householdId} • ${item.village}",
-                fontSize = 13.sp,
-                color = TextSecondary
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // Left Priority Accent Strip
+            Box(
+                modifier = Modifier
+                    .width(5.dp)
+                    .fillMaxHeight()
+                    .background(priorityColor)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(14.dp)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = Color(0xFFE6F4F1)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Due: ${item.dueItem}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = DarkTeal,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = when (item.status) {
-                        VisitStatus.OVERDUE -> Color(0xFFFFEBEE)
-                        VisitStatus.DUE_TODAY -> Color(0xFFFFF3E0)
-                        VisitStatus.UPCOMING -> Color(0xFFE3F2FD)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = priorityColor.copy(alpha = 0.12f),
+                            modifier = Modifier.size(34.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = item.memberName.firstOrNull()?.uppercase() ?: "P",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = priorityColor
+                                )
+                            }
+                        }
+                        Column {
+                            Text(
+                                text = item.memberName,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "${item.householdId} • ${item.village}",
+                                fontSize = 12.sp,
+                                color = TextSecondary
+                            )
+                        }
                     }
-                ) {
-                    Text(
-                        text = when (item.status) {
-                            VisitStatus.OVERDUE -> "Overdue"
-                            VisitStatus.DUE_TODAY -> "Due Today"
-                            VisitStatus.UPCOMING -> "Upcoming"
-                        },
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = when (item.status) {
-                            VisitStatus.OVERDUE -> EmergencyRed
-                            VisitStatus.DUE_TODAY -> HighPriorityOrange
-                            VisitStatus.UPCOMING -> Color(0xFF1565C0)
-                        },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onConsultProtocolClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = "Consult protocol for ${item.dueItem}" },
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Protocols", fontSize = 13.sp, color = PrimaryTeal)
+                    // Priority Pill
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = priorityColor.copy(alpha = 0.12f),
+                        border = BorderStroke(0.5.dp, priorityColor.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = when (item.priority) {
+                                Priority.HIGH -> "URGENT"
+                                Priority.MEDIUM -> "MEDIUM"
+                                Priority.LOW -> "ROUTINE"
+                            },
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = priorityColor,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
                 }
-                Button(
-                    onClick = onCompleteClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = "Record completion for ${item.memberName}'s ${item.dueItem} visit" },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                    shape = RoundedCornerShape(8.dp)
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Due clinical task tag
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Complete", fontSize = 13.sp, color = Color.White)
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFE6F4F1),
+                        border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.25f))
+                    ) {
+                        Text(
+                            text = "Due: ${item.dueItem}",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkTeal,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (item.status == VisitStatus.OVERDUE) Color(0xFFFEF2F2) else Color(0xFFFFFBEB)
+                    ) {
+                        Text(
+                            text = if (item.status == VisitStatus.OVERDUE) "Overdue" else "Due Today",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (item.status == VisitStatus.OVERDUE) EmergencyRed else HighPriorityOrange,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Action Buttons Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onConsultProtocolClick,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = PrimaryTeal
+                        ),
+                        border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.4f)),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(34.dp)
+                            .semantics { contentDescription = "Consult protocol for ${item.dueItem}" }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_assistant),
+                                contentDescription = null,
+                                tint = PrimaryTeal,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text("Protocols", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Button(
+                        onClick = onCompleteClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(34.dp)
+                            .semantics { contentDescription = "Record completion for ${item.memberName}'s ${item.dueItem} visit" }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_check_circle),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text("Complete", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }
