@@ -69,3 +69,4 @@ def test_voice_engine_footprint_reported(voice_engine):
     assert fp["model_size_mb"] <= 150.0
     assert fp["target_ram_mb"] <= 200.0
     assert fp["latency_ms"] >= 0.0
+

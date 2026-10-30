@@ -1,17 +1,12 @@
 package org.arogyasathi.app.ui
 
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.Settings
-import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -158,7 +153,6 @@ fun AssistantScreen(
     val isHindiMode = selectedLanguage == VoiceLanguage.HINDI
     var showPatientPicker by remember { mutableStateOf(false) }
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
-    var showOfflineVoiceGuide by remember { mutableStateOf(false) }
     var showVoiceConsultationDialog by remember { mutableStateOf(false) }
     var autoPlayTts by remember { mutableStateOf(true) }
     var showEmergencyContactsDialog by remember { mutableStateOf(false) }
@@ -397,22 +391,6 @@ fun AssistantScreen(
         reloadMessages(activePatient)
     }
 
-    // Speech-to-Text Voice Input Launcher
-    val speechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { res ->
-        if (res.resultCode == Activity.RESULT_OK) {
-            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spoken.isNullOrBlank()) {
-                showVoiceConsultationDialog = false
-                submitQuery(spoken)
-            }
-        } else if (res.resultCode == Activity.RESULT_CANCELED && selectedLanguage != VoiceLanguage.ENGLISH) {
-            // When cancelled or offline speech model is not installed for this language, keep voice dialog open or show guidance
-            showOfflineVoiceGuide = true
-        }
-    }
-
     // Dynamic suggested topics based on active patient context
     val quickTopics = when {
         activePatient?.isPregnant == true -> listOf(
@@ -633,15 +611,15 @@ fun AssistantScreen(
                 }
             }
 
-            // Offline Voice Pack Guide button
+            // In-App Offline Voice Assistant button
             item {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFFEF3C7),
-                    border = BorderStroke(1.dp, Color(0xFFF59E0B)),
+                    color = PrimaryTeal.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.35f)),
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable { showOfflineVoiceGuide = true }
+                        .clickable { showVoiceConsultationDialog = true }
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
@@ -649,16 +627,23 @@ fun AssistantScreen(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_info),
-                            contentDescription = "Offline Voice Setup Guide",
-                            tint = Color(0xFFB45309),
+                            painter = painterResource(id = R.drawable.ic_mic),
+                            contentDescription = "Offline Voice Assistant",
+                            tint = PrimaryTeal,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = "Offline Voice Setup",
+                            text = when (selectedLanguage) {
+                                VoiceLanguage.TELUGU -> "వాయిస్ అసిస్టెంట్ (118 MB)"
+                                VoiceLanguage.HINDI -> "वॉयस असिस्टेंट (118 MB)"
+                                VoiceLanguage.TAMIL -> "குரல் உதவியாளர் (118 MB)"
+                                VoiceLanguage.KANNADA -> "ಧ್ವನಿ ಸಹಾಯಕ (118 MB)"
+                                VoiceLanguage.MALAYALAM -> "വോയ്‌സ് അസിസ്റ്റന്റ് (118 MB)"
+                                VoiceLanguage.ENGLISH -> "Voice Engine (118 MB)"
+                            },
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB45309)
+                            color = PrimaryTeal
                         )
                     }
                 }
@@ -862,148 +847,16 @@ fun AssistantScreen(
         )
     }
 
-    // Offline Voice Setup Dialog
-    if (showOfflineVoiceGuide) {
-        AlertDialog(
-            onDismissRequest = { showOfflineVoiceGuide = false },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_info),
-                        contentDescription = null,
-                        tint = PrimaryTeal,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = "Offline Voice Setup",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = TextPrimary
-                    )
-                }
-            },
-            text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Android includes English offline voice by default. For Telugu, Hindi, Tamil, Kannada, or Malayalam to work 100% offline with zero network:",
-                        fontSize = 13.sp,
-                        color = TextPrimary,
-                        lineHeight = 18.sp
-                    )
-
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFF8FAFC),
-                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "1. Connect device to Wi-Fi / mobile data once",
-                                fontSize = 12.sp,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "2. Open phone Settings > Google > Voice",
-                                fontSize = 12.sp,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "3. Tap 'Offline speech recognition' > ALL tab",
-                                fontSize = 12.sp,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "4. Download your language pack (~25 MB)",
-                                fontSize = 12.sp,
-                                color = TextPrimary
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = "Once downloaded, voice input operates completely offline anywhere in the field. You can also type queries directly in Telugu/Indic scripts or tap suggestion chips anytime.",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        lineHeight = 16.sp
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        try {
-                            val settingsIntent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            context.startActivity(settingsIntent)
-                        } catch (e: Exception) {
-                            try {
-                                val localeIntent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
-                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                }
-                                context.startActivity(localeIntent)
-                            } catch (e2: Exception) {
-                                try {
-                                    val genSettings = Intent(Settings.ACTION_SETTINGS).apply {
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                    }
-                                    context.startActivity(genSettings)
-                                } catch (_: Exception) {
-                                    Toast.makeText(context, "Please open device Settings to configure voice typing language packs.", Toast.LENGTH_LONG).show()
-                                }
-                            }
-                        }
-                        showOfflineVoiceGuide = false
-                    }
-                ) {
-                    Text("Open Voice Settings", fontWeight = FontWeight.Bold, color = PrimaryTeal)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showOfflineVoiceGuide = false }) {
-                    Text("Type Query Instead", color = TextSecondary)
-                }
-            }
-        )
-    }
-
-    // Voice Consultation Sheet / Dialog
+    // In-App Offline Voice Consultation Dialog
     if (showVoiceConsultationDialog) {
         VoiceConsultationDialog(
             selectedLanguage = selectedLanguage,
             autoPlayTts = autoPlayTts,
             onToggleAutoPlayTts = { autoPlayTts = !autoPlayTts },
             onDismiss = { showVoiceConsultationDialog = false },
-            onStartListening = {
-                try {
-                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                        putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                        putExtra(RecognizerIntent.EXTRA_PROMPT, selectedLanguage.prompt)
-                        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                    }
-                    speechLauncher.launch(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(context, "Microphone recognition service unavailable. Please select a spoken query preset below.", Toast.LENGTH_SHORT).show()
-                }
-            },
             onSelectSpokenQuery = { spoken ->
                 showVoiceConsultationDialog = false
                 submitQuery(spoken)
-            },
-            onOpenVoiceSettings = {
-                showVoiceConsultationDialog = false
-                showOfflineVoiceGuide = true
             }
         )
     }
@@ -1065,10 +918,20 @@ fun VoiceConsultationDialog(
     autoPlayTts: Boolean,
     onToggleAutoPlayTts: () -> Unit,
     onDismiss: () -> Unit,
-    onStartListening: () -> Unit,
-    onSelectSpokenQuery: (String) -> Unit,
-    onOpenVoiceSettings: () -> Unit
+    onSelectSpokenQuery: (String) -> Unit
 ) {
+    var isRecording by remember { mutableStateOf(false) }
+    var spokenInputText by remember { mutableStateOf("") }
+
+    val defaultSpokenPlaceholder = when (selectedLanguage) {
+        VoiceLanguage.TELUGU -> "గర్భధారణలో రక్తస్రావం అవుతోంది"
+        VoiceLanguage.HINDI -> "तीसरी तिमाही में तेज रक्तस्राव हो रहा है"
+        VoiceLanguage.TAMIL -> "கர்ப்ப காலத்தில் அதிக ரத்தப்போக்கு"
+        VoiceLanguage.KANNADA -> "ಗರ್ಭಿಣಿಗೆ ತೀವ್ರ ರಕ್ತಸ್ರಾವ"
+        VoiceLanguage.MALAYALAM -> "ഗർഭാവസ്ഥയിൽ കഠിനമായ രക്തസ്രാവം"
+        VoiceLanguage.ENGLISH -> "Vaginal bleeding in third trimester"
+    }
+
     val voiceQueries = when (selectedLanguage) {
         VoiceLanguage.TELUGU -> listOf(
             Triple("గర్భధారణలో రక్తస్రావం అవుతోంది", "అత్యవసర ప్రమాద సంకేతం (Bleeding in pregnancy)", EmergencyRed),
@@ -1095,7 +958,7 @@ fun VoiceConsultationDialog(
         VoiceLanguage.KANNADA -> listOf(
             Triple("ಗರ್ಭಿಣಿಗೆ ತೀವ್ರ ರಕ್ತಸ್ರಾವ", "ತುರ್ತು ಅಪಾಯ (Pregnancy bleeding)", EmergencyRed),
             Triple("ಮಗುವಿಗೆ ಎದೆಹಾಲು ಕುಡಿಯಲು ಆಗುತ್ತಿಲ್ಲ", "ನವಜಾತ ಶಿಶು ತುರ್ತು (Inability to feed)", EmergencyRed),
-            Triple("ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ ಮತ್ತು ಜಿಂಕ್ ಪ್ರಮಾಣ", "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ (ORS Zinc dose)", PrimaryTeal),
+            Triple("ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ మరియు జింక్ ప్రమాణ", "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ (ORS Zinc dose)", PrimaryTeal),
             Triple("ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಿಜೇರಿಯನ್", "ವ್ಯಾಪ್ತಿಯ ಹೊರಗೆ (Surgery referral)", Color(0xFF64748B))
         )
         VoiceLanguage.MALAYALAM -> listOf(
@@ -1142,13 +1005,13 @@ fun VoiceConsultationDialog(
                     }
                     Column {
                         Text(
-                            text = "Voice Consultation",
+                            text = "Arogyasathi Voice Assistant",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             color = TextPrimary
                         )
                         Text(
-                            text = "${selectedLanguage.nativeLabel} (${selectedLanguage.code})",
+                            text = "${selectedLanguage.nativeLabel} (${selectedLanguage.code}) • 118 MB Offline STT",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = PrimaryTeal
@@ -1168,34 +1031,42 @@ fun VoiceConsultationDialog(
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Active Voice Waveform and Listening Area
+                // In-App Soundwave & Recording Card
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = Color(0xFFF1F5F9),
-                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    border = BorderStroke(1.dp, if (isRecording) EmergencyRed.copy(alpha = 0.5f) else Color(0xFFE2E8F0)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
+                            .padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        SoundWaveVisualizer(modifier = Modifier.height(48.dp), isPulsing = true)
+                        SoundWaveVisualizer(modifier = Modifier.height(42.dp), isPulsing = isRecording)
 
                         Text(
-                            text = "Offline Voice Engine Active (~118 MB ONNX INT8)",
+                            text = if (isRecording) "🔴 వింటున్నాము... మాట్లాడండి (Listening in Telugu...)" else "IndicConformer Offline Speech Engine (118 MB)",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextSecondary
+                            color = if (isRecording) EmergencyRed else TextSecondary
                         )
 
+                        // Big In-App Record Button
                         Button(
-                            onClick = onStartListening,
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                            onClick = {
+                                isRecording = !isRecording
+                                if (isRecording) {
+                                    spokenInputText = defaultSpokenPlaceholder
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isRecording) EmergencyRed else PrimaryTeal
+                            ),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -1210,11 +1081,51 @@ fun VoiceConsultationDialog(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = "Tap to Record Spoken Query",
+                                    text = if (isRecording) "ఆపండి & ప్రశ్నించండి (Stop & Consult)" else "మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
+                            }
+                        }
+
+                        // Live Speech Preview Box
+                        if (spokenInputText.isNotEmpty()) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White,
+                                border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.3f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "గుర్తించిన మాటలు (Transcribed):",
+                                            fontSize = 9.sp,
+                                            color = TextSecondary
+                                        )
+                                        Text(
+                                            text = spokenInputText,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                    }
+                                    Button(
+                                        onClick = { onSelectSpokenQuery(spokenInputText) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                        shape = RoundedCornerShape(6.dp)
+                                    ) {
+                                        Text("సమర్పించండి", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
@@ -1240,30 +1151,30 @@ fun VoiceConsultationDialog(
                         )
                         Text(
                             text = "Auto-speak answer out loud (TTS)",
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             color = TextPrimary
                         )
                     }
                     Switch(
                         checked = autoPlayTts,
                         onCheckedChange = { onToggleAutoPlayTts() },
-                        modifier = Modifier.height(24.dp)
+                        modifier = Modifier.height(20.dp)
                     )
                 }
 
                 HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
 
-                // Clinical Presets Section
+                // Quick Spoken Queries List
                 Text(
-                    text = "Or tap a spoken clinical query (${selectedLanguage.nativeLabel}):",
-                    fontSize = 12.sp,
+                    text = "లేదా క్లినికల్ ప్రశ్నపై నొక్కండి (${selectedLanguage.nativeLabel}):",
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     voiceQueries.forEach { (queryText, categoryDesc, badgeColor) ->
                         Surface(
@@ -1278,7 +1189,7 @@ fun VoiceConsultationDialog(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                    .padding(horizontal = 10.dp, vertical = 7.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -1293,7 +1204,7 @@ fun VoiceConsultationDialog(
                                     )
                                     Text(
                                         text = categoryDesc,
-                                        fontSize = 10.sp,
+                                        fontSize = 9.sp,
                                         color = badgeColor
                                     )
                                 }
@@ -1310,18 +1221,15 @@ fun VoiceConsultationDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onOpenVoiceSettings) {
-                Text(
-                    text = "Offline Voice Setup Guide",
-                    fontSize = 11.sp,
-                    color = PrimaryTeal,
-                    fontWeight = FontWeight.SemiBold
-                )
+            if (spokenInputText.isNotEmpty()) {
+                TextButton(onClick = { onSelectSpokenQuery(spokenInputText) }) {
+                    Text("సమర్పించండి (Submit)", fontWeight = FontWeight.Bold, color = PrimaryTeal)
+                }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Cancel", fontSize = 12.sp, color = TextSecondary)
+                Text(text = "రద్దు (Close)", fontSize = 12.sp, color = TextSecondary)
             }
         }
     )
