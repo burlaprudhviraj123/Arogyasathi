@@ -89,25 +89,6 @@ fun AshaProfileScreen(
                         }
                     }
                 },
-                actions = {
-                    IconButton(onClick = onDismiss) {
-                        Surface(
-                            modifier = Modifier.size(36.dp),
-                            shape = CircleShape,
-                            color = Color(0xFFF1F5F9),
-                            border = BorderStroke(1.dp, BorderSubtle)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_close),
-                                    contentDescription = "Close",
-                                    tint = TextPrimary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White,
                     titleContentColor = TextPrimary
@@ -717,3 +698,4 @@ fun AshaProfileScreen(
         }
     }
 }
+
