@@ -237,7 +237,7 @@ OUT_OF_SCOPE_RULES = [
     ),
     # 6. Uncovered conditions / non-routine vaccines
     (
-        r"rabies|kutte ne|dog bite|dog scratch|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9|रेबीज|రాబీస్|కుక్క కరి|ரேபிஸ்|நாய் கடி|ರೇಬೀಸ್|ನಾಯಿ ಕಚ್ಚಿ|റാബിസ്|നായ മാന്തിയ",
+        r"rabies|kutte ne|dog bite|dog scratch|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9|caesarean|c-section|chemotherapy|cancer.*treatment|surgery|surgical|biopsy|radiotherapy|dialysis|bypass|रेबीज|రాబీస్|కుక్క కరి|ரேபிஸ்|நாய் கடி|ರೇಬೀಸ್|ನಾಯಿ ಕಚ್ಚಿ|റാബിസ്|നായ മാന്തിയ",
         "SCP-1.2",
         "This is outside my protocol book. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2)."
     ),
