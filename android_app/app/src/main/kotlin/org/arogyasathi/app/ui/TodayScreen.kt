@@ -36,6 +36,7 @@ fun TodayScreen(
     onNavigateToAssistant: (String, String?) -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val strings = LocalAppStrings.current
     var isOnline by remember {
         val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
         val active = cm?.activeNetwork
@@ -209,12 +210,12 @@ fun TodayScreen(
                 FilterChip(
                     selected = selectedPriority == null,
                     onClick = { selectedPriority = null },
-                    label = { Text("All Priorities", fontSize = 12.sp) }
+                    label = { Text(strings.filterAll, fontSize = 12.sp) }
                 )
                 FilterChip(
                     selected = selectedPriority == Priority.HIGH,
                     onClick = { selectedPriority = Priority.HIGH },
-                    label = { Text("Urgent", fontSize = 12.sp, color = if (selectedPriority == Priority.HIGH) Color.White else EmergencyRed) },
+                    label = { Text(strings.filterP1, fontSize = 12.sp, color = if (selectedPriority == Priority.HIGH) Color.White else EmergencyRed) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = EmergencyRed,
                         selectedLabelColor = Color.White
@@ -223,7 +224,7 @@ fun TodayScreen(
                 FilterChip(
                     selected = selectedPriority == Priority.MEDIUM,
                     onClick = { selectedPriority = Priority.MEDIUM },
-                    label = { Text("Medium", fontSize = 12.sp) }
+                    label = { Text(strings.filterP2, fontSize = 12.sp) }
                 )
             }
         }

@@ -128,6 +128,17 @@ enum class VoiceLanguage(
     )
 }
 
+fun AppLanguage.toVoiceLanguage(): VoiceLanguage {
+    return when (this) {
+        AppLanguage.ENGLISH -> VoiceLanguage.ENGLISH
+        AppLanguage.HINDI -> VoiceLanguage.HINDI
+        AppLanguage.TELUGU -> VoiceLanguage.TELUGU
+        AppLanguage.TAMIL -> VoiceLanguage.TAMIL
+        AppLanguage.KANNADA -> VoiceLanguage.KANNADA
+        AppLanguage.MALAYALAM -> VoiceLanguage.MALAYALAM
+    }
+}
+
 @Composable
 fun AssistantScreen(
     repository: ArogyasathiRepository,
@@ -136,11 +147,13 @@ fun AssistantScreen(
     onClearInitialContext: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val currentAppLang = LocalCurrentLanguage.current
+    val strings = LocalAppStrings.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
     var activePatient by remember { mutableStateOf<Member?>(initialPatient) }
-    var selectedLanguage by remember { mutableStateOf(VoiceLanguage.ENGLISH) }
+    var selectedLanguage by remember(currentAppLang) { mutableStateOf(currentAppLang.toVoiceLanguage()) }
     val isHindiMode = selectedLanguage == VoiceLanguage.HINDI
     var showPatientPicker by remember { mutableStateOf(false) }
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
