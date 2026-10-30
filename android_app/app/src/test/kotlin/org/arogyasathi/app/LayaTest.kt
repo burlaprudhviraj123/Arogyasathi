@@ -499,5 +499,50 @@ class LayaTest {
         val escPph = org.arogyasathi.app.jev.JEVEscalate.evaluate("abhi ghar pe delivery hui, khoon bahut beh raha, pad 3-4 minute me bhar ja raha")
         assertNotNull("Heavy postpartum bleeding must escalate", escPph)
         assertEquals("ESC-3.1", escPph?.first)
+
+        // Dravidian obstetric emergency
+        val escTelugu = org.arogyasathi.app.jev.JEVEscalate.evaluate("garbhavati sthri ki rakthasravam")
+        assertNotNull("Telugu obstetric bleeding must escalate", escTelugu)
+        assertEquals("ESC-2.1", escTelugu?.first)
+    }
+
+    @Test
+    fun testNaturalLanguageMultilingualQueries() {
+        val retriever = LayaRetriever(LocalRepository.sampleProtocols)
+
+        // 1. Child Diarrhoea & ORS in Telugu / Hindi
+        val hitsDiarrhoea = retriever.retrieve("pillavadiki loose motions avthunnai em cheyali", topK = 1)
+        assertFalse(hitsDiarrhoea.isEmpty())
+        assertTrue("Must retrieve diarrhoea section", hitsDiarrhoea.first().sectionId.startsWith("CHD-1"))
+
+        // 2. Child Pneumonia & Respiratory in Hindi
+        val hitsResp = retriever.retrieve("bacche ko bukhar aur khansi hai", topK = 1)
+        assertFalse(hitsResp.isEmpty())
+        assertTrue("Must retrieve respiratory or fever section", hitsResp.first().sectionId.startsWith("CHD-") || hitsResp.first().sectionId.startsWith("ESC-5"))
+
+        // 3. Early ANC Checkup in Hindi
+        val hitsAnc = retriever.retrieve("garbhavati ka pehla checkup kab karwaye", topK = 1)
+        assertFalse(hitsAnc.isEmpty())
+        assertTrue("Must retrieve ANC checkup section", hitsAnc.first().sectionId.startsWith("ANC-1"))
+
+        // 4. Bathing Newborn in Telugu
+        val hitsBathing = retriever.retrieve("snanam eppudu cheyali bidda ki", topK = 1)
+        assertFalse(hitsBathing.isEmpty())
+        assertEquals("HBNC-2.2", hitsBathing.first().sectionId)
+
+        // 5. Pentavalent Vaccine in Telugu
+        val hitsPenta = retriever.retrieve("penta tika eppudu veyali", topK = 1)
+        assertFalse(hitsPenta.isEmpty())
+        assertEquals("IMM-2.2", hitsPenta.first().sectionId)
+
+        // 6. 9 Months Vaccine Schedule
+        val hits9m = retriever.retrieve("9 months baby vaccine list", topK = 1)
+        assertFalse(hits9m.isEmpty())
+        assertEquals("IMM-2.3", hits9m.first().sectionId)
+
+        // 7. ORS Preparation
+        val hitsMakeOrs = retriever.retrieve("how to make ors at home", topK = 1)
+        assertFalse(hitsMakeOrs.isEmpty())
+        assertEquals("CHD-1.1", hitsMakeOrs.first().sectionId)
     }
 }

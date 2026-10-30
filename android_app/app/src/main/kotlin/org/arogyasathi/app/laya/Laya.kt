@@ -80,62 +80,130 @@ object LayaLexicon {
         "motions avthunnai" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "avthunnai" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "virachanalu" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "neellu" to "diarrhoea loose motions watery chd-1.1 chd-1.2",
         "neellu neelluga" to "diarrhoea loose motions watery chd-1.1 chd-1.2",
-        "ors" to "ors packet 100 200 ml 50 100 ml 10 minutes wait chd-1.2",
+        "ors" to "ors packet 100 200 ml 50 100 ml 10 minutes wait chd-1.1 chd-1.2",
+        "make ors" to "ors packet 1 litre drinking water clean wash hands chd-1.1",
+        "prepare ors" to "ors packet 1 litre drinking water clean wash hands chd-1.1",
+        "ors kaise" to "ors packet 1 litre drinking water clean wash hands chd-1.1",
         "zinc" to "zinc 14 days 20 mg 10 mg 6 months chd-1.3",
         "kadupu noppi" to "abdominal pain chd-1.1",
-        "vanthulu" to "vomiting vomit chd-1.2",
-        "vanthulu avthunnai" to "vomiting vomit chd-1.2",
+        "vanthulu" to "vomiting vomit wait 10 minutes chd-1.2",
+        "vanthulu avthunnai" to "vomiting vomit wait 10 minutes chd-1.2",
+        "vomit" to "vomiting wait 10 minutes resume slowly chd-1.2",
+        "vomits" to "vomiting wait 10 minutes resume slowly chd-1.2",
+        "dehydration" to "sunken eyes skin pinch pinch goes back slowly chd-1.5",
 
         // Fever & Respiratory / Pneumonia
         "bukhar" to "fever 38 100.4 chd-2.1 chd-2.2",
         "taap" to "fever chd-2.1 chd-2.2",
         "tap" to "fever chd-2.1 chd-2.2",
         "jwaram" to "fever chd-2.1 chd-2.2",
+        "kaichal" to "fever chd-2.1 chd-2.2",
+        "jwara" to "fever chd-2.1 chd-2.2",
+        "pani" to "fever chd-2.1 chd-2.2",
         "saans" to "breaths per minute 50 breaths 40 breaths 60 breaths fast breathing chd-3.1",
         "swasa" to "breaths per minute 50 breaths 40 breaths fast breathing chd-3.1",
+        "breaths" to "breaths per minute count for 1 minute fast breathing chd-3.1",
         "swasa kastam" to "breaths fast breathing pneumonia chd-3.1 esc-5.2",
         "daggu" to "cough fast breathing chd-3.1",
         "khansi" to "cough fast breathing chd-3.1",
+        "irumal" to "cough fast breathing chd-3.1",
+        "kemmu" to "cough fast breathing chd-3.1",
         "pasli" to "chest indrawing esc-5.2",
 
         // Immunization & Vaccines
         "tika" to "vaccine immunisation session imm-1.1 imm-2",
         "teeka" to "vaccine immunisation imm-1.1 imm-2",
         "tike" to "vaccine immunisation imm-1.1 imm-2",
+        "tikakaran" to "immunisation sessions due list imm-1.1 imm-1.2",
+        "injection" to "vaccine injection imm-1.1",
         "tika eppudu" to "vaccine due schedule imm-2",
+        "lasike" to "vaccine immunisation session imm-1.1 imm-2",
+        "thaduppoosi" to "vaccine immunisation session imm-1.1 imm-2",
         "penta" to "penta pentavalent till one year of age 6 10 14 weeks imm-2.2",
+        "pentavalent" to "penta pentavalent till one year of age 6 10 14 weeks imm-2.2",
         "bcg" to "bcg till one year birth 0.1 ml imm-2.1",
+        "hepb" to "hepatitis b birth 24 hours imm-2.1",
+        "opv" to "opv birth 15 days 2 drops 5 years imm-2.1 imm-2.2",
+        "rvv" to "rotavirus drops 5 drops 6 10 14 weeks imm-2.2",
+        "rotavirus" to "rotavirus drops 5 drops 6 10 14 weeks imm-2.2",
+        "fipv" to "fipv intradermal 0.1 ml 6 14 weeks 9 months imm-2.2 imm-2.3",
+        "pcv" to "pcv pneumococcal 6 14 weeks 9 months booster imm-2.2 imm-2.3",
         "mr" to "measles rubella 9 12 months mr-1 mr-2 imm-2.3 imm-2.4",
         "khasra" to "measles rubella 9 12 months mr-1 mr-2 imm-2.3 imm-2.4",
+        "measles" to "measles rubella 9 12 months mr-1 mr-2 imm-2.3 imm-2.4",
+        "9 months" to "9 12 months mr-1 pcv booster je-1 vit a imm-2.3",
+        "9 mahine" to "9 12 months mr-1 pcv booster je-1 vit a imm-2.3",
+        "9 nelalu" to "9 12 months mr-1 pcv booster je-1 vit a imm-2.3",
+        "6 weeks" to "6 weeks opv-1 penta-1 rvv-1 fipv-1 pcv-1 imm-2.2",
+        "6 hafte" to "6 weeks opv-1 penta-1 rvv-1 fipv-1 pcv-1 imm-2.2",
+        "10 weeks" to "10 weeks opv-2 penta-2 rvv-2 imm-2.2",
+        "14 weeks" to "14 weeks opv-3 penta-3 rvv-3 fipv-2 pcv-2 imm-2.2",
+        "16 months" to "16 24 months dpt booster-1 mr-2 opv booster imm-2.4",
+        "16 mahine" to "16 24 months dpt booster-1 mr-2 opv booster imm-2.4",
         "dpt" to "dpt booster 16 24 months 5 6 years 7 years imm-2.4 imm-2.5",
         "vitamin a" to "vitamin a 9 doses every 6 months 1 lakh 2 lakh iu imm-2.4",
         "je" to "chandrapuri not a je-endemic district no je imm-2.4",
         "td" to "td tetanus diphtheria pregnancy anc-2.5 imm-4.1",
+        "booster" to "booster dose dpt opv pcv imm-2.4",
+        "gap" to "minimum gap 4 weeks 2 months 8 weeks imm-2.6",
 
         // Maternal & ANC
         "pregnant" to "pregnancy antenatal anc-1.1 anc-1.2",
         "garbh" to "pregnancy antenatal anc-1.1 anc-1.2",
         "garbhvati" to "pregnancy antenatal anc-1.1 anc-1.2",
         "garbhavathi" to "pregnancy antenatal anc-1.1 anc-1.2",
+        "garbhavati" to "pregnancy antenatal anc-1.1 anc-1.2",
         "anc" to "antenatal checkup minimum four anc anc-1.2",
-        "ifa" to "red ifa tablet 180 days 100 mg iron anc-2.2 hbnc-3.1",
+        "registration" to "register early within 12 weeks lmp edd anc-1.1",
+        "pehla checkup" to "first 1st anc check-up within 12 weeks anc-1.1 anc-1.2",
+        "modati checkup" to "first 1st anc check-up within 12 weeks anc-1.1 anc-1.2",
+        "first checkup" to "first 1st anc check-up within 12 weeks anc-1.1 anc-1.2",
+        "ifa" to "red ifa tablet 180 days 100 mg iron 60 mg elemental iron anc-2.2",
+        "iron" to "red ifa tablet 180 days 100 mg iron 60 mg elemental iron anc-2.2",
+        "iron tablet" to "red ifa tablet 180 days 100 mg iron 60 mg elemental iron anc-2.2",
+        "iron tablets" to "red ifa tablet 180 days 100 mg iron 60 mg elemental iron anc-2.2",
         "lal goli" to "red ifa tablet 180 days iron anc-2.2 hbnc-3.1",
-        "calcium" to "calcium two tablets a day 500 mg 6 months anc-2.3 hbnc-3.1",
+        "calcium" to "calcium two tablets a day 500 mg 14 weeks 6 months anc-2.3",
+        "albendazole" to "albendazole 400 mg deworming 2nd trimester anc-2.4",
         "hb" to "haemoglobin 7.0 9.9 11.0 moderate mild severe anc-3.1",
         "khoon ki kami" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
         "edd" to "expected date of delivery lmp 280 days 9 months 7 days anc-1.1",
         "pmsma" to "pmsma 9th of every month doctor checkup anc-1.3",
+        "doctor checkup" to "pmsma 9th of every month doctor specialist checkup anc-1.3",
 
         // Newborn & HBNC
         "hbnc" to "hbnc visit schedule institutional 6 home 7 days 1 3 7 14 21 28 42 hbnc-1.1",
         "nehlana" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
         "nehlayen" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "nahana" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "snanam" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "snana" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "kuliyal" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "kulippikkuka" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "bathe" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
+        "bathing" to "bathe bathing first 48 hours 2000 g hbnc-2.2",
         "doodh" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "sthanpaan" to "breastfeeding within 1 hour exclusive 6 months hbnc-2.1",
+        "breastfeeding" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "breastfeed" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "colostrum" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "thalipalu" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "thaai paal" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "naal" to "cord care dry clean nothing apply hbnc-2.3",
+        "boddu" to "cord care dry clean nothing apply hbnc-2.3",
+        "cord" to "cord care dry clean nothing apply hbnc-2.3",
+        "umbilicus" to "cord care dry clean nothing apply hbnc-2.3",
+        "kmc" to "kangaroo mother care skin-to-skin low birth weight hbnc-1.2",
         "paalu thagadam ledu" to "unable to suck drink esc-4.1 esc-5.1",
 
         // Nutrition & Malnutrition
         "muac" to "muac 6 59 months 11.5 12.5 cm yellow red green nut-1.1 nut-1.2",
+        "muac tape" to "muac 6 59 months 11.5 12.5 cm yellow red green nut-1.1 nut-1.2",
+        "red band" to "red band less than 11.5 cm sam severe acute malnutrition nrc nut-1.2 nut-2.1",
+        "yellow band" to "yellow band 11.5 to 12.4 cm mam moderate acute malnutrition nut-1.2 nut-2.3",
+        "green band" to "green band 12.5 cm or more normal nutrition nut-1.2",
         "oedema" to "bilateral pitting oedema both feet dent pit nut-1.1",
         "sujan" to "bilateral pitting oedema both feet dent pit nut-1.1",
         "sam" to "sam severe acute malnutrition nrc 11.5 cm nut-2.1",
@@ -146,48 +214,89 @@ object LayaLexicon {
         // NCD
         "ncd" to "hypertension diabetes screening 30 years cbac ncd-1.1",
         "bp" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
-        "sugar" to "diabetes random blood sugar 200 mg dl ncd-1.3",
+        "blood pressure" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
+        "hypertension" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
+        "sugar" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
+        "blood sugar" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
+        "diabetes" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
         "salt" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "namak" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
+        "uppu" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "exercise" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1 lifestyle counselling",
         "kasrat" to "exercise physical activity 30 minutes 5 days a week 150 minutes ncd-3.1",
 
         // South Indian & Dravidian Languages (Telugu, Tamil, Kannada, Malayalam)
         // Diarrhoea & ORS
         "విరేచనాలు" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "విరేచన" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "మోషన్స్" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "ఓఆర్ఎస్" to "ors packet 100 200 ml 50 100 ml chd-1.1 chd-1.2",
+        "జింక్" to "zinc 14 days 20 mg 10 mg 6 months chd-1.3",
+        "మోతాదు" to "dose dosage how much chd-1.2 chd-1.3",
         "వయిట్రుపోక్కు" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "வயிற்றுப்போக்கு" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "ஓஆர்எஸ்" to "ors packet 100 200 ml 50 100 ml chd-1.1 chd-1.2",
+        "ஜிங்க்" to "zinc 14 days 20 mg 10 mg 6 months chd-1.3",
         "பேதி" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "vayittruppokku" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "bedhi" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "ಭೇದಿ" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "ವಾಂತಿ ಭೇದಿ" to "diarrhoea loose motions vomiting chd-1.1 chd-1.2",
+        "ಓಆರ್‌ಎಸ್" to "ors packet 100 200 ml 50 100 ml chd-1.1 chd-1.2",
+        "ಜಿಂಕ್" to "zinc 14 days 20 mg 10 mg 6 months chd-1.3",
         "bhedi" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "വയറിളക്കം" to "diarrhoea loose motions chd-1.1 chd-1.2",
         "vayarilakkam" to "diarrhoea loose motions chd-1.1 chd-1.2",
+        "ഒആർഎസ്" to "ors packet 100 200 ml 50 100 ml chd-1.1 chd-1.2",
+        "സിങ്ക്" to "zinc 14 days 20 mg 10 mg 6 months chd-1.3",
 
         // Fever & Respiratory
         "జ్వరం" to "fever 38 100.4 chd-2.1 chd-2.2",
         "శ్వాస" to "breaths fast breathing pneumonia chd-3.1",
         "దగ్గు" to "cough fast breathing chd-3.1",
+        "గాలి" to "breaths fast breathing pneumonia chd-3.1",
+        "కడుపు నొప్పి" to "abdominal pain chd-1.1",
+        "వాంతులు" to "vomiting vomit wait 10 minutes chd-1.2",
         "காய்ச்சல்" to "fever 38 100.4 chd-2.1 chd-2.2",
         "சுரம்" to "fever chd-2.1 chd-2.2",
         "இருமல்" to "cough fast breathing chd-3.1",
         "மூச்சு" to "breaths fast breathing pneumonia chd-3.1",
+        "வாந்தி" to "vomiting vomit wait 10 minutes chd-1.2",
         "kaichal" to "fever chd-2.1 chd-2.2",
         "irumal" to "cough fast breathing chd-3.1",
         "moochu" to "breaths fast breathing pneumonia chd-3.1",
         "ಜ್ವರ" to "fever 38 100.4 chd-2.1 chd-2.2",
         "ಉಸಿರಾಟ" to "breaths fast breathing pneumonia chd-3.1",
         "ಕೆಮ್ಮು" to "cough fast breathing chd-3.1",
+        "ವಾಂತಿ" to "vomiting vomit wait 10 minutes chd-1.2",
         "jwara" to "fever chd-2.1 chd-2.2",
         "kemmu" to "cough fast breathing chd-3.1",
         "പനി" to "fever 38 100.4 chd-2.1 chd-2.2",
         "ചുമ" to "cough fast breathing chd-3.1",
         "ശ്വാസം" to "breaths fast breathing pneumonia chd-3.1",
+        "ഛർദ്ദി" to "vomiting vomit wait 10 minutes chd-1.2",
         "pani" to "fever chd-2.1 chd-2.2",
         "chuma" to "cough fast breathing chd-3.1",
+
+        // Newborn Care & HBNC
+        "నవజాత" to "newborn hbnc 48 hours bath cord hbnc-1.1 hbnc-2.2",
+        "శిశువు" to "newborn baby infant hbnc-1.1 hbnc-2.2",
+        "తల్లిపాలు" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "స్నానం" to "bathe bathing baby warm 48 hours 2000 g hbnc-2.2",
+        "బొడ్డు" to "cord umbilicus clean dry nothing apply hbnc-2.3",
+        "పుట్టిన" to "birth newborn hbnc-1.1 imm-2.1",
+        "పుట్టినప్పుడు" to "birth newborn bcg opv-0 hepb hbnc-1.1 imm-2.1",
+        "தாய்ப்பால்" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "குளியல்" to "bathe bathing baby warm 48 hours 2000 g hbnc-2.2",
+        "தொப்புள்" to "cord umbilicus clean dry nothing apply hbnc-2.3",
+        "பிறந்த" to "birth newborn hbnc-1.1 imm-2.1",
+        "ಎದೆಹಾಲು" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "ಸ್ನಾನ" to "bathe bathing baby warm 48 hours 2000 g hbnc-2.2",
+        "ಹೊಕ್ಕಳು" to "cord umbilicus clean dry nothing apply hbnc-2.3",
+        "ജനന" to "birth newborn hbnc-1.1 imm-2.1",
+        "മുലപ്പാൽ" to "breastfeeding within 1 hour exclusive 6 months colostrum hbnc-2.1",
+        "കുളിപ്പിക്കുക" to "bathe bathing baby warm 48 hours 2000 g hbnc-2.2",
+        "പൊക്കിൾ" to "cord umbilicus clean dry nothing apply hbnc-2.3",
 
         // Vaccines & Immunization
         "టీకా" to "vaccine immunisation session imm-1.1 imm-2",
@@ -203,19 +312,35 @@ object LayaLexicon {
         "గర్భవతి" to "pregnancy antenatal anc-1.1 anc-1.2",
         "గర్భం" to "pregnancy antenatal anc-1.1 anc-1.2",
         "కాల్షియం" to "calcium two tablets a day 500 mg 6 months anc-2.3",
+        "ఐరన్" to "red ifa tablet 180 days 100 mg iron 60 mg anc-2.2",
         "రక్తహీనత" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "రక్తపోటు" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
+        "మధుమేహం" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
+        "ఉప్పు" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
+        "వ్యాయామం" to "exercise physical activity 30 minutes 150 minutes ncd-3.1",
+        "పోషకాహార" to "muac malnutrition 6 59 months sam mam nrc nut-1.1 nut-2.1",
+        "బరువు" to "weight birth weight lbw 2500 g 2000 g 1800 g hbnc-1.2",
         "கர்ப்பம்" to "pregnancy antenatal anc-1.1 anc-1.2",
         "கர்ப்பிணி" to "pregnancy antenatal anc-1.1 anc-1.2",
         "ரத்தசோகை" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "ரத்த அழுத்தம்" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
+        "நீரிழிவு" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
+        "உப்பு" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "karppam" to "pregnancy antenatal anc-1.1 anc-1.2",
         "ratha sogai" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
         "ಗರ್ಭಿಣಿ" to "pregnancy antenatal anc-1.1 anc-1.2",
         "ರಕ್ತಹೀನತೆ" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "ರಕ್ತದೊತ್ತಡ" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
+        "ಮಧುಮೇಹ" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
+        "ಉಪ್ಪು" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "garbhini" to "pregnancy antenatal anc-1.1 anc-1.2",
         "ಗರ್ಭ" to "pregnancy antenatal anc-1.1 anc-1.2",
         "ഗർഭം" to "pregnancy antenatal anc-1.1 anc-1.2",
         "ഗർഭിണി" to "pregnancy antenatal anc-1.1 anc-1.2",
         "വിളർച്ച" to "anaemia haemoglobin cutoffs anc-3.1 anc-3.2",
+        "രക്താതിമർദ്ദം" to "blood pressure 140 90 hypertension monthly ncd-1.2 ncd-2.1",
+        "പ്രമേഹം" to "diabetes random blood sugar 140 200 mg dl ncd-1.3",
+        "உപ്പ്" to "maximum 1 teaspoon 5 g salt day lifestyle ncd-3.1",
         "garbham" to "pregnancy antenatal anc-1.1 anc-1.2"
     )
 
@@ -229,9 +354,14 @@ object LayaLexicon {
         val joined = " " + unicodeWords.joinToString(" ") + " "
 
         for ((k, v) in lexicon) {
-            if (k.contains(" ") && joined.contains(" $k ")) {
-                out.addAll(v.split(" "))
-            } else if (k in unicodeWords || k in asciiWords) {
+            val kLower = k.lowercase()
+            val matches = if (kLower.contains(" ")) {
+                joined.contains(" $kLower ") || tLower.contains(kLower)
+            } else {
+                kLower in unicodeWords || kLower in asciiWords ||
+                unicodeWords.any { it.length >= 3 && (it.startsWith(kLower) || it.contains(kLower) || kLower.startsWith(it)) }
+            }
+            if (matches) {
                 out.addAll(v.split(" "))
             }
         }
@@ -241,7 +371,17 @@ object LayaLexicon {
 
 class LayaRetriever(private val sections: List<ProtocolSection>) {
     private val docTokens = sections.map { sec ->
-        LayaLexicon.expand("${sec.sectionId} ${sec.title} ${sec.title} ${sec.title} ${sec.body}")
+        val catKeywords = when (sec.category.uppercase()) {
+            "IMM" -> "immunization vaccine tika teeka"
+            "ANC" -> "antenatal pregnancy garbh maternal"
+            "CHD" -> "child diarrhoea fever pneumonia cough ors zinc"
+            "HBNC" -> "newborn infant baby birth hbnc"
+            "NUT" -> "nutrition muac malnutrition sam mam"
+            "NCD" -> "hypertension diabetes bp sugar ncd"
+            "ESC" -> "danger emergency escalate refer immediately"
+            else -> ""
+        }
+        LayaLexicon.expand("${sec.sectionId} ${sec.title} ${sec.title} ${sec.title} $catKeywords ${sec.body}")
     }
     private val docCount = sections.size
     private val avgDocLen = docTokens.map { it.size }.average()
@@ -331,7 +471,21 @@ object LayaSynthesizer {
 
         when {
             // -------------------------------------------------------------
-            // 1. DIARRHOEA & ORS / ZINC (CHD-1.1, CHD-1.2, CHD-1.3)
+            // 1a. PREPARING ORS (CHD-1.1)
+            // -------------------------------------------------------------
+            secId == "CHD-1.1" || qLower.contains("make ors") || qLower.contains("prepare ors") ||
+            qLower.contains("ors kaise") || qLower.contains("ghol") || qLower.contains("ors ela") -> {
+                primaryCitation = "CHD-1.1"
+                enBody = "Mix 1 packet of ORS in 1 litre of clean drinking water (boiled and cooled), in a clean container. Wash hands with soap and water before preparing. Do not boil prepared ORS or add sugar, salt, milk or juice. Use within 24 hours (CHD-1.1)."
+                hiBody = "1 पैकेट ओआरएस को 1 लीटर साफ पीने के पानी (उबला और ठंडा) में एक साफ बर्तन में घोलें। बनाने से पहले हाथ साबुन से धोएं। तैयार ओआरएस 24 घंटे के अंदर इस्तेमाल करें (CHD-1.1)।"
+                teBody = "1 ప్యాకెట్ ORS ను 1 లీటరు శుభ్రమైన తాగునీటిలో (మరిగించి చల్లార్చిన) కలపండి. తయారు చేయడానికి ముందు చేతులు సబ్బుతో కడగండి. తయారుచేసిన 24 గంటల్లోపు వాడాలి (CHD-1.1)."
+                taBody = "1 பாக்கெட் ORS-ஐ 1 லிட்டர் சுத்தமான குடிநீரில் கலக்கவும். தயாரிக்கும் முன் கைகளை சோப்பினால் கழுவவும். 24 மணி நேரத்திற்குள் பயன்படுத்தவும் (CHD-1.1)."
+                knBody = "1 ಪ್ಯಾಕೆಟ್ ಓಆರ್‌ಎಸ್ ಅನ್ನು 1 ಲೀಟರ್ ಕುಡಿಯುವ ನೀರಿನಲ್ಲಿ ಮಿಶ್ರಣ ಮಾಡಿ. ತಯಾರಿಸುವ ಮೊದಲು ಕೈಗಳನ್ನು ಸಾಬೂನಿನಿಂದ ತೊಳೆಯಿರಿ. 24 ಗಂಟೆಗಳ ಒಳಗೆ ಬಳಸಿ (CHD-1.1)."
+                mlBody = "1 പാക്കറ്റ് ഒആർഎസ് 1 ലിറ്റർ കുടിവെള്ളത്തിൽ കലക്കുക. തയ്യാറാക്കുന്നതിന് മുമ്പ് കൈകൾ സോപ്പിട്ട് കഴുകുക. 24 മണിക്കൂറിനുള്ളിൽ ഉപയോഗിക്കുക (CHD-1.1)."
+            }
+
+            // -------------------------------------------------------------
+            // 1b. DIARRHOEA & ORS / ZINC (CHD-1.2, CHD-1.3)
             // -------------------------------------------------------------
             qLower.contains("dast") || qLower.contains("diarrh") || qLower.contains("motion") ||
             qLower.contains("avthunnai") || qLower.contains("virachan") || qLower.contains("ors") ||
@@ -668,10 +822,39 @@ object LayaSynthesizer {
             }
 
             // -------------------------------------------------------------
-            // 7. NEWBORN HBNC CARE (HBNC-1, HBNC-2)
+            // 7a. NEWBORN BATHING & THERMAL CARE (HBNC-2.2)
+            // -------------------------------------------------------------
+            secId == "HBNC-2.2" || qLower.contains("nehlana") || qLower.contains("snanam") ||
+            qLower.contains("snana") || qLower.contains("kuliyal") || qLower.contains("bathe") ||
+            qLower.contains("bathing") -> {
+                primaryCitation = "HBNC-2.2"
+                enBody = "Do not bathe the baby for the first 48 hours. Keep the baby warm with skin-to-skin contact (KMC) or wrapped in clean clothes. For low birth weight babies (<2000g), delay bathing until weight reaches 2000g. Cites: HBNC-2.2."
+                hiBody = "नवजात शिशु को पहले 48 घंटे बिल्कुल न नहलाएं। बच्चे को गर्म कपड़े में लपेटकर या त्वचा से त्वचा चिपकाकर रखें। कम वजन के बच्चे (<2000 ग्राम) को 2000 ग्राम होने तक न नहलाएं (HBNC-2.2)।"
+                teBody = "నవజాత శిశువుకు మొదటి 48 గంటలు స్నానం చేయించవద్దు. శిశువును వెచ్చగా ఉంచండి. తక్కువ బరువు ఉన్న శిశువులకు (<2000 గ్రా.) బరువు 2000 గ్రాములు వచ్చేవరకు స్నానం ఆలస్యం చేయండి (HBNC-2.2)."
+                taBody = "புதிதாகப் பிறந்த குழந்தைக்கு முதல் 48 மணி நேரம் குளிக்க வைக்க வேண்டாம். குழந்தையை கதகதப்பாக வைத்திருக்கவும். எடை <2000g வரை குளிப்பாட்ட வேண்டாம் (HBNC-2.2)."
+                knBody = "ನವಜಾತ ಶಿಶುವಿಗೆ ಮೊದಲ 48 ಗಂಟೆಗಳವರೆಗೆ ಸ್ನಾನ ಮಾಡಿಸಬೇಡಿ. ಮಗುವನ್ನು ಬೆಚ್ಚಗಿಡಿ. ತೂಕ <2000 ಗ್ರಾಂ ಇರುವವರೆಗೆ ಸ್ನಾನ ಮುಂದೂಡಿ (HBNC-2.2)."
+                mlBody = "നവജാതശിശുവിന് ആദ്യ 48 മണിക്കൂർ കുളിപ്പിക്കരുത്. കുഞ്ഞിനെ ചൂടോടെ സൂക്ഷിക്കുക. ഭാരം <2000 ഗ്രാം എത്തുന്നതുവരെ കുളിപ്പിക്കരുത് (HBNC-2.2)."
+            }
+
+            // -------------------------------------------------------------
+            // 7b. NEWBORN CORD CARE (HBNC-2.3)
+            // -------------------------------------------------------------
+            secId == "HBNC-2.3" || qLower.contains("naal") || qLower.contains("boddu") ||
+            qLower.contains("cord") || qLower.contains("umbilicus") -> {
+                primaryCitation = "HBNC-2.3"
+                enBody = "Keep the cord and umbilicus clean and dry. Do not apply anything on the cord (no oil, ash, powder, or cow dung). Fold the nappy below the cord. If cord bleeds, smells foul, or skin around it is red, refer immediately (HBNC-2.3, ESC-4.4)."
+                hiBody = "नाल और नाभि को साफ और सूखा रखें। नाल पर कुछ भी न लगाएं (कोई तेल, राख, पाउडर या गोबर नहीं)। यदि नाल से खून आए, बदबू आए या आसपास लालिमा हो तो तुरंत अस्पताल ले जाएं (HBNC-2.3)।"
+                teBody = "బొడ్డు త్రాడును శుభ్రంగా మరియు పొడిగా ఉంచండి. బొడ్డుపై ఏమీ రాయవద్దు (నూనె, బూడిద, పౌడర్ పూయవద్దు). రక్తస్రావం లేదా వాసన వస్తే వెంటనే ఆసుపత్రికి తీసుకెళ్లండి (HBNC-2.3)."
+                taBody = "தொப்புள் கொடியை சுத்தமாகவும் உலர்ந்ததாகவும் வைத்திருக்கவும். அதன் மீது எதையும் பூச வேண்டாம் (எண்ணெய், சாம்பல், பவுடர் கூடாது). ரத்தப்போக்கு அல்லது துர்நாற்றம் இருந்தால் உடனே மருத்துவமனைக்கு செல்லவும் (HBNC-2.3)."
+                knBody = "ಹೊಕ್ಕಳು ಬಳ್ಳಿಯನ್ನು ಸ್ವಚ್ಛವಾಗಿ ಮತ್ತು ಒಣಗಿರುವಂತೆ ಇರಿಸಿ. ಅದರ ಮೇಲೆ ಏನನ್ನೂ ಹಚ್ಚಬೇಡಿ (ಎಣ್ಣೆ, ಬೂದಿ ಬೇಡ). ರಕ್ತಸ್ರಾವ ಅಥವಾ ದುರ್ವಾಸನೆ ಇದ್ದರೆ ತಕ್ಷಣ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ (HBNC-2.3)."
+                mlBody = "പൊക്കിൾക്കൊടി വൃത്തിയായും ഉണങ്ങിയ നിലയിലും സൂക്ഷിക്കുക. അതിൽ ഒന്നും പുരട്ടരുത് (എണ്ണയോ ഭസ്മമോ അരുത്). രക്തസ്രാവമോ ദുർഗന്ധമോ ഉണ്ടെങ്കിൽ ഉടൻ ആശുപത്രിയിൽ പോകുക (HBNC-2.3)."
+            }
+
+            // -------------------------------------------------------------
+            // 7c. NEWBORN HBNC VISITS & CARE (HBNC-1, HBNC-2)
             // -------------------------------------------------------------
             qLower.contains("hbnc") || qLower.contains("navjaat") || qLower.contains("newborn") ||
-            qLower.contains("nehlana") || qLower.contains("cord") || secId.startsWith("HBNC-") -> {
+            secId.startsWith("HBNC-") -> {
 
                 primaryCitation = "HBNC-1.1"
 
