@@ -559,6 +559,45 @@ class ArogyasathiRepository(private val context: Context) {
         }
     }
 
+    private fun isAnatomicallyIncompatible(query: String, sectionId: String): Boolean {
+        val q = query.lowercase()
+
+        // Legitimate pediatric cold signs permitted by protocols (CHD-3.1 non-severe cold)
+        if ("runny nose" in q || "running nose" in q) {
+            // Permitted for respiratory protocol
+        } else if (Regex("\\b(bleed|bleeding).*from.*(nose|naak|mookku)\\b|\\bnosebleed\\b|\\bepistaxis\\b|\\bnaak se khoon\\b|\\bnose\\b|\\bnaak\\b|\\bmookku\\b|\\bnaasi\\b").containsMatchIn(q)) {
+            return true
+        }
+
+        // Non-protocol anatomical systems
+        val nonProtocolOrgans = listOf(
+            Regex("\\bear\\b|\\bears\\b|\\bkaan\\b|\\bchevi\\b|\\bkaadhu\\b|\\bkevi\\b"),
+            Regex("\\btooth\\b|\\bteeth\\b|\\bdaant\\b|\\bdant\\b|\\bpal\\b|\\bhallu\\b|\\bgum\\b|\\bdentist\\b"),
+            Regex("\\bthroat\\b|\\bgala\\b|\\bthonda\\b|\\bgontu\\b|\\btonsil\\b"),
+            Regex("\\burine\\b|\\bpeshab\\b|\\bmutram\\b|\\bmootram\\b|\\bkidney\\b|\\bstone\\b|\\bpathri\\b"),
+            Regex("\\bfracture\\b|\\bbone\\b|\\bhaddi\\b|\\belumbu\\b|\\bjoint\\b|\\bghutn[a-z]*\\b|\\bknee\\b"),
+            Regex("\\bskin rash\\b|\\bkhujli\\b|\\bitching\\b|\\bringworm\\b|\\bfungal\\b|\\babscess\\b"),
+            Regex("\\bburn\\b|\\bjal gaya\\b|\\btheekayam\\b")
+        )
+        if (nonProtocolOrgans.any { it.containsMatchIn(q) }) {
+            return true
+        }
+
+        // Maternal vaginal bleeding protocol (ESC-2.1 / ESC-3.1) without any pregnancy/postpartum context
+        if (sectionId.startsWith("ESC-2.1") || sectionId.startsWith("ESC-3.1")) {
+            val maternalWords = listOf(
+                Regex("\\bpregnan[a-z]*\\b"), Regex("\\bgarbh[a-z]*\\b"), Regex("\\btrimester\\b"), Regex("\\bvagina[a-z]*\\b"),
+                Regex("\\bmahila\\b"), Regex("\\baurat\\b"), Regex("\\bprasav\\b"), Regex("\\bfoetal\\b"), Regex("\\bfetal\\b"),
+                Regex("\\bdelivery\\b"), Regex("\\bpad\\b"), Regex("\\bpostpartum\\b"), Regex("\\bpregnancy\\b")
+            )
+            if (!maternalWords.any { it.containsMatchIn(q) }) {
+                return true
+            }
+        }
+
+        return false
+    }
+
     fun askAssistant(query: String, patient: Member? = null): AssistantResult {
         val queryMentioned = resolveMemberFromQuery(query)
         val effectivePatient = queryMentioned ?: patient
@@ -620,6 +659,29 @@ class ArogyasathiRepository(private val context: Context) {
 
         return if (topSections.isNotEmpty()) {
             val topSec = topSections.first()
+
+            // Step 3b: Semantic Anatomical Compatibility Guardrail
+            if (isAnatomicallyIncompatible(query, topSec.sectionId)) {
+                val hindiMsg = "यह लक्षण सामुदायिक प्रोटोकॉल से बाहर है। कृपया लाभार्थी को प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या एएनएम के पास रेफर करें (SCP-1.2)।"
+                val teluguMsg = "ఈ లక్షణం కమ్యూనిటీ ప్రోటోకాల్ పరిధికి మించినది. దయచేసి ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) మెడికల్ ఆఫీసర్ లేదా ANM కు రిఫర్ చేయండి (SCP-1.2)."
+                val tamilMsg = "இந்த அறிகுறி நெறிமுறைக்கு அப்பாற்பட்டது. ஆரம்ப சுகாதார நிலைய (PHC) மருத்துவ அதிகாரி அல்லது ANM-இடம் பரிந்துரைக்கவும் (SCP-1.2)."
+                val kannadaMsg = "ಈ ಲಕ್ಷಣವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರದ (PHC) ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರಿಗೆ ಶಿಫಾರಸು ಮಾಡಿ (SCP-1.2)."
+                val malayalamMsg = "ഈ ലക്ഷണം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. പ്രാഥമികാരോഗ്യ കേന്ദ്രത്തിലെ (PHC) മെഡിക്കൽ ഓഫീസർക്കോ ANM-നോ റഫർ ചെയ്യുക (SCP-1.2)."
+                return AssistantResult(
+                    answer = "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).",
+                    citedSection = "SCP-1.2",
+                    isEscalation = false,
+                    isRefusal = true,
+                    triageLevel = "OUT_OF_SCOPE",
+                    answerHindi = hindiMsg,
+                    answerTelugu = teluguMsg,
+                    answerTamil = tamilMsg,
+                    answerKannada = kannadaMsg,
+                    answerMalayalam = malayalamMsg,
+                    patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
+                )
+            }
+
             val synth = LayaSynthesizer.synthesizeWithContext(topSec, query, effectivePatient, recentHistory)
             val pTag = if (effectivePatient != null) {
                 val age = PatientAgeCalculator.calculate(effectivePatient.dob)?.ageDisplay ?: effectivePatient.dob

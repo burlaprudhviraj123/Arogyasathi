@@ -1,6 +1,6 @@
 {
   "campaign_name": "Arogyasathi 2,000-Question Quality & Robustness Campaign",
-  "timestamp_utc": "2026-10-29T21:27:19Z",
+  "timestamp_utc": "2026-10-30T05:21:22Z",
   "total_questions": 2000,
   "target_met": true,
   "escalation_recall": 1.0,
@@ -8,81 +8,81 @@
   "refusal_accuracy": 1.0,
   "citation_valid_rate": 1.0,
   "latency_metrics_ms": {
-    "mean": 0.273,
-    "median": 0.263,
-    "p95": 0.612,
-    "p99": 0.767
+    "mean": 0.282,
+    "median": 0.278,
+    "p95": 0.622,
+    "p99": 0.784
   },
   "language_distribution": {
     "en": {
       "total_queries": 580,
-      "median_latency_ms": 0.413
+      "median_latency_ms": 0.421
     },
     "hi": {
       "total_queries": 392,
-      "median_latency_ms": 0.199
+      "median_latency_ms": 0.213
     },
     "te": {
       "total_queries": 302,
-      "median_latency_ms": 0.236
+      "median_latency_ms": 0.248
     },
     "ta": {
       "total_queries": 242,
-      "median_latency_ms": 0.291
+      "median_latency_ms": 0.306
     },
     "kn": {
       "total_queries": 205,
-      "median_latency_ms": 0.285
+      "median_latency_ms": 0.302
     },
     "ml": {
       "total_queries": 196,
-      "median_latency_ms": 0.289
+      "median_latency_ms": 0.29
     },
     "code_mixed": {
       "total_queries": 83,
-      "median_latency_ms": 0.091
+      "median_latency_ms": 0.097
     }
   },
   "category_distribution": {
     "ANC": {
       "total_queries": 315,
-      "median_latency_ms": 0.351,
+      "median_latency_ms": 0.369,
       "escalations": 0,
       "refusals": 0
     },
     "PNC/HBNC": {
       "total_queries": 137,
-      "median_latency_ms": 0.456,
+      "median_latency_ms": 0.48,
       "escalations": 0,
       "refusals": 0
     },
     "Immunization": {
       "total_queries": 146,
-      "median_latency_ms": 0.362,
+      "median_latency_ms": 0.374,
       "escalations": 0,
       "refusals": 0
     },
     "Diarrhoea/ORS": {
       "total_queries": 160,
-      "median_latency_ms": 0.397,
+      "median_latency_ms": 0.409,
       "escalations": 0,
       "refusals": 0
     },
     "Respiratory/Pneumonia": {
       "total_queries": 124,
-      "median_latency_ms": 0.369,
+      "median_latency_ms": 0.386,
       "escalations": 0,
       "refusals": 0
     },
     "Malnutrition/MUAC": {
       "total_queries": 123,
-      "median_latency_ms": 0.433,
+      "median_latency_ms": 0.453,
       "escalations": 0,
       "refusals": 0
     },
     "Adult NCD": {
       "total_queries": 187,
-      "median_latency_ms": 0.412,
+      "median_latency_ms": 0.43,
       "escalations": 0,
       "refusals": 0
     },
@@ -94,7 +94,7 @@
     },
     "Out-of-Scope": {
       "total_queries": 292,
-      "median_latency_ms": 0.138,
+      "median_latency_ms": 0.139,
       "escalations": 0,
       "refusals": 292
     }
@@ -102,19 +102,19 @@
   "edge_case_distribution": {
     "standard_protocol": {
       "total_queries": 1821,
-      "median_latency_ms": 0.265
+      "median_latency_ms": 0.279
     },
     "benign_lookalike": {
       "total_queries": 82,
-      "median_latency_ms": 0.522
+      "median_latency_ms": 0.53
     },
     "code_mixed": {
       "total_queries": 82,
-      "median_latency_ms": 0.089
+      "median_latency_ms": 0.097
     },
     "typo_mutation": {
       "total_queries": 15,
-      "median_latency_ms": 0.045
+      "median_latency_ms": 0.043
     }
   },
   "sample_outputs": [
@@ -129,7 +129,7 @@
         "ANC-1.2",
         "ANC-2.4"
       ],
-      "latency_ms": 4.695
+      "latency_ms": 5.197
     },
     {
       "id": "CAMP-0002",
@@ -142,7 +142,7 @@
         "ANC-3.2",
         "ESC-2.2"
       ],
-      "latency_ms": 0.533
+      "latency_ms": 0.538
     },
     {
       "id": "CAMP-0003",
@@ -155,7 +155,7 @@
         "ANC-2.4",
         "ANC-2.1"
       ],
-      "latency_ms": 0.414
+      "latency_ms": 0.45
     },
     {
       "id": "CAMP-0004",
@@ -168,7 +168,7 @@
         "ANC-1.2",
         "ANC-5.3"
       ],
-      "latency_ms": 0.379
+      "latency_ms": 0.39
     },
     {
       "id": "CAMP-0005",
@@ -181,7 +181,7 @@
         "HBNC-1.1",
         "HBNC-4.1"
       ],
-      "latency_ms": 0.32
+      "latency_ms": 0.379
     },
     {
       "id": "CAMP-0006",
@@ -194,7 +194,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.177
+      "latency_ms": 0.2
     },
     {
       "id": "CAMP-0007",
@@ -207,7 +207,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.177
+      "latency_ms": 0.197
     },
     {
       "id": "CAMP-0008",
@@ -220,7 +220,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.143
+      "latency_ms": 0.157
     },
     {
       "id": "CAMP-0009",
@@ -233,7 +233,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.142
+      "latency_ms": 0.161
     },
     {
       "id": "CAMP-0010",
@@ -246,7 +246,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.126
+      "latency_ms": 0.141
     },
     {
       "id": "CAMP-0011",
@@ -259,7 +259,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.269
+      "latency_ms": 0.295
     },
     {
       "id": "CAMP-0012",
@@ -272,7 +272,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.177
+      "latency_ms": 0.192
     },
     {
       "id": "CAMP-0013",
@@ -285,7 +285,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.279
+      "latency_ms": 0.305
     },
     {
       "id": "CAMP-0014",
@@ -298,7 +298,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.155
+      "latency_ms": 0.211
     },
     {
       "id": "CAMP-0015",
@@ -311,7 +311,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.242
+      "latency_ms": 0.278
     },
     {
       "id": "CAMP-0016",
@@ -324,7 +324,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.298
+      "latency_ms": 0.332
     },
     {
       "id": "CAMP-0017",
@@ -337,7 +337,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.176
+      "latency_ms": 0.205
     },
     {
       "id": "CAMP-0018",
@@ -350,7 +350,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.173
+      "latency_ms": 0.196
     },
     {
       "id": "CAMP-0019",
@@ -363,7 +363,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.161
+      "latency_ms": 0.177
     },
     {
       "id": "CAMP-0020",
@@ -376,7 +376,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.271
+      "latency_ms": 0.291
     },
     {
       "id": "CAMP-0021",
@@ -389,7 +389,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.16
+      "latency_ms": 0.175
     },
     {
       "id": "CAMP-0022",
@@ -402,7 +402,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.272
+      "latency_ms": 0.308
     },
     {
       "id": "CAMP-0023",
@@ -415,7 +415,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.261
+      "latency_ms": 0.279
     },
     {
       "id": "CAMP-0024",
@@ -428,7 +428,7 @@
         "VIS-6.2",
         "VIS-6.1"
       ],
-      "latency_ms": 0.159
+      "latency_ms": 0.171
     },
     {
       "id": "CAMP-0025",
@@ -441,7 +441,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.288
+      "latency_ms": 0.3
     }
   ]
 }

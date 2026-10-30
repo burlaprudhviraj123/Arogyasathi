@@ -16,7 +16,7 @@ object JEVEscalate {
         ),
         // 3. Child unable to feed
         Pair(
-            Regex("(doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|cannot suck|not able to drink|cannot drink|unable to drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|doodh kheenchne ki taakat nahi|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu|paalu kudikka villai|haalu kudiyuttilla|paal kudikkunnilla|दूध नहीं पी|दूध पीना.*बंद|खींच नहीं|పాలు తాగడం లేదు|பால் குடிக்கவில்லை|ಹಾಲು ಕುಡಿಯುತ್ತಿಲ್ಲ|പാൽ കുടിക്കുന്നില്ല|stopped breastfeeding|refusing.*feed|unable to drink or breastfeed)", RegexOption.IGNORE_CASE),
+            Regex("(doodh nahi pee pa rah|doodh nahi pee|doodh peena band|unable to suck|cannot suck|not able to drink|cannot drink|unable to drink|peena band kar diya|peena chhod diya|doodh nahi kheench raha|doodh kheenchne ki taakat nahi|paalu thagadam ledu|paalu aapesindi|paalu thaagatam ledu|paalu kudikka villai|haalu kudiyuttilla|paal kudikkunnilla|दूध नहीं खींच|दूध.*खींच नहीं|दूध नहीं पी|दूध पीना.*बंद|खींच नहीं|పాలు తాగడం లేదు|பால் குடிக்கவில்லை|ಹಾಲು ಕುಡಿಯುತ್ತಿಲ್ಲ|പാൽ കുടിക്കുന്നില്ല|stopped breastfeeding|refusing.*feed|unable to drink or breastfeed)", RegexOption.IGNORE_CASE),
             Pair("ESC-5.1", "Child not able to drink or breastfeed: general danger sign, refer immediately to hospital (call 108/102) (ESC-5.1).")
         ),
         // 4. Prolonged fever (> 7 days)

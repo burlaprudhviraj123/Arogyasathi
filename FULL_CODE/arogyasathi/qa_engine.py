@@ -6,11 +6,48 @@ Integrates:
 """
 
 from __future__ import annotations
+import re
 import time
 from typing import Dict, Any, Optional
 from .protocols import load_protocol_sections
 from .jev import JEVEscalate, JEVScope, JEVVerify
 from .laya import LayaRetriever, LayaSynthesizer
+
+
+def is_anatomically_incompatible(query: str, section_id: str) -> bool:
+    """Detects whether a query concerns non-community organs or mismatched anatomy."""
+    q = query.lower()
+
+    # Legitimate pediatric cold signs permitted by protocols (CHD-3.1 non-severe cold)
+    if "runny nose" in q or "running nose" in q:
+        pass
+    elif re.search(r"\b(?:bleed|ble{1,2}ding).*from.*(?:nose|naak|mookku)\b|\bnosebleed\b|\bepistaxis\b|\bnaak se khoon\b|\bnose\b|\bnaak\b|\bmookku\b|\bnaasi\b", q):
+        return True
+
+    # 1. Non-protocol body areas not covered in ASHA community protocols
+    non_protocol_organs = [
+        r"\bear\b|\bears\b|\bkaan\b|\bchevi\b|\bkaadhu\b|\bkevi\b",
+        r"\btooth\b|\bteeth\b|\bdaant\b|\bdant\b|\bpal\b|\bhallu\b|\bgum\b|\bdentist\b",
+        r"\bthroat\b|\bgala\b|\bthonda\b|\bgontu\b|\btonsil\b",
+        r"\burine\b|\bpeshab\b|\bmutram\b|\bmootram\b|\bmoothram\b|\bkidney\b|\bstone\b|\bpathri\b",
+        r"\bfracture\b|\bbone\b|\bhaddi\b|\belumbu\b|\bjoint\b|\bghutn[a-z]*\b|\bknee\b",
+        r"\bskin rash\b|\bkhujli\b|\bitching\b|\bringworm\b|\bfungal\b|\babscess\b",
+        r"\bburn\b|\bjal gaya\b|\btheekayam\b",
+    ]
+    if any(re.search(pat, q) for pat in non_protocol_organs):
+        return True
+
+    # 2. Maternal vaginal bleeding protocol (ESC-2.1 / ESC-3.1) without any maternal/pregnancy context
+    if section_id.startswith("ESC-2.1") or section_id.startswith("ESC-3.1"):
+        maternal_words = [
+            r"\bpregnan[a-z]*\b", r"\bgarbh[a-z]*\b", r"\btrimester\b", r"\bvagina[a-z]*\b",
+            r"\bmahila\b", r"\baurat\b", r"\bprasav\b", r"\bfoetal\b", r"\bfetal\b",
+            r"\bdelivery\b", r"\bpad\b", r"\bpostpartum\b", r"\bpregnancy\b"
+        ]
+        if not any(re.search(w, q) for w in maternal_words):
+            return True
+
+    return False
 
 
 class QAEngine:
@@ -67,6 +104,19 @@ class QAEngine:
         # Step 3: Laya-Retriever (Protocol Leaf Retrieval)
         hits = self.retriever.retrieve(question_text, top_k=2)
         candidate_ids = [h[1] for h in hits]
+
+        # Step 3b: Semantic Anatomical Compatibility Guardrail
+        top_sec = candidate_ids[0] if candidate_ids else "SCP-1.1"
+        if is_anatomically_incompatible(question_text, top_sec):
+            t1 = time.perf_counter_ns()
+            return {
+                "question_id": question_id,
+                "answer_text": "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).",
+                "cited_section_ids": ["SCP-1.2"],
+                "escalate": False,
+                "refused": True,
+                "latency_ms": round((t1 - t0) / 1e6, 3),
+            }
 
         # Step 4: JEV-Verify (Citation Validation)
         verified_citations = self.verifier.validate_citations(candidate_ids)
