@@ -141,6 +141,10 @@ object JEVScope {
             Pair("SCP-1.2", "This is outside my protocol book. Please ask the Medical Officer at the PHC (or your ANM). If any danger sign is present, refer immediately (SCP-1.2).")
         ),
         Pair(
+            Regex("(\\bdengue\\b|डेंगू|డెంగ్యూ|\\btyphoid\\b|टाइफाइड|టైఫాయిడ్|\\btuberculosis\\b|\\btb\\b|टीबी|\\bthyroid\\b|\\bcancer\\b|\\bmental illness\\b|\\bskin disease\\b|\\bringworm\\b|adult jaundice|adult.*fever|fever.*adult)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside the approved frontline protocols. Please consult the Medical Officer at the PHC or your ANM (SCP-1.2).")
+        ),
+        Pair(
             Regex("(ladka.*ladki|sex determination|ling jaanch|kahin pata karwa sakte|ling parikshan|boy or girl|gender of|लड़का.*लड़की|అబ్బాయా లేక అమ్మాయా|ஆணா பெண்ணா|ಗಂಡಾ ಅಥವಾ ಹೆಣ್ಣಾ|ಆಣാണോ പെണ്ണാണോ)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book and prohibited by law (PC-PNDT Act). Every pregnancy requires full antenatal care. Please consult your ANM / MO (SCP-1.2).")
         ),
@@ -201,4 +205,3 @@ object JEVVerify {
         return if (out.isNotEmpty()) out else listOf("SCP-1.1")
     }
 }
-

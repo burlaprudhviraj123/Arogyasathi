@@ -356,10 +356,10 @@ object LayaLexicon {
         for ((k, v) in lexicon) {
             val kLower = k.lowercase()
             val matches = if (kLower.contains(" ")) {
-                joined.contains(" $kLower ") || tLower.contains(kLower)
+                joined.contains(" $kLower ")
             } else {
                 kLower in unicodeWords || kLower in asciiWords ||
-                unicodeWords.any { it.length >= 3 && (it.startsWith(kLower) || it.contains(kLower) || kLower.startsWith(it)) }
+                unicodeWords.any { it.length >= 5 && (it.startsWith(kLower) || kLower.startsWith(it)) }
             }
             if (matches) {
                 out.addAll(v.split(" "))
@@ -381,10 +381,10 @@ class LayaRetriever(private val sections: List<ProtocolSection>) {
             "ESC" -> "danger emergency escalate refer immediately"
             else -> ""
         }
-        LayaLexicon.expand("${sec.sectionId} ${sec.title} ${sec.title} ${sec.title} $catKeywords ${sec.body}")
+        LayaQueryNormalizer.tokens("${sec.sectionId} ${sec.title} ${sec.title} ${sec.title} $catKeywords ${sec.body}")
     }
     private val docCount = sections.size
-    private val avgDocLen = docTokens.map { it.size }.average()
+    private val avgDocLen = docTokens.map { it.size }.average().takeIf { it > 0.0 } ?: 1.0
     private val docFreqs = mutableMapOf<String, Int>().apply {
         for (tokens in docTokens) {
             for (t in tokens.toSet()) {
@@ -392,17 +392,42 @@ class LayaRetriever(private val sections: List<ProtocolSection>) {
             }
         }
     }
+    private val termFrequencies = docTokens.map { tokens ->
+        tokens.groupingBy { it }.eachCount()
+    }
+    private val titleTokens = sections.map { LayaQueryNormalizer.tokens(it.title).toSet() }
+    private val evidenceTokens = sections.map {
+        LayaQueryNormalizer.tokens("${it.title} ${it.body}").toSet()
+    }
 
-    fun retrieve(query: String, topK: Int = 2): List<ProtocolSection> {
-        val qTokens = LayaLexicon.expand(query)
+    fun retrieve(query: String, topK: Int = 2): List<ProtocolSection> =
+        retrieveRanked(query, topK).map { it.section }
+
+    fun retrieveRanked(
+        query: String,
+        topK: Int = 2,
+        categoryFilter: Set<String> = emptySet()
+    ): List<LayaRankedSection> =
+        retrieveRanked(LayaQueryNormalizer.normalize(query), topK, categoryFilter)
+
+    fun retrieveRanked(
+        normalized: LayaQueryNormalizer.NormalizedQuery,
+        topK: Int = 2,
+        categoryFilter: Set<String> = emptySet()
+    ): List<LayaRankedSection> {
+        val qTokens = normalized.expandedTerms
+        val meaningfulTokens = qTokens.filterNot(LayaQueryNormalizer::isNonEvidenceToken)
+        if (meaningfulTokens.isEmpty() || sections.isEmpty()) return emptyList()
         val k1 = 1.5
         val b = 0.75
-
-        val scored = sections.indices.map { i ->
+        val normalizedPhrase = normalized.text
+        val scored = sections.indices.mapNotNull { i ->
+            if (categoryFilter.isNotEmpty() &&
+                sections[i].category.uppercase() !in categoryFilter
+            ) return@mapNotNull null
             val dTokens = docTokens[i]
             val dLen = dTokens.size
-            val tfMap = mutableMapOf<String, Int>()
-            for (t in dTokens) tfMap[t] = (tfMap[t] ?: 0) + 1
+            val tfMap = termFrequencies[i]
 
             var score = 0.0
             for (qt in qTokens) {
@@ -412,11 +437,28 @@ class LayaRetriever(private val sections: List<ProtocolSection>) {
                 val denom = tf + k1 * (1.0 - b + b * (dLen / avgDocLen))
                 score += idf * (tf * (k1 + 1.0)) / denom
             }
-            Pair(score, sections[i])
-        }.filter { it.first > 0.0 }
-        .sortedByDescending { it.first }
-
-        return scored.take(topK).map { it.second }
+            val titleMatches = meaningfulTokens.count { it in titleTokens[i] }
+            val evidenceMatches = meaningfulTokens.filter { it in evidenceTokens[i] }.toSet()
+            val sectionText = LayaQueryNormalizer.tokens(
+                "${sections[i].title} ${sections[i].body}"
+            ).joinToString(" ")
+            val phraseMatch = normalizedPhrase.length >= 5 &&
+                sectionText.contains(normalizedPhrase)
+            val categoryMatch = sections[i].category.uppercase() in categoryFilter
+            score += titleMatches * 0.75
+            if (phraseMatch) score += 2.0
+            if (categoryMatch) score += 0.5
+            if (score <= 0.0 || evidenceMatches.isEmpty()) return@mapNotNull null
+            LayaRankedSection(
+                section = sections[i],
+                score = score,
+                matchedTerms = evidenceMatches,
+                titleMatches = titleMatches,
+                exactPhraseMatch = phraseMatch,
+                categoryMatch = categoryMatch
+            )
+        }
+        return scored.sortedByDescending { it.score }.take(topK)
     }
 }
 
