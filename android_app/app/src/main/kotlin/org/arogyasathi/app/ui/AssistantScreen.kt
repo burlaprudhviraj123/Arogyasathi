@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.arogyasathi.app.R
@@ -307,6 +308,14 @@ fun AssistantScreen(
                 )
             )
         }
+
+        coroutineScope.launch {
+            if (messages.isNotEmpty()) {
+                listState.scrollToItem(messages.size - 1)
+                yield()
+                listState.scrollToItem(messages.size - 1)
+            }
+        }
     }
 
     fun submitQuery(q: String) {
@@ -434,6 +443,15 @@ fun AssistantScreen(
     // Initial load
     LaunchedEffect(activePatient) {
         reloadMessages(activePatient)
+    }
+
+    // Automatically scroll to bottom when any chat is opened, switched, or when messages change
+    LaunchedEffect(messages.size, activePatient, messages.lastOrNull()?.id) {
+        if (messages.isNotEmpty()) {
+            listState.scrollToItem(messages.size - 1)
+            yield()
+            listState.scrollToItem(messages.size - 1)
+        }
     }
 
     // Dynamic suggested topics based on active patient context
