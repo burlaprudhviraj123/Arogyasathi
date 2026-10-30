@@ -576,6 +576,142 @@ class ArogyasathiDbHelper(private val context: Context) :
         return null
     }
 
+    fun getAllAshas(): List<AshaProfile> {
+        val list = mutableListOf<AshaProfile>()
+        val db = readableDatabase
+        val cursor = db.query(TABLE_ASHAS, null, null, null, null, null, "name ASC")
+        cursor.use { c ->
+            val idIdx = c.getColumnIndex("asha_id")
+            val nameIdx = c.getColumnIndex("name")
+            val phoneIdx = c.getColumnIndex("phone")
+            val villagesIdx = c.getColumnIndex("villages_csv")
+            val subCentreIdx = c.getColumnIndex("sub_centre")
+            val subCentreIdIdx = c.getColumnIndex("sub_centre_id")
+            val parentPhcIdx = c.getColumnIndex("parent_phc")
+            val moNameIdx = c.getColumnIndex("mo_name")
+            val moPhoneIdx = c.getColumnIndex("mo_phone")
+            val anmNameIdx = c.getColumnIndex("anm_name")
+            val anmPhoneIdx = c.getColumnIndex("anm_phone")
+            val passwordIdx = c.getColumnIndex("password")
+
+            while (c.moveToNext()) {
+                val ashaId = if (idIdx != -1) c.getString(idIdx) ?: "" else ""
+                val name = if (nameIdx != -1) c.getString(nameIdx) ?: "" else ""
+                val dbPhone = if (phoneIdx != -1) c.getString(phoneIdx) ?: "" else ""
+                val villagesStr = if (villagesIdx != -1) c.getString(villagesIdx) ?: "" else ""
+                val subCentre = if (subCentreIdx != -1) c.getString(subCentreIdx) ?: "" else ""
+                val rawSubCentreId = if (subCentreIdIdx != -1) c.getString(subCentreIdIdx) else null
+                val subCentreId = resolveSubCentreId(ashaId, rawSubCentreId, subCentre, db)
+                val phc = if (parentPhcIdx != -1) c.getString(parentPhcIdx) ?: "" else ""
+                val moName = if (moNameIdx != -1) c.getString(moNameIdx) ?: "" else ""
+                val moPhone = if (moPhoneIdx != -1) c.getString(moPhoneIdx) ?: "" else ""
+                val anmName = if (anmNameIdx != -1) c.getString(anmNameIdx) ?: "" else ""
+                val anmPhone = if (anmPhoneIdx != -1) c.getString(anmPhoneIdx) ?: "" else ""
+                val dbPass = if (passwordIdx != -1) c.getString(passwordIdx) ?: "Asha@2026" else "Asha@2026"
+
+                list.add(
+                    AshaProfile(
+                        ashaId = ashaId,
+                        name = name,
+                        phone = dbPhone,
+                        villages = villagesStr.split(";").map { it.trim() }.filter { it.isNotEmpty() },
+                        subCentre = subCentre,
+                        subCentreId = subCentreId,
+                        parentPhc = phc,
+                        medicalOfficerName = moName,
+                        medicalOfficerPhone = moPhone,
+                        anmName = anmName,
+                        anmPhone = anmPhone,
+                        password = dbPass
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getAshaById(targetAshaId: String): AshaProfile? {
+        val db = readableDatabase
+        val cursor = db.query(TABLE_ASHAS, null, "asha_id = ?", arrayOf(targetAshaId), null, null, null)
+        cursor.use { c ->
+            val idIdx = c.getColumnIndex("asha_id")
+            val nameIdx = c.getColumnIndex("name")
+            val phoneIdx = c.getColumnIndex("phone")
+            val villagesIdx = c.getColumnIndex("villages_csv")
+            val subCentreIdx = c.getColumnIndex("sub_centre")
+            val subCentreIdIdx = c.getColumnIndex("sub_centre_id")
+            val parentPhcIdx = c.getColumnIndex("parent_phc")
+            val moNameIdx = c.getColumnIndex("mo_name")
+            val moPhoneIdx = c.getColumnIndex("mo_phone")
+            val anmNameIdx = c.getColumnIndex("anm_name")
+            val anmPhoneIdx = c.getColumnIndex("anm_phone")
+            val passwordIdx = c.getColumnIndex("password")
+
+            if (c.moveToFirst()) {
+                val ashaId = if (idIdx != -1) c.getString(idIdx) ?: targetAshaId else targetAshaId
+                val name = if (nameIdx != -1) c.getString(nameIdx) ?: "" else ""
+                val dbPhone = if (phoneIdx != -1) c.getString(phoneIdx) ?: "" else ""
+                val villagesStr = if (villagesIdx != -1) c.getString(villagesIdx) ?: "" else ""
+                val subCentre = if (subCentreIdx != -1) c.getString(subCentreIdx) ?: "" else ""
+                val rawSubCentreId = if (subCentreIdIdx != -1) c.getString(subCentreIdIdx) else null
+                val subCentreId = resolveSubCentreId(ashaId, rawSubCentreId, subCentre, db)
+                val phc = if (parentPhcIdx != -1) c.getString(parentPhcIdx) ?: "" else ""
+                val moName = if (moNameIdx != -1) c.getString(moNameIdx) ?: "" else ""
+                val moPhone = if (moPhoneIdx != -1) c.getString(moPhoneIdx) ?: "" else ""
+                val anmName = if (anmNameIdx != -1) c.getString(anmNameIdx) ?: "" else ""
+                val anmPhone = if (anmPhoneIdx != -1) c.getString(anmPhoneIdx) ?: "" else ""
+                val dbPass = if (passwordIdx != -1) c.getString(passwordIdx) ?: "Asha@2026" else "Asha@2026"
+
+                return AshaProfile(
+                    ashaId = ashaId,
+                    name = name,
+                    phone = dbPhone,
+                    villages = villagesStr.split(";").map { it.trim() }.filter { it.isNotEmpty() },
+                    subCentre = subCentre,
+                    subCentreId = subCentreId,
+                    parentPhc = phc,
+                    medicalOfficerName = moName,
+                    medicalOfficerPhone = moPhone,
+                    anmName = anmName,
+                    anmPhone = anmPhone,
+                    password = dbPass
+                )
+            }
+        }
+        return null
+    }
+
+    fun getAllVillages(): List<String> {
+        val villages = linkedSetOf<String>()
+        val db = readableDatabase
+        try {
+            val cursor = db.rawQuery(
+                "SELECT DISTINCT village FROM $TABLE_HOUSEHOLDS WHERE village IS NOT NULL AND TRIM(village) != '' ORDER BY village ASC",
+                null
+            )
+            cursor.use { c ->
+                while (c.moveToNext()) {
+                    val v = c.getString(0)?.trim()
+                    if (!v.isNullOrEmpty()) villages.add(v)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            val cursor = db.rawQuery("SELECT villages_csv FROM $TABLE_ASHAS WHERE villages_csv IS NOT NULL", null)
+            cursor.use { c ->
+                while (c.moveToNext()) {
+                    val csv = c.getString(0) ?: ""
+                    csv.split(";").map { it.trim() }.filter { it.isNotEmpty() }.forEach { villages.add(it) }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return villages.sorted()
+    }
+
     fun resolveSubCentreId(
         ashaId: String,
         dbSubCentreId: String?,

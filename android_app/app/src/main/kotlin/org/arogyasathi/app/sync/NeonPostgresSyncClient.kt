@@ -77,6 +77,7 @@ class NeonPostgresSyncClient(
                                     phone = obj.optString("phone", "+91 98765 43220"),
                                     villagesCsv = villagesStr,
                                     subCentre = obj.optString("sub_centre", "Chandrapuri Sub-Centre"),
+                                    subCentreId = obj.optString("sub_centre_id", "SC-BWT-101"),
                                     parentPhc = obj.optString("parent_phc", "Chandrapuri PHC (Sector 1)"),
                                     medicalOfficerName = obj.optString("mo_name", "Dr. Rajesh Sharma, MBBS"),
                                     medicalOfficerPhone = obj.optString("mo_phone", "+91 94310 82101"),

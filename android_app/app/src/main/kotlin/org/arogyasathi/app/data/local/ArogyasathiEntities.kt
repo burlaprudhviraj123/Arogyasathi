@@ -66,14 +66,7 @@ data class AshaEntity(
         phone = phone,
         villages = villagesCsv.split(";").map { it.trim() }.filter { it.isNotEmpty() },
         subCentre = subCentre,
-        subCentreId = if (subCentreId.isNotBlank()) subCentreId else when (ashaId) {
-            "ASHA-RRR5" -> "SC-BWT-101"
-            "ASHA-096P" -> "SC-AMP-102"
-            "ASHA-YFK5" -> "SC-KSG-103"
-            "ASHA-L9R8" -> "SC-DHP-104"
-            "ASHA-KQXR" -> "SC-NGK-105"
-            else -> "SC-${ashaId.takeLast(4)}-101"
-        },
+        subCentreId = subCentreId,
         parentPhc = parentPhc,
         medicalOfficerName = medicalOfficerName,
         medicalOfficerPhone = medicalOfficerPhone,

@@ -151,20 +151,30 @@ class ArogyasathiRepository(private val context: Context) {
     )
 
     fun getActiveProfile(): AshaProfile {
-        return allProfiles.find { it.ashaId == activeAshaId } ?: allProfiles.first()
+        return dbHelper.getAshaById(activeAshaId)
+            ?: dbHelper.getAllAshas().firstOrNull()
+            ?: allProfiles.find { it.ashaId == activeAshaId }
+            ?: allProfiles.first()
     }
 
     fun setActiveWorker(ashaId: String) {
-        if (allProfiles.any { it.ashaId == ashaId }) {
+        val available = getAllAshaProfiles()
+        if (available.any { it.ashaId == ashaId }) {
             activeAshaId = ashaId
         }
     }
 
-    fun getAllAshaProfiles(): List<AshaProfile> = allProfiles
+    fun getAllAshaProfiles(): List<AshaProfile> {
+        val dbProfiles = dbHelper.getAllAshas()
+        return if (dbProfiles.isNotEmpty()) dbProfiles else allProfiles
+    }
 
-    fun getAllVillages(): List<String> = listOf(
-        "Belwadi Tola", "Amrapur", "Kesarganj", "Dhanpura", "Navagaon Khurd", "Sitapahari"
-    )
+    fun getAllVillages(): List<String> {
+        val dbVillages = dbHelper.getAllVillages()
+        return if (dbVillages.isNotEmpty()) dbVillages else listOf(
+            "Belwadi Tola", "Amrapur", "Kesarganj", "Dhanpura", "Navagaon Khurd", "Sitapahari"
+        )
+    }
 
     fun getAppLanguage(): org.arogyasathi.app.ui.AppLanguage {
         val prefs = context.getSharedPreferences("arogyasathi_prefs", Context.MODE_PRIVATE)

@@ -257,7 +257,7 @@ fun AshaProfileScreen(
                                     border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.25f))
                                 ) {
                                     Text(
-                                        text = "Primary Contact",
+                                        text = strings.profileActiveBadge,
                                         fontSize = 9.5.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryTeal,

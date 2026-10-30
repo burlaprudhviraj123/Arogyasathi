@@ -119,6 +119,7 @@ internal class SqliteBackedArogyasathiRoomDatabase(
                         put("phone", a.phone)
                         put("villages_csv", a.villagesCsv)
                         put("sub_centre", a.subCentre)
+                        put("sub_centre_id", a.subCentreId)
                         put("parent_phc", a.parentPhc)
                         put("mo_name", a.medicalOfficerName)
                         put("mo_phone", a.medicalOfficerPhone)
@@ -645,19 +646,24 @@ internal class SqliteBackedArogyasathiRoomDatabase(
     override fun syncQueueDao(): SyncQueueDao = _syncQueueDao
     override fun patientChatDao(): PatientChatDao = _patientChatDao
 
-    private fun cursorToAshaEntity(c: Cursor): AshaEntity = AshaEntity(
-        ashaId = c.getString(c.getColumnIndexOrThrow("asha_id")),
-        name = c.getString(c.getColumnIndexOrThrow("name")) ?: "",
-        phone = c.getString(c.getColumnIndexOrThrow("phone")) ?: "+91 98765 43220",
-        villagesCsv = c.getString(c.getColumnIndexOrThrow("villages_csv")) ?: "",
-        subCentre = c.getString(c.getColumnIndexOrThrow("sub_centre")) ?: "",
-        parentPhc = c.getString(c.getColumnIndexOrThrow("parent_phc")) ?: "Chandrapuri PHC (Sector 1)",
-        medicalOfficerName = c.getString(c.getColumnIndexOrThrow("mo_name")) ?: "Dr. Rajesh Sharma, MBBS",
-        medicalOfficerPhone = c.getString(c.getColumnIndexOrThrow("mo_phone")) ?: "+91 94310 82101",
-        anmName = c.getString(c.getColumnIndexOrThrow("anm_name")) ?: "Anita Sharma",
-        anmPhone = c.getString(c.getColumnIndexOrThrow("anm_phone")) ?: "+91 98350 41102",
-        password = if (c.getColumnIndex("password") != -1) c.getString(c.getColumnIndexOrThrow("password")) ?: "Asha@2026" else "Asha@2026"
-    )
+    private fun cursorToAshaEntity(c: Cursor): AshaEntity {
+        val subCentreIdIdx = c.getColumnIndex("sub_centre_id")
+        val subCentreId = if (subCentreIdIdx != -1) c.getString(subCentreIdIdx) ?: "" else ""
+        return AshaEntity(
+            ashaId = c.getString(c.getColumnIndexOrThrow("asha_id")),
+            name = c.getString(c.getColumnIndexOrThrow("name")) ?: "",
+            phone = c.getString(c.getColumnIndexOrThrow("phone")) ?: "+91 98765 43220",
+            villagesCsv = c.getString(c.getColumnIndexOrThrow("villages_csv")) ?: "",
+            subCentre = c.getString(c.getColumnIndexOrThrow("sub_centre")) ?: "",
+            subCentreId = subCentreId,
+            parentPhc = c.getString(c.getColumnIndexOrThrow("parent_phc")) ?: "Chandrapuri PHC (Sector 1)",
+            medicalOfficerName = c.getString(c.getColumnIndexOrThrow("mo_name")) ?: "Dr. Rajesh Sharma, MBBS",
+            medicalOfficerPhone = c.getString(c.getColumnIndexOrThrow("mo_phone")) ?: "+91 94310 82101",
+            anmName = c.getString(c.getColumnIndexOrThrow("anm_name")) ?: "Anita Sharma",
+            anmPhone = c.getString(c.getColumnIndexOrThrow("anm_phone")) ?: "+91 98350 41102",
+            password = if (c.getColumnIndex("password") != -1) c.getString(c.getColumnIndexOrThrow("password")) ?: "Asha@2026" else "Asha@2026"
+        )
+    }
 
     private fun cursorToHouseholdEntity(c: Cursor): HouseholdEntity = HouseholdEntity(
         householdId = c.getString(c.getColumnIndexOrThrow("household_id")),
