@@ -14,7 +14,7 @@ class ArogyasathiDbHelper(private val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "arogyasathi.db"
-        const val DATABASE_VERSION = 4
+        const val DATABASE_VERSION = 5
 
         const val TABLE_ASHAS = "ashas"
         const val TABLE_HOUSEHOLDS = "households"
@@ -49,6 +49,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                 phone TEXT,
                 villages_csv TEXT,
                 sub_centre TEXT,
+                sub_centre_id TEXT,
                 parent_phc TEXT,
                 mo_name TEXT,
                 mo_phone TEXT,
@@ -209,6 +210,13 @@ class ArogyasathiDbHelper(private val context: Context) :
             } catch (e: Exception) {
                 // Column might already exist
             }
+        }
+        if (oldVersion < 5) {
+            try {
+                db.execSQL("ALTER TABLE $TABLE_ASHAS ADD COLUMN sub_centre_id TEXT")
+            } catch (e: Exception) {
+                // Column might already exist
+            }
             seedAshas(db)
             return
         }
@@ -243,6 +251,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                     put("phone", "+91 98765 43220")
                     put("villages_csv", "Belwadi Tola")
                     put("sub_centre", "Belwadi Tola Ayushman Arogya Mandir (HWC)")
+                    put("sub_centre_id", "SC-BWT-101")
                     put("parent_phc", "Chandrapuri PHC (Sector 1)")
                     put("mo_name", "Dr. Rajesh Sharma, MBBS")
                     put("mo_phone", "+91 94310 82101")
@@ -256,6 +265,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                     put("phone", "+91 98765 43221")
                     put("villages_csv", "Amrapur")
                     put("sub_centre", "Amrapur Health & Wellness Centre")
+                    put("sub_centre_id", "SC-AMP-102")
                     put("parent_phc", "Chandrapuri PHC (Sector 1)")
                     put("mo_name", "Dr. Rajesh Sharma, MBBS")
                     put("mo_phone", "+91 94310 82101")
@@ -269,6 +279,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                     put("phone", "+91 98765 43222")
                     put("villages_csv", "Kesarganj")
                     put("sub_centre", "Kesarganj Health & Wellness Centre")
+                    put("sub_centre_id", "SC-KSG-103")
                     put("parent_phc", "Chandrapuri PHC (Sector 2)")
                     put("mo_name", "Dr. Priyadarshini Sen, MBBS, DGO")
                     put("mo_phone", "+91 94310 82102")
@@ -282,6 +293,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                     put("phone", "+91 98765 43223")
                     put("villages_csv", "Dhanpura")
                     put("sub_centre", "Dhanpura Health & Wellness Centre")
+                    put("sub_centre_id", "SC-DHP-104")
                     put("parent_phc", "Chandrapuri PHC (Sector 2)")
                     put("mo_name", "Dr. Priyadarshini Sen, MBBS, DGO")
                     put("mo_phone", "+91 94310 82102")
@@ -295,6 +307,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                     put("phone", "+91 98765 43224")
                     put("villages_csv", "Navagaon Khurd;Sitapahari")
                     put("sub_centre", "Navagaon Khurd Health & Wellness Centre")
+                    put("sub_centre_id", "SC-NGK-105")
                     put("parent_phc", "Chandrapuri PHC (Sector 3)")
                     put("mo_name", "Dr. Alok Ranjan, MBBS, MD")
                     put("mo_phone", "+91 94310 82103")
@@ -448,6 +461,7 @@ class ArogyasathiDbHelper(private val context: Context) :
             val phoneIdx = c.getColumnIndex("phone")
             val villagesIdx = c.getColumnIndex("villages_csv")
             val subCentreIdx = c.getColumnIndex("sub_centre")
+            val subCentreIdIdx = c.getColumnIndex("sub_centre_id")
             val parentPhcIdx = c.getColumnIndex("parent_phc")
             val moNameIdx = c.getColumnIndex("mo_name")
             val moPhoneIdx = c.getColumnIndex("mo_phone")
@@ -474,6 +488,8 @@ class ArogyasathiDbHelper(private val context: Context) :
                         val ashaId = if (idIdx != -1) c.getString(idIdx) ?: "ASHA-RRR5" else "ASHA-RRR5"
                         val villagesStr = if (villagesIdx != -1) c.getString(villagesIdx) ?: "" else ""
                         val subCentre = if (subCentreIdx != -1) c.getString(subCentreIdx) ?: "" else ""
+                        val rawSubCentreId = if (subCentreIdIdx != -1) c.getString(subCentreIdIdx) else null
+                        val subCentreId = resolveSubCentreId(ashaId, rawSubCentreId, subCentre, db)
                         val moName = if (moNameIdx != -1) c.getString(moNameIdx) ?: "" else ""
                         val moPhone = if (moPhoneIdx != -1) c.getString(moPhoneIdx) ?: "" else ""
                         val anmName = if (anmNameIdx != -1) c.getString(anmNameIdx) ?: "" else ""
@@ -485,6 +501,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                             phone = dbPhone,
                             villages = villagesStr.split(";").map { it.trim() }.filter { it.isNotEmpty() },
                             subCentre = subCentre,
+                            subCentreId = subCentreId,
                             parentPhc = phc,
                             medicalOfficerName = moName,
                             medicalOfficerPhone = moPhone,
@@ -514,6 +531,7 @@ class ArogyasathiDbHelper(private val context: Context) :
             val phoneIdx = c.getColumnIndex("phone")
             val villagesIdx = c.getColumnIndex("villages_csv")
             val subCentreIdx = c.getColumnIndex("sub_centre")
+            val subCentreIdIdx = c.getColumnIndex("sub_centre_id")
             val parentPhcIdx = c.getColumnIndex("parent_phc")
             val moNameIdx = c.getColumnIndex("mo_name")
             val moPhoneIdx = c.getColumnIndex("mo_phone")
@@ -529,6 +547,8 @@ class ArogyasathiDbHelper(private val context: Context) :
                     val name = if (nameIdx != -1) c.getString(nameIdx) ?: "ASHA Worker" else "ASHA Worker"
                     val villagesStr = if (villagesIdx != -1) c.getString(villagesIdx) ?: "" else ""
                     val subCentre = if (subCentreIdx != -1) c.getString(subCentreIdx) ?: "" else ""
+                    val rawSubCentreId = if (subCentreIdIdx != -1) c.getString(subCentreIdIdx) else null
+                    val subCentreId = resolveSubCentreId(ashaId, rawSubCentreId, subCentre, db)
                     val phc = if (parentPhcIdx != -1) c.getString(parentPhcIdx) ?: "Chandrapuri PHC (Sector 1)" else "Chandrapuri PHC (Sector 1)"
                     val moName = if (moNameIdx != -1) c.getString(moNameIdx) ?: "" else ""
                     val moPhone = if (moPhoneIdx != -1) c.getString(moPhoneIdx) ?: "" else ""
@@ -542,14 +562,7 @@ class ArogyasathiDbHelper(private val context: Context) :
                         phone = dbPhone,
                         villages = villagesStr.split(";").map { it.trim() }.filter { it.isNotEmpty() },
                         subCentre = subCentre,
-                        subCentreId = when (ashaId) {
-                            "ASHA-RRR5" -> "SC-BWT-101"
-                            "ASHA-096P" -> "SC-AMP-102"
-                            "ASHA-YFK5" -> "SC-KSG-103"
-                            "ASHA-L9R8" -> "SC-DHP-104"
-                            "ASHA-KQXR" -> "SC-NGK-105"
-                            else -> "SC-${ashaId.takeLast(4)}-101"
-                        },
+                        subCentreId = subCentreId,
                         parentPhc = phc,
                         medicalOfficerName = moName,
                         medicalOfficerPhone = moPhone,
@@ -561,6 +574,37 @@ class ArogyasathiDbHelper(private val context: Context) :
             }
         }
         return null
+    }
+
+    fun resolveSubCentreId(
+        ashaId: String,
+        dbSubCentreId: String?,
+        subCentreName: String? = null,
+        db: SQLiteDatabase? = null
+    ): String {
+        if (!dbSubCentreId.isNullOrBlank()) {
+            return dbSubCentreId
+        }
+        val generated = when (ashaId) {
+            "ASHA-RRR5" -> "SC-BWT-101"
+            "ASHA-096P" -> "SC-AMP-102"
+            "ASHA-YFK5" -> "SC-KSG-103"
+            "ASHA-L9R8" -> "SC-DHP-104"
+            "ASHA-KQXR" -> "SC-NGK-105"
+            else -> {
+                val clean = ashaId.replace(Regex("[^A-Za-z0-9]"), "").takeLast(4).uppercase()
+                "SC-$clean-101"
+            }
+        }
+        if (db != null) {
+            try {
+                val cv = ContentValues().apply { put("sub_centre_id", generated) }
+                db.update(TABLE_ASHAS, cv, "asha_id = ?", arrayOf(ashaId))
+            } catch (e: Exception) {
+                // Ignore if DB is read-only or in transaction
+            }
+        }
+        return generated
     }
 
     private fun parseCsvLine(line: String): List<String> {

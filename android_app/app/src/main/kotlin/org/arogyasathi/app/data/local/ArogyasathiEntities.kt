@@ -39,6 +39,9 @@ data class AshaEntity(
     @ColumnInfo(name = "sub_centre")
     val subCentre: String,
 
+    @ColumnInfo(name = "sub_centre_id")
+    val subCentreId: String = "SC-BWT-101",
+
     @ColumnInfo(name = "parent_phc")
     val parentPhc: String = "Chandrapuri PHC (Sector 1)",
 
@@ -63,7 +66,7 @@ data class AshaEntity(
         phone = phone,
         villages = villagesCsv.split(";").map { it.trim() }.filter { it.isNotEmpty() },
         subCentre = subCentre,
-        subCentreId = when (ashaId) {
+        subCentreId = if (subCentreId.isNotBlank()) subCentreId else when (ashaId) {
             "ASHA-RRR5" -> "SC-BWT-101"
             "ASHA-096P" -> "SC-AMP-102"
             "ASHA-YFK5" -> "SC-KSG-103"
@@ -86,6 +89,7 @@ data class AshaEntity(
             phone = profile.phone,
             villagesCsv = profile.villages.joinToString(";"),
             subCentre = profile.subCentre,
+            subCentreId = profile.subCentreId,
             parentPhc = profile.parentPhc,
             medicalOfficerName = profile.medicalOfficerName,
             medicalOfficerPhone = profile.medicalOfficerPhone,

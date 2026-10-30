@@ -42,6 +42,25 @@ class RoomNeonSchemaTest {
         assertEquals(profile.ashaId, restored.ashaId)
         assertEquals(profile.name, restored.name)
         assertEquals(listOf("Belwadi Tola", "Amrapur"), restored.villages)
+        assertEquals("Asha@2026", entity.password)
+        assertEquals("Asha@2026", restored.password)
+    }
+
+    @Test
+    fun testAshaCustomPasswordRoundTrip() {
+        val profile = AshaProfile(
+            ashaId = "ASHA-RRR5",
+            name = "Kalavati Kumari",
+            phone = "+91 98765 43220",
+            villages = listOf("Belwadi Tola"),
+            subCentre = "Belwadi Tola HWC",
+            password = "SecretKalavati#2026"
+        )
+        val entity = AshaEntity.fromDomain(profile)
+        assertEquals("SecretKalavati#2026", entity.password)
+
+        val restored = entity.toDomain()
+        assertEquals("SecretKalavati#2026", restored.password)
     }
 
     @Test
