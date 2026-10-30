@@ -27,6 +27,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -653,11 +654,11 @@ fun AssistantScreen(
             }
         }
 
-        // Bottom Chat Input Bar (Single Unified Pill with Uniform Companion Action Buttons)
+        // Bottom Chat Input Bar (Rich Floating Capsule with Tactile Action Twins)
         Surface(
-            shape = RoundedCornerShape(26.dp),
+            shape = RoundedCornerShape(28.dp),
             color = Color.White,
-            border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.25f)),
+            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
             shadowElevation = 3.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -667,9 +668,9 @@ fun AssistantScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 14.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
+                    .padding(start = 16.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Seamless Text Input Field inside the single bar
                 BasicTextField(
@@ -696,7 +697,7 @@ fun AssistantScreen(
                                 Text(
                                     text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
                                     fontSize = 13.sp,
-                                    color = TextSecondary,
+                                    color = Color(0xFF94A3B8),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -706,47 +707,70 @@ fun AssistantScreen(
                     }
                 )
 
-                // Uniform Microphone Button (Companion button 1 to the right)
-                IconButton(
-                    onClick = { showVoiceConsultationDialog = true },
+                // Uniform Microphone Button (Rich Medical Teal Glow)
+                Surface(
+                    shape = CircleShape,
+                    shadowElevation = 1.5.dp,
+                    border = BorderStroke(1.dp, Color(0xFF99F6E4)),
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(Color(0xFFE6F4F1), CircleShape)
-                        .border(1.dp, PrimaryTeal.copy(alpha = 0.25f), CircleShape)
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .clickable { showVoiceConsultationDialog = true }
                         .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_mic),
-                        contentDescription = "Voice consultation",
-                        tint = PrimaryTeal,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color(0xFFF0FDFA), Color(0xFFCCFBF1))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_mic),
+                            contentDescription = "Voice consultation",
+                            tint = Color(0xFF0F766E),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
 
-                // Uniform Send Button (Companion button 2 to the right)
+                // Uniform Send Button (Rich Vibrant Action Gradient)
                 val isSendEnabled = queryText.trim().isNotEmpty()
-                IconButton(
-                    onClick = { submitQuery(queryText) },
-                    enabled = isSendEnabled,
+                Surface(
+                    shape = CircleShape,
+                    shadowElevation = if (isSendEnabled) 3.dp else 0.dp,
+                    border = BorderStroke(
+                        1.dp,
+                        if (isSendEnabled) Color(0xFF0F766E).copy(alpha = 0.8f) else Color(0xFFE2E8F0)
+                    ),
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            if (isSendEnabled) PrimaryTeal else Color(0xFFF1F5F9),
-                            CircleShape
-                        )
-                        .border(
-                            1.dp,
-                            if (isSendEnabled) PrimaryTeal else Color(0xFFE2E8F0),
-                            CircleShape
-                        )
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .clickable(enabled = isSendEnabled) { submitQuery(queryText) }
                         .semantics { contentDescription = "Send message" }
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_send),
-                        contentDescription = "Send",
-                        tint = if (isSendEnabled) Color.White else Color(0xFF94A3B8),
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                if (isSendEnabled) {
+                                    Brush.verticalGradient(listOf(Color(0xFF14B8A6), Color(0xFF0F766E)))
+                                } else {
+                                    Brush.verticalGradient(listOf(Color(0xFFF8FAFC), Color(0xFFE2E8F0)))
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_send),
+                            contentDescription = "Send",
+                            tint = if (isSendEnabled) Color.White else Color(0xFF94A3B8),
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
                 }
             }
         }
