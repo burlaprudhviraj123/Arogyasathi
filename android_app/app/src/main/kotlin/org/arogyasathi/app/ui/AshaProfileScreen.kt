@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.arogyasathi.app.R
@@ -212,49 +214,100 @@ fun AshaProfileScreen(
                         HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Quick Info Badges
+                        // Quick Info Section (Symmetrically balanced 50/50 with full-height divider)
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // Left Wing: Registered Mobile
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
                                 Text(
                                     text = strings.profileRegisteredMobile,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextSecondary
+                                    color = TextSecondary,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = activeProfile.phone,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PrimaryTeal
-                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier.height(34.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = activeProfile.phone,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryTeal,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = PrimaryTeal.copy(alpha = 0.08f),
+                                    border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.25f))
+                                ) {
+                                    Text(
+                                        text = "Primary Contact",
+                                        fontSize = 9.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryTeal,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
                             }
 
+                            // Centered Full-Height Vertical Divider
                             Box(
                                 modifier = Modifier
                                     .width(1.dp)
-                                    .height(32.dp)
+                                    .fillMaxHeight()
+                                    .padding(vertical = 4.dp)
                                     .background(BorderSubtle)
                             )
 
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // Right Wing: Assigned Sub-Centre
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
                                 Text(
                                     text = strings.profileAssignedSubCentre,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextSecondary
+                                    color = TextSecondary,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = activeProfile.subCentre,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier.height(34.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = activeProfile.subCentre,
+                                        fontSize = 11.5.sp,
+                                        lineHeight = 14.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Surface(
                                     shape = RoundedCornerShape(6.dp),
                                     color = PrimaryTeal.copy(alpha = 0.12f),

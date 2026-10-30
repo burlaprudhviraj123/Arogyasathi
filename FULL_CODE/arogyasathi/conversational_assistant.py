@@ -14,10 +14,9 @@ Integrates all 10 core capabilities:
 """
 
 from __future__ import annotations
-import os
 import re
 import time
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 
 from .protocols import load_protocol_sections
 from .jev import JEVEscalate, JEVScope, JEVVerify
@@ -88,7 +87,7 @@ class NaturalClinicalSynthesizer:
         guidance_text = ". ".join(top_sentences).rstrip(".") + "."
 
         # Build Contextual Conversation Response
-        lang_short = lang.take(2).lower() if hasattr(lang, "take") else str(lang)[:2].lower()
+        lang_short = str(lang)[:2].lower()
 
         # 1. Patient Context Preface
         context_preface = ""

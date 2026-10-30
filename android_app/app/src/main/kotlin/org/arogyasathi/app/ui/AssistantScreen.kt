@@ -397,11 +397,11 @@ fun AssistantScreen(
 
         if (autoPlayTts) {
             val textToSpeak = when (selectedLanguage) {
-                VoiceLanguage.TELUGU -> assistantResult.answerTelugu ?: assistantResult.answer
-                VoiceLanguage.HINDI -> assistantResult.answerHindi ?: assistantResult.answer
-                VoiceLanguage.TAMIL -> assistantResult.answerTamil ?: assistantResult.answer
-                VoiceLanguage.KANNADA -> assistantResult.answerKannada ?: assistantResult.answer
-                VoiceLanguage.MALAYALAM -> assistantResult.answerMalayalam ?: assistantResult.answer
+                VoiceLanguage.TELUGU -> assistantResult.answerTelugu.ifBlank { assistantResult.answer }
+                VoiceLanguage.HINDI -> assistantResult.answerHindi.ifBlank { assistantResult.answer }
+                VoiceLanguage.TAMIL -> assistantResult.answerTamil.ifBlank { assistantResult.answer }
+                VoiceLanguage.KANNADA -> assistantResult.answerKannada.ifBlank { assistantResult.answer }
+                VoiceLanguage.MALAYALAM -> assistantResult.answerMalayalam.ifBlank { assistantResult.answer }
                 VoiceLanguage.ENGLISH -> assistantResult.answer
             }
             val langLocale = when (selectedLanguage) {
@@ -1594,14 +1594,14 @@ fun ChatBubble(
                                                 village = activePatient?.village ?: "Chandrapuri Block",
                                                 householdId = activePatient?.householdId ?: "HH-EMERGENCY",
                                                 suspectedCondition = "Acute Danger Sign",
-                                                dangerSigns = listOf(res?.citedSection ?: "ESC-2.1"),
+                                                dangerSigns = listOf(res.citedSection),
                                                 vitalSigns = when {
                                                     activePatient?.isPregnant == true -> "BP: ${activePatient.lastAncBp ?: "Check Urgently"}, Hb: ${activePatient.lastHbGdl ?: "Check"} g/dL"
                                                     activePatient?.lastBpReading != null -> "BP: ${activePatient.lastBpReading}"
                                                     activePatient?.lastMuacCm != null -> "MUAC: ${activePatient.lastMuacCm} cm"
                                                     else -> "Critical Triage"
                                                 },
-                                                protocolCitation = res?.citedSection ?: "ESC-2.1",
+                                                protocolCitation = res.citedSection,
                                                 referredFacility = activeProfile.parentPhc,
                                                 immediateActionTaken = "Medical Officer Alerted & 108 Emergency Ambulance Dispatched",
                                                 ashaName = activeProfile.name,

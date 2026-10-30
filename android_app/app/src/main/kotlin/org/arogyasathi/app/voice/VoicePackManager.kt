@@ -235,15 +235,6 @@ class VoicePackManager(private val context: Context) {
     }
 
     /**
-     * Installs the bundled APK pack (e.g. for demo build) into app-private storage.
-     */
-    suspend fun installBundledPackIfNeeded(languageTag: String): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            check(installBundledPackSync(languageTag)) { "Failed to unpack bundled asset for $languageTag" }
-        }
-    }
-
-    /**
      * Parses and verifies a signed catalogue envelope string, populating catalogue entries.
      */
     fun loadCatalogueFromEnvelope(envelopeJson: String): Result<List<CatalogueEntry>> {

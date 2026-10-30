@@ -79,7 +79,7 @@ fun LoginScreen(
             return
         }
 
-        when (val authResult = repository.loginWithPhoneAndPin(cleanPhone, pinToUse)) {
+        when (val authResult = repository.loginWithPhoneAndPin(cleanPhone, pinToUse, rememberMe)) {
             is AshaAuthResult.Success -> {
                 onLoginSuccess(authResult.profile)
             }

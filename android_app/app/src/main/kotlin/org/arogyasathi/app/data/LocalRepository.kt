@@ -202,12 +202,14 @@ class ArogyasathiRepository(private val context: Context) {
         setLoggedIn(false)
     }
 
-    fun loginWithPhoneAndPin(rawPhone: String, passwordOrPin: String): AshaAuthResult {
+    fun loginWithPhoneAndPin(rawPhone: String, passwordOrPin: String, rememberMe: Boolean = true): AshaAuthResult {
         // 1. Evaluate against offline SQLite database first
         val offlineResult = dbHelper.authenticateAshaOffline(rawPhone, passwordOrPin)
         if (offlineResult is AshaAuthResult.Success) {
             setActiveWorker(offlineResult.profile.ashaId)
-            setLoggedIn(true)
+            if (rememberMe) {
+                setLoggedIn(true)
+            }
             return offlineResult
         }
         if (offlineResult is AshaAuthResult.InvalidPassword) {
@@ -227,7 +229,9 @@ class ArogyasathiRepository(private val context: Context) {
                     cleanPass == "1234"
             if (isMatch) {
                 setActiveWorker(inMemProfile.ashaId)
-                setLoggedIn(true)
+                if (rememberMe) {
+                    setLoggedIn(true)
+                }
                 return AshaAuthResult.Success(inMemProfile)
             } else {
                 return AshaAuthResult.InvalidPassword(inMemProfile.name, inMemProfile.parentPhc)
@@ -246,8 +250,6 @@ class ArogyasathiRepository(private val context: Context) {
             it.phone.replace(Regex("[^0-9]"), "").endsWith(clean)
         }
     }
-
-    fun verifyPhoneNumber(rawPhone: String): AshaProfile? = findAshaByPhone(rawPhone)
 
     fun getProtocols(): List<ProtocolSection> {
         cachedProtocols?.let { return it }
