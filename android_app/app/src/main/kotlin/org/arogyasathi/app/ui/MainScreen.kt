@@ -56,6 +56,7 @@ fun MainScreen() {
     var activeProfile by remember { mutableStateOf(repository.getActiveProfile()) }
     var isLoggedIn by remember { mutableStateOf(repository.isLoggedIn()) }
     var fontScale by remember { mutableFloatStateOf(repository.getFontSizeScale()) }
+    var showMetricsScreen by remember { mutableStateOf(false) }
 
     val currentDensity = LocalDensity.current
     val customDensity = remember(currentDensity, fontScale) {
@@ -100,6 +101,35 @@ fun MainScreen() {
                             }
                         },
                         actions = {
+                            // System Metrics Button (opens live benchmark screen)
+                            Surface(
+                                shape = RoundedCornerShape(18.dp),
+                                color = Color(0xFFF0FDF4),
+                                border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.45f)),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .clickable { showMetricsScreen = true }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_analytics),
+                                        contentDescription = "System Metrics",
+                                        tint = PrimaryTeal,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = "Metrics",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = PrimaryTeal
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
                             // Global Emergency SOS Action Button (Shows "SOS", no "108")
                             Surface(
                                 shape = RoundedCornerShape(18.dp),
@@ -321,6 +351,27 @@ fun MainScreen() {
                         showProfileScreen = false
                         isLoggedIn = false
                     }
+                )
+            }
+
+            // System Metrics screen (slide in from right)
+            AnimatedVisibility(
+                visible = showMetricsScreen,
+                enter = slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(durationMillis = 250)),
+                exit = slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(durationMillis = 200)),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(100f)
+            ) {
+                SystemMetricsScreen(
+                    repository = repository,
+                    onDismiss = { showMetricsScreen = false }
                 )
             }
         }
