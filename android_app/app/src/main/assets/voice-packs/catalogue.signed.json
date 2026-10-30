@@ -1,0 +1,6 @@
+{
+  "payload": "{\"minAppVersionCode\":1,\"packs\":[{\"bytes\":18974135,\"displayName\":\"English (India)\",\"downloadUrl\":\"https://assets.arogyasathi.org/voice-packs/arogyasathi-asr-en-in-1.0.0.zip\",\"languageTag\":\"en-IN\",\"minAppVersionCode\":1,\"packId\":\"arogyasathi-asr-en-in\",\"runtime\":\"sherpa-onnx-2.0.1\",\"sha256\":\"1fb08c1ee72881c8757d5cbc42040cfb82d70e7e47bd96f555e4bc4454789bf3\",\"version\":\"1.0.0\"},{\"bytes\":123263350,\"displayName\":\"Telugu (\\u0c24\\u0c46\\u0c32\\u0c41\\u0c17\\u0c41)\",\"downloadUrl\":\"https://assets.arogyasathi.org/voice-packs/arogyasathi-asr-te-in-1.0.0.zip\",\"languageTag\":\"te-IN\",\"minAppVersionCode\":1,\"packId\":\"arogyasathi-asr-te-in\",\"runtime\":\"sherpa-onnx-2.0.1\",\"sha256\":\"acf5d2d32bd9621e635d43b16153e076e862ee5ec1cd6145ef09389d54005036\",\"version\":\"1.0.0\"}],\"publishedAt\":\"2026-10-30T19:32:16Z\",\"schemaVersion\":1}",
+  "signature": "MEUCICyc4nWoBOC5jGvN2HGZ/hB9b/8qEDTD4gitPEQtWPWIAiEAqgQuohPKrQHne1Slqz7sR134DVJvmvBC1NMMz9jNM28=",
+  "algorithm": "SHA256withECDSA",
+  "keyId": "arogyasathi-release-2026"
+}

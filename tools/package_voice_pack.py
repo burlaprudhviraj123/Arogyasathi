@@ -111,6 +111,105 @@ def build_manifest_v1(
     }
 
 
+def verify_voice_pack_archive(
+    zip_path: str | Path,
+    max_uncompressed_bytes: int = MAX_UNCOMPRESSED_BYTES,
+) -> dict:
+    """Verify that an archive complies with Arogyasathi security and integrity standards.
+
+    Checks:
+    - Archive exists and is a valid, non-corrupted ZIP
+    - Exact root entries: {"pack.json", "model.int8.onnx", "tokens.txt"}
+    - No ZipSlip path traversal (.., leading slashes, path separators in entry names)
+    - No symlinks (POSIX attribute 0o120000)
+    - Total uncompressed size <= max_uncompressed_bytes
+    - Embedded pack.json is valid Schema v1 JSON
+    - Every file declared in pack.json matches actual uncompressed byte count and SHA-256
+
+    Returns:
+        dict: Parsed embedded manifest
+    """
+    zip_path = Path(zip_path).resolve()
+    if not zip_path.exists():
+        raise FileNotFoundError(f"Archive file not found: {zip_path}")
+    if not zip_path.is_file():
+        raise ValueError(f"Archive path is not a regular file: {zip_path}")
+
+    with zipfile.ZipFile(zip_path, mode="r") as check_zip:
+        corrupted = check_zip.testzip()
+        if corrupted is not None:
+            raise RuntimeError(f"Archive verification failed: corrupted entry '{corrupted}'")
+
+        entries = set(check_zip.namelist())
+        expected_entries = {"pack.json", "model.int8.onnx", "tokens.txt"}
+        if entries != expected_entries:
+            raise RuntimeError(
+                f"Archive entries mismatch: found {sorted(entries)}, expected {sorted(expected_entries)}"
+            )
+
+        total_extracted_size = 0
+        for name in entries:
+            info = check_zip.getinfo(name)
+            # Rejection of symlinks
+            is_symlink = (info.external_attr >> 16) & 0o120000 == 0o120000
+            if is_symlink:
+                raise PermissionError(f"Archive safety violation: symlink detected for '{name}'")
+            # Rejection of traversal or absolute paths
+            if "/" in name or "\\" in name or ".." in name:
+                raise PermissionError(f"Archive safety violation: path traversal detected for '{name}'")
+            total_extracted_size += info.file_size
+
+        if total_extracted_size > max_uncompressed_bytes:
+            raise RuntimeError(
+                f"Archive safety violation: extracted size {total_extracted_size} exceeds {max_uncompressed_bytes} bytes limit"
+            )
+
+        # Parse and validate embedded pack.json
+        try:
+            manifest_content = check_zip.read("pack.json").decode("utf-8")
+            embedded_manifest = json.loads(manifest_content)
+        except Exception as exc:
+            raise ValueError(f"Failed to read or parse embedded pack.json: {exc}") from exc
+
+        if embedded_manifest.get("schemaVersion") != SCHEMA_VERSION:
+            raise ValueError(
+                f"Invalid schemaVersion: expected {SCHEMA_VERSION}, got {embedded_manifest.get('schemaVersion')}"
+            )
+
+        required_keys = {"packId", "languageTag", "displayName", "runtime", "model", "files"}
+        missing_keys = required_keys - set(embedded_manifest.keys())
+        if missing_keys:
+            raise ValueError(f"Embedded pack.json missing required keys: {sorted(missing_keys)}")
+
+        # Verify internal file hashes and byte counts against manifest declarations
+        manifest_files = {f["path"]: f for f in embedded_manifest.get("files", [])}
+        for expected_file in ("model.int8.onnx", "tokens.txt"):
+            if expected_file not in manifest_files:
+                raise ValueError(f"Manifest files list does not declare '{expected_file}'")
+            decl = manifest_files[expected_file]
+            actual_info = check_zip.getinfo(expected_file)
+            if actual_info.file_size != decl["bytes"]:
+                raise RuntimeError(
+                    f"File size mismatch for '{expected_file}': manifest={decl['bytes']}, archive={actual_info.file_size}"
+                )
+            
+            # Compute actual SHA-256 of extracted stream
+            digest = hashlib.sha256()
+            with check_zip.open(expected_file) as stream:
+                while True:
+                    chunk = stream.read(CHUNK_SIZE)
+                    if not chunk:
+                        break
+                    digest.update(chunk)
+            actual_sha = digest.hexdigest().lower()
+            if actual_sha != decl["sha256"].lower():
+                raise RuntimeError(
+                    f"File SHA-256 mismatch for '{expected_file}': manifest={decl['sha256']}, archive={actual_sha}"
+                )
+
+    return embedded_manifest
+
+
 def package_voice_pack(
     model_path: str | Path,
     tokens_path: str | Path,
@@ -142,13 +241,21 @@ def package_voice_pack(
 
     if not model_path.exists():
         raise FileNotFoundError(f"Model file not found: {model_path}")
+    if model_path.is_symlink():
+        raise ValueError(f"Model path cannot be a symbolic link: {model_path}")
     if not model_path.is_file():
         raise ValueError(f"Model path is not a regular file: {model_path}")
+    if model_path.stat().st_size == 0:
+        raise ValueError(f"Model file cannot be 0 bytes: {model_path}")
 
     if not tokens_path.exists():
         raise FileNotFoundError(f"Tokens file not found: {tokens_path}")
+    if tokens_path.is_symlink():
+        raise ValueError(f"Tokens path cannot be a symbolic link: {tokens_path}")
     if not tokens_path.is_file():
         raise ValueError(f"Tokens path is not a regular file: {tokens_path}")
+    if tokens_path.stat().st_size == 0:
+        raise ValueError(f"Tokens file cannot be 0 bytes: {tokens_path}")
 
     # Validate inputs
     lang_validated = validate_language_tag(language_tag)
@@ -216,6 +323,7 @@ def package_voice_pack(
     zip_filename = f"{pack_id}-{version}.zip"
     zip_path = output_dir / zip_filename
     companion_manifest_path = output_dir / f"{pack_id}-{version}.pack.json"
+    sha256_file = output_dir / f"{zip_filename}.sha256"
 
     if zip_path.exists() and not overwrite:
         raise FileExistsError(f"Output archive already exists: {zip_path}. Use --overwrite to replace.")
@@ -225,129 +333,111 @@ def package_voice_pack(
         {"path": "tokens.txt", "bytes": tokens_bytes, "sha256": tokens_sha256},
     ]
 
-    # Embedded pack.json inside the zip has archiveSha256 = null
-    # (avoiding circular dependency since zip contains pack.json)
-    embedded_manifest = build_manifest_v1(
-        pack_id=pack_id,
-        language_tag=lang_validated,
-        display_name=display_name,
-        version=version,
-        source=source,
-        source_checkpoint_sha256=checkpoint_sha,
-        files_list=files_list,
-        archive_sha256=None,
-        created_at=created_at,
-        runtime_engine=runtime_engine,
-        runtime_model_type=runtime_model_type,
-        sample_rate_hz=sample_rate_hz,
-        feature_dimension=feature_dimension,
-        minimum_runtime_version=minimum_runtime_version,
-    )
-    embedded_manifest_bytes = (
-        json.dumps(embedded_manifest, indent=2, ensure_ascii=False) + "\n"
-    ).encode("utf-8")
+    try:
+        # Embedded pack.json inside the zip has archiveSha256 = null
+        # (avoiding circular dependency since zip contains pack.json)
+        embedded_manifest = build_manifest_v1(
+            pack_id=pack_id,
+            language_tag=lang_validated,
+            display_name=display_name,
+            version=version,
+            source=source,
+            source_checkpoint_sha256=checkpoint_sha,
+            files_list=files_list,
+            archive_sha256=None,
+            created_at=created_at,
+            runtime_engine=runtime_engine,
+            runtime_model_type=runtime_model_type,
+            sample_rate_hz=sample_rate_hz,
+            feature_dimension=feature_dimension,
+            minimum_runtime_version=minimum_runtime_version,
+        )
+        embedded_manifest_bytes = (
+            json.dumps(embedded_manifest, indent=2, ensure_ascii=False) + "\n"
+        ).encode("utf-8")
 
-    # Build zip file deterministically and safely
-    with zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
-        # 1. pack.json
-        zinfo_manifest = zipfile.ZipInfo(filename="pack.json", date_time=dt_tuple)
-        zinfo_manifest.compress_type = zipfile.ZIP_DEFLATED
-        zinfo_manifest.external_attr = 0o644 << 16  # standard regular file permissions
-        zipf.writestr(zinfo_manifest, embedded_manifest_bytes)
+        # Build zip file deterministically and safely
+        with zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
+            # 1. pack.json
+            zinfo_manifest = zipfile.ZipInfo(filename="pack.json", date_time=dt_tuple)
+            zinfo_manifest.compress_type = zipfile.ZIP_DEFLATED
+            zinfo_manifest.external_attr = 0o644 << 16  # standard regular file permissions
+            zipf.writestr(zinfo_manifest, embedded_manifest_bytes)
 
-        # 2. model.int8.onnx
-        zinfo_model = zipfile.ZipInfo(filename="model.int8.onnx", date_time=dt_tuple)
-        zinfo_model.compress_type = zipfile.ZIP_DEFLATED
-        zinfo_model.external_attr = 0o644 << 16
-        with model_path.open("rb") as f_model:
-            zipf.writestr(zinfo_model, f_model.read())
+            # 2. model.int8.onnx
+            zinfo_model = zipfile.ZipInfo(filename="model.int8.onnx", date_time=dt_tuple)
+            zinfo_model.compress_type = zipfile.ZIP_DEFLATED
+            zinfo_model.external_attr = 0o644 << 16
+            with model_path.open("rb") as f_model:
+                zipf.writestr(zinfo_model, f_model.read())
 
-        # 3. tokens.txt
-        zinfo_tokens = zipfile.ZipInfo(filename="tokens.txt", date_time=dt_tuple)
-        zinfo_tokens.compress_type = zipfile.ZIP_DEFLATED
-        zinfo_tokens.external_attr = 0o644 << 16
-        with tokens_path.open("rb") as f_tokens:
-            zipf.writestr(zinfo_tokens, f_tokens.read())
+            # 3. tokens.txt
+            zinfo_tokens = zipfile.ZipInfo(filename="tokens.txt", date_time=dt_tuple)
+            zinfo_tokens.compress_type = zipfile.ZIP_DEFLATED
+            zinfo_tokens.external_attr = 0o644 << 16
+            with tokens_path.open("rb") as f_tokens:
+                zipf.writestr(zinfo_tokens, f_tokens.read())
 
-    # Compute outer archive SHA-256 and size
-    archive_sha256, archive_bytes = compute_sha256_and_size(zip_path)
+        # Compute outer archive SHA-256 and size
+        archive_sha256, archive_bytes = compute_sha256_and_size(zip_path)
 
-    # Write companion manifest with authoritative outer archive SHA-256
-    companion_manifest = build_manifest_v1(
-        pack_id=pack_id,
-        language_tag=lang_validated,
-        display_name=display_name,
-        version=version,
-        source=source,
-        source_checkpoint_sha256=checkpoint_sha,
-        files_list=files_list,
-        archive_sha256=archive_sha256,
-        created_at=created_at,
-        runtime_engine=runtime_engine,
-        runtime_model_type=runtime_model_type,
-        sample_rate_hz=sample_rate_hz,
-        feature_dimension=feature_dimension,
-        minimum_runtime_version=minimum_runtime_version,
-    )
-    companion_manifest_path.write_text(
-        json.dumps(companion_manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+        # Write companion manifest with authoritative outer archive SHA-256
+        companion_manifest = build_manifest_v1(
+            pack_id=pack_id,
+            language_tag=lang_validated,
+            display_name=display_name,
+            version=version,
+            source=source,
+            source_checkpoint_sha256=checkpoint_sha,
+            files_list=files_list,
+            archive_sha256=archive_sha256,
+            created_at=created_at,
+            runtime_engine=runtime_engine,
+            runtime_model_type=runtime_model_type,
+            sample_rate_hz=sample_rate_hz,
+            feature_dimension=feature_dimension,
+            minimum_runtime_version=minimum_runtime_version,
+        )
+        companion_manifest_path.write_text(
+            json.dumps(companion_manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
 
-    # Write companion sha256 checksum file
-    sha256_file = output_dir / f"{zip_filename}.sha256"
-    sha256_file.write_text(f"{archive_sha256}  {zip_filename}\n", encoding="utf-8")
+        # Write companion sha256 checksum file
+        sha256_file.write_text(f"{archive_sha256}  {zip_filename}\n", encoding="utf-8")
 
-    # Immediate self-verification of archive safety and integrity
-    with zipfile.ZipFile(zip_path, mode="r") as check_zip:
-        corrupted = check_zip.testzip()
-        if corrupted is not None:
-            raise RuntimeError(f"Archive verification failed: corrupted entry '{corrupted}'")
+        # Immediate self-verification of archive safety and integrity
+        verify_voice_pack_archive(zip_path, max_uncompressed_bytes=MAX_UNCOMPRESSED_BYTES)
 
-        entries = set(check_zip.namelist())
-        expected_entries = {"pack.json", "model.int8.onnx", "tokens.txt"}
-        if entries != expected_entries:
-            raise RuntimeError(
-                f"Archive entries mismatch: found {sorted(entries)}, expected {sorted(expected_entries)}"
-            )
-
-        total_extracted_size = 0
-        for name in entries:
-            info = check_zip.getinfo(name)
-            # Rejection of symlinks
-            is_symlink = (info.external_attr >> 16) & 0o120000 == 0o120000
-            if is_symlink:
-                raise RuntimeError(f"Archive safety violation: symlink detected for '{name}'")
-            # Rejection of traversal or absolute paths
-            if "/" in name or "\\" in name or ".." in name:
-                raise RuntimeError(f"Archive safety violation: path traversal detected for '{name}'")
-            total_extracted_size += info.file_size
-
-        if total_extracted_size > MAX_UNCOMPRESSED_BYTES:
-            raise RuntimeError(
-                f"Archive safety violation: extracted size {total_extracted_size} exceeds 500 MB limit"
-            )
+    except Exception:
+        # Clean up any partial files on failure
+        zip_path.unlink(missing_ok=True)
+        companion_manifest_path.unlink(missing_ok=True)
+        sha256_file.unlink(missing_ok=True)
+        raise
 
     return zip_path, companion_manifest_path, archive_sha256, archive_bytes
 
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Package offline ASR models into standard Arogyasathi voice packs."
+        description="Package offline ASR models into standard Arogyasathi voice packs or verify existing archives."
     )
-    # Required arguments
-    parser.add_argument("--model", required=True, type=Path, help="Path to quantized INT8 ONNX model.")
-    parser.add_argument("--tokens", required=True, type=Path, help="Path to tokens.txt vocabulary file.")
-    parser.add_argument("--lang", required=True, type=str, help="Language BCP-47 tag (e.g. te-IN, en-IN).")
-    parser.add_argument("--display-name", required=True, type=str, help="Display name (e.g. 'Telugu (తెలుగు)').")
-    parser.add_argument("--version", required=True, type=str, help="Pack version (e.g. 1.0.0).")
-    parser.add_argument("--source", required=True, type=str, help="Model source description.")
+    parser.add_argument("--verify", type=Path, default=None, help="Path to archive to verify against security standards.")
+
+    # Packaging arguments
+    parser.add_argument("--model", type=Path, default=None, help="Path to quantized INT8 ONNX model.")
+    parser.add_argument("--tokens", type=Path, default=None, help="Path to tokens.txt vocabulary file.")
+    parser.add_argument("--lang", type=str, default=None, help="Language BCP-47 tag (e.g. te-IN, en-IN).")
+    parser.add_argument("--display-name", type=str, default=None, help="Display name (e.g. 'Telugu (తెలుగు)').")
+    parser.add_argument("--version", type=str, default=None, help="Pack version (e.g. 1.0.0).")
+    parser.add_argument("--source", type=str, default=None, help="Model source description.")
     parser.add_argument(
         "--source-checkpoint-sha256",
-        required=True,
         type=str,
+        default=None,
         help="64-character lowercase hex SHA-256 of source checkpoint.",
     )
-    parser.add_argument("--output-dir", required=True, type=Path, help="Output directory for generated packages.")
+    parser.add_argument("--output-dir", type=Path, default=None, help="Output directory for generated packages.")
 
     # Optional / Tuning arguments
     parser.add_argument("--pack-id", type=str, default=None, help="Custom packId (default: arogyasathi-asr-<lang>).")
@@ -366,6 +456,26 @@ def parse_arguments() -> argparse.Namespace:
 def main() -> int:
     try:
         args = parse_arguments()
+        if args.verify:
+            manifest = verify_voice_pack_archive(args.verify)
+            if not args.quiet:
+                print("==================================================")
+                print(" Arogyasathi Voice Pack Archive Verified [PASS]")
+                print("==================================================")
+                print(f" Archive:      {args.verify}")
+                print(f" Pack ID:      {manifest.get('packId')}")
+                print(f" Language:     {manifest.get('languageTag')} ({manifest.get('displayName')})")
+                print(f" Version:      {manifest.get('model', {}).get('version')}")
+                print(f" Engine:       {manifest.get('runtime', {}).get('engine')} ({manifest.get('runtime', {}).get('modelType')})")
+                print(" Status:       VALID & VERIFIED")
+                print("==================================================")
+            return 0
+
+        # Ensure required arguments for packaging are provided
+        for req in ("model", "tokens", "lang", "display_name", "version", "source", "source_checkpoint_sha256", "output_dir"):
+            if getattr(args, req) is None:
+                raise ValueError(f"Argument --{req.replace('_', '-')} is required when not using --verify.")
+
         zip_p, manifest_p, sha, size = package_voice_pack(
             model_path=args.model,
             tokens_path=args.tokens,

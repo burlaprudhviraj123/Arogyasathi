@@ -3,6 +3,8 @@ package org.arogyasathi.app.ui
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +27,9 @@ import kotlinx.coroutines.launch
 import org.arogyasathi.app.R
 import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.data.ArogyasathiRepository
+import org.arogyasathi.app.voice.VoicePackManager
+import org.arogyasathi.app.voice.VoicePackState
+import org.arogyasathi.app.voice.CatalogueEntry
 
 @Composable
 fun SettingsScreen(
@@ -38,11 +43,30 @@ fun SettingsScreen(
     val strings = LocalAppStrings.current
     val coroutineScope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
-    // Telugu pack is shipped inside this APK; do not use the legacy preference
-    // flag, which previously made the UI claim a download was required.
-    var isVoiceModelDownloaded by remember { mutableStateOf(true) }
-    var isDownloadingVoiceModel by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableFloatStateOf(0f) }
+
+    val voicePackManager = remember(context) { VoicePackManager(context) }
+    val packStates by voicePackManager.packStates.collectAsState()
+    val catalogueEntries by voicePackManager.catalogue.collectAsState()
+    var targetImportLang by remember { mutableStateOf<String?>(null) }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        val lang = targetImportLang
+        if (uri != null && lang != null) {
+            coroutineScope.launch {
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        voicePackManager.importPack(lang, stream)
+                            .onSuccess { Toast.makeText(context, "Voice pack imported successfully!", Toast.LENGTH_LONG).show() }
+                            .onFailure { Toast.makeText(context, "Import failed: ${it.message}", Toast.LENGTH_LONG).show() }
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Failed to read file: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     fun dial(phone: String) {
         try {
@@ -252,7 +276,10 @@ fun SettingsScreen(
                 border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -278,128 +305,319 @@ fun SettingsScreen(
                             }
                             Column {
                                 Text(
-                                    text = "Offline Voice Engine",
+                                    text = "Offline Voice Packs",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "Telugu IndicConformer STT (135 MB INT8, bundled)",
+                                    text = "On-demand local STT (sherpa-onnx, zero network)",
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
                             }
                         }
-
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (isVoiceModelDownloaded) RoutineGreen.copy(alpha = 0.15f) else Color(0xFFFEF3C7)
-                        ) {
-                            Text(
-                                text = if (isVoiceModelDownloaded) "OFFLINE READY" else "NOT DOWNLOADED",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isVoiceModelDownloaded) RoutineGreen else Color(0xFFB45309),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = if (isVoiceModelDownloaded) {
-                            "Telugu real-time offline speech recognition is bundled with this app. It transcribes Telugu clinical queries on-device with zero connectivity."
-                        } else {
-                            "The 118 MB offline voice pack is not yet stored on this device. Download it now over Wi-Fi/mobile data for offline voice consultation in ${currentLanguage.nativeName}."
-                        },
+                        text = "Voice consultation transcribes purely on-device using local INT8 models. Frontline workers can download packs via Wi-Fi or import them offline via OTG / SD card.",
                         fontSize = 12.sp,
                         color = TextSecondary,
                         lineHeight = 16.sp
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
 
-                    if (!isVoiceModelDownloaded) {
-                        if (isDownloadingVoiceModel) {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                LinearProgressIndicator(
-                                    progress = { downloadProgress },
-                                    modifier = Modifier.fillMaxWidth().height(6.dp),
-                                    color = PrimaryTeal,
-                                    trackColor = Color(0xFFE2E8F0)
-                                )
-                                Text(
-                                    text = "డౌన్‌లోడ్ అవుతోంది... ${(downloadProgress * 100).toInt()}% (Downloading 118 MB model)",
-                                    fontSize = 11.sp,
-                                    color = PrimaryTeal,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        } else {
-                            Button(
-                                onClick = {
-                                    isDownloadingVoiceModel = true
-                                    coroutineScope.launch {
-                                        for (p in 1..10) {
-                                            kotlinx.coroutines.delay(120)
-                                            downloadProgress = p / 10f
-                                        }
-                                        repository.setVoiceModelDownloaded(true)
-                                        isVoiceModelDownloaded = true
-                                        isDownloadingVoiceModel = false
-                                        Toast.makeText(context, "Voice model downloaded (118 MB)", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_check_circle),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Text(
-                                        text = "డౌన్‌లోడ్ చేయండి / Download Model (118 MB)",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
-                            }
+                    VoicePackManager.SUPPORTED_LANGUAGES.forEach { (langCode, langName) ->
+                        val state = packStates[langCode] ?: VoicePackState.NotInstalled
+                        val entry = catalogueEntries.find { it.languageTag == langCode }
+
+                        val packSizeDisplay = when {
+                            entry != null -> "${entry.bytes / (1024 * 1024)} MB (Archive)"
+                            langCode == "te-IN" -> "135 MB (Model)"
+                            langCode == "en-IN" -> "44 MB (Model)"
+                            else -> "~135 MB (IndicConformer)"
                         }
-                    } else {
+
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = Color(0xFFF8FAFC),
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Column {
-                                    Text(
-                                        text = "Active Voice Model",
-                                        fontSize = 11.sp,
-                                        color = TextSecondary
-                                    )
-                                    Text(
-                                        text = "${currentLanguage.nativeName} (${currentLanguage.displayName})",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PrimaryTeal
-                                    )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = langName,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                        Text(
+                                            text = "$langCode • $packSizeDisplay",
+                                            fontSize = 11.sp,
+                                            color = TextSecondary
+                                        )
+                                    }
+
+                                    // Status Badge
+                                    when (state) {
+                                        is VoicePackState.Ready -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = RoutineGreen.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = if (state.isBundled) "BUNDLED READY" else "OFFLINE READY (v${state.version})",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = RoutineGreen,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        is VoicePackState.Downloading -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = PrimaryTeal.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = "DOWNLOADING",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = PrimaryTeal,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        is VoicePackState.Verifying -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFFEF3C7)
+                                            ) {
+                                                Text(
+                                                    text = "VERIFYING MODEL",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFFB45309),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        is VoicePackState.Installing -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFDBEAFE)
+                                            ) {
+                                                Text(
+                                                    text = "PREPARING OFFLINE VOICE",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF1D4ED8),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        is VoicePackState.UpdateAvailable -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFF3E8FF)
+                                            ) {
+                                                Text(
+                                                    text = "UPDATE AVAILABLE",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF7E22CE),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        is VoicePackState.Failed -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFFEE2E2)
+                                            ) {
+                                                Text(
+                                                    text = "FAILED",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = EmergencyRed,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        VoicePackState.NotInstalled -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFF1F5F9)
+                                            ) {
+                                                Text(
+                                                    text = "NOT INSTALLED",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF64748B),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                        is VoicePackState.Queued -> {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFFEF3C7)
+                                            ) {
+                                                Text(
+                                                    text = "QUEUED",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFFB45309),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-                                Text("Bundled in APK", fontSize = 11.sp, color = TextSecondary)
+
+                                // In-progress details
+                                when (state) {
+                                    is VoicePackState.Downloading -> {
+                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            LinearProgressIndicator(
+                                                progress = { state.progressPercent },
+                                                modifier = Modifier.fillMaxWidth().height(6.dp),
+                                                color = PrimaryTeal,
+                                                trackColor = Color(0xFFE2E8F0)
+                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "${state.downloadedBytes / (1024 * 1024)} MB / ${state.totalBytes / (1024 * 1024)} MB (${(state.progressPercent * 100).toInt()}%)",
+                                                    fontSize = 11.sp,
+                                                    color = PrimaryTeal,
+                                                    fontWeight = FontWeight.SemiBold
+                                                )
+                                                Text(
+                                                    text = "Cancel",
+                                                    fontSize = 11.sp,
+                                                    color = EmergencyRed,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.clickable {
+                                                        voicePackManager.cancelOperation(langCode)
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                    is VoicePackState.Verifying -> {
+                                        Text(
+                                            text = "Verifying cryptographic checksums & manifest...",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFFB45309)
+                                        )
+                                    }
+                                    is VoicePackState.Installing -> {
+                                        Text(
+                                            text = "Extracting files and running Sherpa health check...",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF1D4ED8)
+                                        )
+                                    }
+                                    is VoicePackState.Failed -> {
+                                        Text(
+                                            text = "Error: ${state.reason}",
+                                            fontSize = 11.sp,
+                                            color = EmergencyRed
+                                        )
+                                    }
+                                    else -> {}
+                                }
+
+                                // Action Buttons
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    if (state is VoicePackState.NotInstalled && entry != null) {
+                                        Button(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    voicePackManager.downloadAndInstall(langCode, entry)
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Download (${entry.bytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    } else if (state is VoicePackState.Failed && entry != null) {
+                                        Button(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    voicePackManager.downloadAndInstall(langCode, entry)
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Retry Download", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    } else if (state is VoicePackState.UpdateAvailable && entry != null) {
+                                        Button(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    voicePackManager.downloadAndInstall(langCode, entry)
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E22CE)),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Update (${state.newPackBytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+
+                                    // Import Pack from OTG/Local storage
+                                    OutlinedButton(
+                                        onClick = {
+                                            targetImportLang = langCode
+                                            importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Import .zip", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+
+                                    // Delete pack (if installed and not bundled)
+                                    if (state is VoicePackState.Ready && !state.isBundled) {
+                                        OutlinedButton(
+                                            onClick = {
+                                                voicePackManager.deletePack(langCode)
+                                            },
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = EmergencyRed),
+                                            border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Text("Delete", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

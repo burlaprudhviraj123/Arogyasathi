@@ -57,7 +57,8 @@ import org.arogyasathi.app.core.ReferralSlip
 import org.arogyasathi.app.core.maskPhoneNumber
 import org.arogyasathi.app.data.ArogyasathiRepository
 import org.arogyasathi.app.data.AssistantResult
-import org.arogyasathi.app.voice.OfflineTeluguVoiceEngine
+import org.arogyasathi.app.voice.OfflineVoiceEngine
+import org.arogyasathi.app.voice.VoicePackManager
 import java.util.Locale
 import java.util.UUID
 
@@ -184,20 +185,21 @@ fun AssistantScreen(
         animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
         label = "offlineMicScale",
     )
-    val teluguVoiceEngine = remember(context) { OfflineTeluguVoiceEngine(context) }
-    DisposableEffect(teluguVoiceEngine) { onDispose { teluguVoiceEngine.close() } }
-    LaunchedEffect(teluguVoiceEngine) {
-        runCatching { withContext(Dispatchers.IO) { teluguVoiceEngine.installBundledPackIfNeeded() } }
-            .onFailure { Toast.makeText(context, "Telugu voice pack setup failed: ${it.message}", Toast.LENGTH_LONG).show() }
-    }
+    val voicePackManager = remember(context) { VoicePackManager(context) }
+    val offlineVoiceEngine = remember(context, voicePackManager) { OfflineVoiceEngine(context, voicePackManager) }
+    DisposableEffect(offlineVoiceEngine) { onDispose { offlineVoiceEngine.close() } }
     val microphonePermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted && selectedLanguage == VoiceLanguage.TELUGU && teluguVoiceEngine.isInstalled()) {
-            teluguVoiceEngine.start { message ->
-                isOfflineRecording = false
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
+        val langTag = selectedLanguage.code
+        if (granted && voicePackManager.isPackReady(langTag)) {
+            offlineVoiceEngine.startRecording(
+                languageTag = langTag,
+                onError = { message ->
+                    isOfflineRecording = false
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            )
             isOfflineRecording = true
         } else if (!granted) {
             Toast.makeText(context, "Microphone permission is required for offline voice input.", Toast.LENGTH_SHORT).show()
@@ -754,10 +756,12 @@ fun AssistantScreen(
                         .scale(micScale)
                         .clip(CircleShape)
                         .clickable {
-                            if (selectedLanguage == VoiceLanguage.TELUGU && teluguVoiceEngine.isInstalled()) {
+                            val langTag = selectedLanguage.code
+                            if (voicePackManager.isPackReady(langTag)) {
                                 if (isOfflineRecording) {
                                     isOfflineRecording = false
-                                    teluguVoiceEngine.stop(
+                                    offlineVoiceEngine.stopRecording(
+                                        languageTag = langTag,
                                         onResult = { spoken ->
                                             if (spoken.isNotBlank()) queryText = spoken
                                             else Toast.makeText(context, "No speech detected. Please try again.", Toast.LENGTH_SHORT).show()
@@ -765,10 +769,13 @@ fun AssistantScreen(
                                         onError = { message -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show() },
                                     )
                                 } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                                    teluguVoiceEngine.start { message ->
-                                        isOfflineRecording = false
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    }
+                                    offlineVoiceEngine.startRecording(
+                                        languageTag = langTag,
+                                        onError = { message ->
+                                            isOfflineRecording = false
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        }
+                                    )
                                     isOfflineRecording = true
                                 } else {
                                     microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
@@ -776,16 +783,16 @@ fun AssistantScreen(
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Only the bundled Telugu offline voice pack is available. Select Telugu to use the local microphone.",
+                                    "Offline voice pack for ${selectedLanguage.nativeLabel} is not installed. Download or import it in Settings.",
                                     Toast.LENGTH_LONG,
                                 ).show()
                             }
                         }
                         .semantics {
                             contentDescription = if (isOfflineRecording) {
-                                "Recording Telugu voice. Tap to stop."
+                                "Recording ${selectedLanguage.nativeLabel} voice. Tap to stop."
                             } else {
-                                "Start Telugu offline voice input"
+                                "Start ${selectedLanguage.nativeLabel} offline voice input"
                             }
                         }
                 ) {
@@ -793,9 +800,15 @@ fun AssistantScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
-                                Brush.verticalGradient(
-                                    listOf(Color(0xFFF0FDFA), Color(0xFFCCFBF1))
-                                )
+                                if (isOfflineRecording) {
+                                    Brush.verticalGradient(
+                                        listOf(Color(0xFFFEE2E2), Color(0xFFFECACA))
+                                    )
+                                } else {
+                                    Brush.verticalGradient(
+                                        listOf(Color(0xFFF0FDFA), Color(0xFFCCFBF1))
+                                    )
+                                }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
