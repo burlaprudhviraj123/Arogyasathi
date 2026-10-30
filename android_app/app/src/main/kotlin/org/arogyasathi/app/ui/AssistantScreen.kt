@@ -173,7 +173,6 @@ fun AssistantScreen(
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
     var showVoiceConsultationDialog by remember { mutableStateOf(false) }
     var autoPlayTts by remember { mutableStateOf(true) }
-    var showEmergencyContactsDialog by remember { mutableStateOf(false) }
 
     var queryText by remember { mutableStateOf("") }
     var isSpeaking by remember { mutableStateOf(false) }
@@ -644,8 +643,7 @@ fun AssistantScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Patient Context Pill
                 Surface(
@@ -699,43 +697,6 @@ fun AssistantScreen(
                                 )
                             }
                         }
-                    }
-                }
-
-                // Emergency SOS Speed Dial Button
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color(0xFFFEF2F2),
-                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.35f)),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable { showEmergencyContactsDialog = true }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = EmergencyRed,
-                            modifier = Modifier.size(16.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_emergency),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(10.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = "SOS 108",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = EmergencyRed
-                        )
                     }
                 }
             }
@@ -993,18 +954,6 @@ fun AssistantScreen(
                 reloadMessages(selected)
             },
             onDismiss = { showPatientPicker = false }
-        )
-    }
-
-    // Emergency Clinical Contacts Dialog
-    if (showEmergencyContactsDialog) {
-        EmergencyContactsDialog(
-            activeProfile = activeProfile,
-            onCallMo = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
-            onCallAnm = { dialEmergency(context, activeProfile.anmPhone) },
-            onCall108 = { dialEmergency(context, "108") },
-            onCall102 = { dialEmergency(context, "102") },
-            onDismiss = { showEmergencyContactsDialog = false }
         )
     }
 

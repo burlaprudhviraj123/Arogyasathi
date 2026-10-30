@@ -87,29 +87,44 @@ fun MainScreen() {
                             }
                         },
                         actions = {
-                            // Global Emergency SOS Action Button
-                            IconButton(
-                                onClick = { showEmergencyDialog = true },
-                                modifier = Modifier.size(38.dp)
+                            // Global Emergency SOS Action Button (Shows "SOS", no "108")
+                            Surface(
+                                shape = RoundedCornerShape(18.dp),
+                                color = Color(0xFFFEF2F2),
+                                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.45f)),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .clickable { showEmergencyDialog = true }
                             ) {
-                                Surface(
-                                    modifier = Modifier.size(34.dp),
-                                    shape = CircleShape,
-                                    color = Color(0xFFFEF2F2),
-                                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.4f))
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_emergency),
-                                            contentDescription = strings.emergencySos,
-                                            tint = EmergencyRed,
-                                            modifier = Modifier.size(17.dp)
-                                        )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = EmergencyRed,
+                                        modifier = Modifier.size(16.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.ic_emergency),
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                        }
                                     }
+                                    Text(
+                                        text = "SOS",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = EmergencyRed
+                                    )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
 
                             // Minimalist Circular Avatar Button (Standard Material 3 UX - Opens Full-Screen Slide Profile)
                             IconButton(
