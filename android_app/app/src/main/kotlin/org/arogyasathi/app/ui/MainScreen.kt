@@ -52,12 +52,22 @@ fun MainScreen() {
     var showProfileScreen by remember { mutableStateOf(false) }
     var showEmergencyDialog by remember { mutableStateOf(false) }
     var activeProfile by remember { mutableStateOf(repository.getActiveProfile()) }
+    var isLoggedIn by remember { mutableStateOf(repository.isLoggedIn()) }
 
     CompositionLocalProvider(
         LocalCurrentLanguage provides currentLanguage,
         LocalAppStrings provides strings
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        if (!isLoggedIn) {
+            LoginScreen(
+                repository = repository,
+                onLoginSuccess = { profile ->
+                    activeProfile = profile
+                    isLoggedIn = true
+                }
+            )
+        } else {
+            Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 contentWindowInsets = WindowInsets.statusBars,
                 topBar = {
@@ -232,7 +242,11 @@ fun MainScreen() {
                                     repository.setAppLanguage(newLang)
                                     currentLanguage = newLang
                                 },
-                                onSwitchProfile = { showProfileScreen = true }
+                                onSwitchProfile = { showProfileScreen = true },
+                                onLogout = {
+                                    repository.logout()
+                                    isLoggedIn = false
+                                }
                             )
                         }
                     }
@@ -285,9 +299,15 @@ fun MainScreen() {
                         repository.setActiveWorker(profile.ashaId)
                         activeProfile = repository.getActiveProfile()
                     },
-                    onDismiss = { showProfileScreen = false }
+                    onDismiss = { showProfileScreen = false },
+                    onLogout = {
+                        repository.logout()
+                        showProfileScreen = false
+                        isLoggedIn = false
+                    }
                 )
             }
+        }
         }
     }
 }

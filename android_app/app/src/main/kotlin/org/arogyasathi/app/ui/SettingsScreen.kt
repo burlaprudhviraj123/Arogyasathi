@@ -37,7 +37,8 @@ fun SettingsScreen(
     activeProfile: AshaProfile,
     currentLanguage: AppLanguage,
     onLanguageChanged: (AppLanguage) -> Unit,
-    onSwitchProfile: () -> Unit
+    onSwitchProfile: () -> Unit,
+    onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val strings = LocalAppStrings.current
@@ -676,17 +677,33 @@ fun SettingsScreen(
                             )
                         }
 
-                        OutlinedButton(
-                            onClick = onSwitchProfile,
-                            shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(1.dp, PrimaryTeal)
-                        ) {
-                            Text(
-                                text = strings.switchProfile,
-                                fontSize = 11.sp,
-                                color = PrimaryTeal,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedButton(
+                                onClick = onSwitchProfile,
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, PrimaryTeal),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = strings.switchProfile,
+                                    fontSize = 11.sp,
+                                    color = PrimaryTeal,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = onLogout,
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.5f)),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    text = strings.logoutButton,
+                                    fontSize = 11.sp,
+                                    color = EmergencyRed,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }
