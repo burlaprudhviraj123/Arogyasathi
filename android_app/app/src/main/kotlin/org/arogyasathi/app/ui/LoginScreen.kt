@@ -1,5 +1,7 @@
 package org.arogyasathi.app.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.arogyasathi.app.R
+import org.arogyasathi.app.core.AshaAuthResult
 import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.data.ArogyasathiRepository
 
@@ -70,19 +74,21 @@ fun LoginScreen(
             errorMessage = strings.loginErrorInvalid
             return
         }
-        if (pinToUse.trim().length < 4) {
-            errorMessage = "PIN must be at least 4 digits (e.g. 1234)."
+        if (pinToUse.trim().isEmpty()) {
+            errorMessage = strings.loginErrorEmptyPassword
             return
         }
 
-        val profile = repository.loginWithPhoneAndPin(cleanPhone, pinToUse)
-        if (profile != null) {
-            if (!rememberMe) {
-                // If user chose not to remember, still valid for session
+        when (val authResult = repository.loginWithPhoneAndPin(cleanPhone, pinToUse)) {
+            is AshaAuthResult.Success -> {
+                onLoginSuccess(authResult.profile)
             }
-            onLoginSuccess(profile)
-        } else {
-            errorMessage = "Mobile number (+91 $cleanPhone) not found in ASHA roster. Please use Quick ASHA Access below."
+            is AshaAuthResult.InvalidPassword -> {
+                errorMessage = "${strings.loginErrorInvalidPassword} (${authResult.parentPhc})"
+            }
+            is AshaAuthResult.UserNotFound -> {
+                errorMessage = strings.loginErrorNotFound
+            }
         }
     }
 
@@ -403,7 +409,7 @@ fun LoginScreen(
                                 singleLine = true,
                                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.NumberPassword,
+                                    keyboardType = KeyboardType.Password,
                                     imeAction = ImeAction.Done
                                 ),
                                 keyboardActions = KeyboardActions(
@@ -573,11 +579,10 @@ fun LoginScreen(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable {
-                                        phoneNumber = profile.phone.replace("+91", "").replace(" ", "").trim()
-                                        pin = "1234"
-                                        repository.setActiveWorker(profile.ashaId)
-                                        repository.setLoggedIn(true)
-                                        onLoginSuccess(profile)
+                                        val clean = profile.phone.replace("+91", "").replace(" ", "").trim()
+                                        phoneNumber = clean
+                                        pin = profile.password
+                                        performLogin(clean, profile.password)
                                     }
                             ) {
                                 Row(
@@ -640,17 +645,16 @@ fun LoginScreen(
         }
     }
 
-    // Forgot PIN Dialog
+    // Forgot PIN Dialog (Official PHC Administration Credential Support)
     if (showForgotPinDialog) {
-        val activeProfile = allProfiles.find {
-            it.phone.replace(Regex("[^0-9]"), "").endsWith(phoneNumber.takeLast(10))
-        } ?: allProfiles.first()
+        val context = LocalContext.current
+        val activeProfile = repository.findAshaByPhone(phoneNumber) ?: allProfiles.first()
 
         AlertDialog(
             onDismissRequest = { showForgotPinDialog = false },
             icon = {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_call),
+                    painter = painterResource(id = R.drawable.ic_shield),
                     contentDescription = null,
                     tint = PrimaryTeal,
                     modifier = Modifier.size(28.dp)
@@ -658,52 +662,137 @@ fun LoginScreen(
             },
             title = {
                 Text(
-                    text = "ASHA PIN Reset & Support",
+                    text = strings.forgotPinDialogTitle,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     color = TextPrimary
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "For frontline security, ASHA credentials can be reset by contacting your designated supervisor:",
+                        text = strings.forgotPinDialogDesc,
                         fontSize = 13.sp,
-                        color = TextSecondary
+                        color = TextSecondary,
+                        lineHeight = 18.sp
                     )
                     Surface(
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(12.dp),
                         color = Color(0xFFF8FAFC),
                         border = BorderStroke(1.dp, BorderSubtle),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                text = "Sector ANM: ${activeProfile.anmName}",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_shield),
+                                    contentDescription = null,
+                                    tint = PrimaryTeal,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = activeProfile.parentPhc,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryTeal
+                                )
+                            }
+
+                            HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
+
+                            Column {
+                                Text(
+                                    text = "${strings.moInChargeTitle}:",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                                Text(
+                                    text = activeProfile.medicalOfficerName,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = activeProfile.medicalOfficerPhone,
+                                    fontSize = 12.sp,
+                                    color = RoutineGreen,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+
+                            HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
+
+                            Column {
+                                Text(
+                                    text = "${strings.anmTitle}:",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                                Text(
+                                    text = activeProfile.anmName,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = activeProfile.anmPhone,
+                                    fontSize = 12.sp,
+                                    color = RoutineGreen,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+
+                    // Direct Contact Action Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val clean = activeProfile.medicalOfficerPhone.replace(" ", "")
+                                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$clean"))
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                            shape = RoundedCornerShape(20.dp),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_call),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
                             )
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Phone: ${activeProfile.anmPhone}",
+                                text = strings.call,
                                 fontSize = 12.sp,
-                                color = RoutineGreen,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.Bold
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                val clean = activeProfile.anmPhone.replace(" ", "")
+                                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$clean"))
+                                context.startActivity(intent)
+                            },
+                            shape = RoundedCornerShape(20.dp),
+                            border = BorderStroke(1.dp, PrimaryTeal),
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                        ) {
                             Text(
-                                text = "Medical Officer: ${activeProfile.medicalOfficerName}",
-                                fontSize = 12.sp,
-                                color = TextSecondary
-                            )
-                            Text(
-                                text = "PHC: ${activeProfile.parentPhc}",
-                                fontSize = 11.sp,
-                                color = PrimaryTeal
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Default Training PIN: 1234",
+                                text = "ANM",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryTeal
@@ -712,20 +801,10 @@ fun LoginScreen(
                     }
                 }
             },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        pin = "1234"
-                        showForgotPinDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal)
-                ) {
-                    Text("Auto-Fill Demo PIN (1234)", fontWeight = FontWeight.Bold)
-                }
-            },
+            confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showForgotPinDialog = false }) {
-                    Text(strings.close, color = TextSecondary)
+                    Text(strings.close, color = PrimaryTeal, fontWeight = FontWeight.Bold)
                 }
             }
         )

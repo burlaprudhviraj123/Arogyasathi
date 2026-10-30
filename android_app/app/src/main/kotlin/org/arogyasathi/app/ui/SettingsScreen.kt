@@ -671,7 +671,7 @@ fun SettingsScreen(
                                 color = TextSecondary
                             )
                             Text(
-                                text = "PHC: ${activeProfile.parentPhc}",
+                                text = "PHC: ${activeProfile.parentPhc} • Sub-Centre: ${activeProfile.subCentreId}",
                                 fontSize = 11.sp,
                                 color = PrimaryTeal
                             )

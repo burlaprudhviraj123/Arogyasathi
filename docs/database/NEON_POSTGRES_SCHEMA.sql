@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(50) NOT NULL CHECK (role IN ('ASHA', 'SUPERVISOR', 'MEDICAL_OFFICER', 'ADMIN')),
     assigned_asha_id VARCHAR(50),
     assigned_facility VARCHAR(255) DEFAULT 'Chandrapuri CHC',
+    sub_centre_id VARCHAR(50),
     phone VARCHAR(20),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS ashas (
     villages TEXT NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
     sub_centre VARCHAR(255),
+    sub_centre_id VARCHAR(50),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -200,12 +202,14 @@ VALUES
 ON CONFLICT (email) DO NOTHING;
 
 -- Pre-seed ASHA worker accounts matching ashas.csv
-INSERT INTO users (email, full_name, role, assigned_asha_id, assigned_facility, phone)
+INSERT INTO users (email, full_name, role, assigned_asha_id, assigned_facility, sub_centre_id, phone)
 VALUES 
-    ('asha.kalavati@arogyasathi.org', 'Kalavati Kumari', 'ASHA', 'ASHA-RRR5', 'Belwadi Tola Sub-Centre', '+91-9876543220'),
-    ('asha.sunaina@arogyasathi.org', 'Sunaina Devi', 'ASHA', 'ASHA-096P', 'Amrapur Sub-Centre', '+91-9876543221'),
-    ('asha.rinku@arogyasathi.org', 'Rinku Devi', 'ASHA', 'ASHA-YFK5', 'Kesarganj Sub-Centre', '+91-9876543222'),
-    ('asha.shabnam@arogyasathi.org', 'Shabnam Khatoon', 'ASHA', 'ASHA-L9R8', 'Dhanpura Sub-Centre', '+91-9876543223'),
-    ('asha.malti@arogyasathi.org', 'Malti Devi', 'ASHA', 'ASHA-KQXR', 'Navagaon Khurd Sub-Centre', '+91-9876543224')
-ON CONFLICT (email) DO NOTHING;
+    ('asha.kalavati@arogyasathi.org', 'Kalavati Kumari', 'ASHA', 'ASHA-RRR5', 'Belwadi Tola Ayushman Arogya Mandir (HWC)', 'SC-BWT-101', '+91-9876543220'),
+    ('asha.sunaina@arogyasathi.org', 'Sunaina Devi', 'ASHA', 'ASHA-096P', 'Amrapur Health & Wellness Centre', 'SC-AMP-102', '+91-9876543221'),
+    ('asha.rinku@arogyasathi.org', 'Rinku Devi', 'ASHA', 'ASHA-YFK5', 'Kesarganj Health & Wellness Centre', 'SC-KSG-103', '+91-9876543222'),
+    ('asha.shabnam@arogyasathi.org', 'Shabnam Khatoon', 'ASHA', 'ASHA-L9R8', 'Dhanpura Health & Wellness Centre', 'SC-DHP-104', '+91-9876543223'),
+    ('asha.malti@arogyasathi.org', 'Malti Devi', 'ASHA', 'ASHA-KQXR', 'Navagaon Khurd Health & Wellness Centre', 'SC-NGK-105', '+91-9876543224')
+ON CONFLICT (email) DO UPDATE SET
+    assigned_facility = EXCLUDED.assigned_facility,
+    sub_centre_id = EXCLUDED.sub_centre_id;
 

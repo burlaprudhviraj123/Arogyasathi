@@ -29,7 +29,7 @@ import org.arogyasathi.app.data.ArogyasathiDbHelper
         SyncQueueEntity::class,
         PatientChatEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class ArogyasathiRoomDatabase {
@@ -124,6 +124,7 @@ internal class SqliteBackedArogyasathiRoomDatabase(
                         put("mo_phone", a.medicalOfficerPhone)
                         put("anm_name", a.anmName)
                         put("anm_phone", a.anmPhone)
+                        put("password", a.password)
                     }
                     db.insertWithOnConflict(
                         ArogyasathiDbHelper.TABLE_ASHAS,
@@ -654,7 +655,8 @@ internal class SqliteBackedArogyasathiRoomDatabase(
         medicalOfficerName = c.getString(c.getColumnIndexOrThrow("mo_name")) ?: "Dr. Rajesh Sharma, MBBS",
         medicalOfficerPhone = c.getString(c.getColumnIndexOrThrow("mo_phone")) ?: "+91 94310 82101",
         anmName = c.getString(c.getColumnIndexOrThrow("anm_name")) ?: "Anita Sharma",
-        anmPhone = c.getString(c.getColumnIndexOrThrow("anm_phone")) ?: "+91 98350 41102"
+        anmPhone = c.getString(c.getColumnIndexOrThrow("anm_phone")) ?: "+91 98350 41102",
+        password = if (c.getColumnIndex("password") != -1) c.getString(c.getColumnIndexOrThrow("password")) ?: "Asha@2026" else "Asha@2026"
     )
 
     private fun cursorToHouseholdEntity(c: Cursor): HouseholdEntity = HouseholdEntity(

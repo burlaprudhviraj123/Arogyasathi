@@ -254,6 +254,20 @@ fun AshaProfileScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = PrimaryTeal.copy(alpha = 0.12f),
+                                    border = BorderStroke(0.5.dp, PrimaryTeal.copy(alpha = 0.3f))
+                                ) {
+                                    Text(
+                                        text = "${strings.profileSubCentreId}: ${activeProfile.subCentreId}",
+                                        fontSize = 9.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryTeal,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -348,6 +362,50 @@ fun AshaProfileScreen(
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = TextPrimary
+                                    )
+                                }
+                            }
+                        }
+
+                        // Sub-Centre Facility Box
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFF1F5F9).copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, BorderSubtle),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = strings.profileAssignedSubCentre,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextSecondary
+                                    )
+                                    Text(
+                                        text = activeProfile.subCentre,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = PrimaryTeal.copy(alpha = 0.12f),
+                                    border = BorderStroke(1.dp, PrimaryTeal.copy(alpha = 0.25f))
+                                ) {
+                                    Text(
+                                        text = "${strings.profileSubCentreId}: ${activeProfile.subCentreId}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PrimaryTeal,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
                             }
@@ -583,7 +641,7 @@ fun AshaProfileScreen(
                                     color = if (isSelected) Color.White else TextPrimary
                                 )
                                 Text(
-                                    text = "${profile.villages.joinToString(", ")} • ${profile.parentPhc}",
+                                    text = "${profile.villages.joinToString(", ")} • Sub-Centre: ${profile.subCentreId}",
                                     fontSize = 11.sp,
                                     color = if (isSelected) Color(0xFFE6F4F1) else TextSecondary
                                 )

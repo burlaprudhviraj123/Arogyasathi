@@ -32,6 +32,7 @@ data class AshaProfile(
     val phone: String,
     val villages: List<String>,
     val subCentre: String,
+    val subCentreId: String = "SC-BWT-101",
     val assignedHouseholdsCount: Int = 100,
     val isVerified: Boolean = true,
     val parentPhc: String = "Chandrapuri Primary Health Centre",
@@ -42,10 +43,17 @@ data class AshaProfile(
     val anmRole: String = "Designated Sector ANM",
     val anmPhone: String = "+91 98350 41102",
     val ambulance108: String = "108",
-    val ambulance102: String = "102"
+    val ambulance102: String = "102",
+    val password: String = "Asha@2026"
 ) {
     fun maskedMoPhone(): String = maskPhoneNumber(medicalOfficerPhone)
     fun maskedAnmPhone(): String = maskPhoneNumber(anmPhone)
+}
+
+sealed class AshaAuthResult {
+    data class Success(val profile: AshaProfile) : AshaAuthResult()
+    data class InvalidPassword(val ashaName: String, val parentPhc: String) : AshaAuthResult()
+    object UserNotFound : AshaAuthResult()
 }
 
 fun maskPhoneNumber(phone: String): String {

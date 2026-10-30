@@ -52,7 +52,10 @@ data class AshaEntity(
     val anmName: String = "Anita Sharma",
 
     @ColumnInfo(name = "anm_phone")
-    val anmPhone: String = "+91 98350 41102"
+    val anmPhone: String = "+91 98350 41102",
+
+    @ColumnInfo(name = "password")
+    val password: String = "Asha@2026"
 ) {
     fun toDomain(): AshaProfile = AshaProfile(
         ashaId = ashaId,
@@ -60,11 +63,20 @@ data class AshaEntity(
         phone = phone,
         villages = villagesCsv.split(";").map { it.trim() }.filter { it.isNotEmpty() },
         subCentre = subCentre,
+        subCentreId = when (ashaId) {
+            "ASHA-RRR5" -> "SC-BWT-101"
+            "ASHA-096P" -> "SC-AMP-102"
+            "ASHA-YFK5" -> "SC-KSG-103"
+            "ASHA-L9R8" -> "SC-DHP-104"
+            "ASHA-KQXR" -> "SC-NGK-105"
+            else -> "SC-${ashaId.takeLast(4)}-101"
+        },
         parentPhc = parentPhc,
         medicalOfficerName = medicalOfficerName,
         medicalOfficerPhone = medicalOfficerPhone,
         anmName = anmName,
-        anmPhone = anmPhone
+        anmPhone = anmPhone,
+        password = password
     )
 
     companion object {
@@ -78,7 +90,8 @@ data class AshaEntity(
             medicalOfficerName = profile.medicalOfficerName,
             medicalOfficerPhone = profile.medicalOfficerPhone,
             anmName = profile.anmName,
-            anmPhone = profile.anmPhone
+            anmPhone = profile.anmPhone,
+            password = profile.password
         )
     }
 }
