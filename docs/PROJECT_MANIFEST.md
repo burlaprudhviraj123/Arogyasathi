@@ -1,6 +1,6 @@
 # Arogyasathi — Project Manifest
 
-> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone` and `emulator-5554`). Primary Evaluator Score: **0.9735** (Gate: PASS). Multilingual Anatomical Guardrail & JEV Intent Classification Verified across Telugu, Tamil, Kannada, Malayalam, Hindi and English (100% Danger Recall, 0% False Escalation, 100% Scope Refusal on 2,000 Questions Campaign). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**.
+> **Status:** Full Engineering Pipeline & Native Android App Complete. Production APK verified on device (`prudhvi_s_phone` and `emulator-5554`). Primary Evaluator Score: **0.9735** (Gate: PASS). Multilingual Anatomical Guardrail & JEV Intent Classification Verified across Telugu, Tamil, Kannada, Malayalam, Hindi, English, and Romanized Transliterations (100% Danger Recall, 0% False Escalation, 100% Scope Refusal on 2,000 Questions Campaign, Agglutinative Root Expansion). Standalone Release APK: **8.0 MB** (`Arogyasathi-v1.0-offline.apk`). Submission Bundle: **11.7 MB**.
 > **Last Updated:** 2026-10-30
 
 ---
