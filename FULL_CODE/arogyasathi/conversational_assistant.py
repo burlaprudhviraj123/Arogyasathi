@@ -284,3 +284,7 @@ class ArogyasathiConversationalAssistant:
         }
         session.add_interaction(query, resp)
         return resp
+
+
+# Alias for convenience
+ConversationalAssistant = ArogyasathiConversationalAssistant

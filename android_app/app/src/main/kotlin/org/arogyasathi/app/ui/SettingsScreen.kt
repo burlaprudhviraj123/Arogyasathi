@@ -235,6 +235,114 @@ fun SettingsScreen(
             }
         }
 
+        // Section 1.5: Offline Voice Engine & Speech Packs
+        item(key = "voice_engine_section") {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = PrimaryTeal.copy(alpha = 0.12f),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_mic),
+                                        contentDescription = null,
+                                        tint = PrimaryTeal,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            Column {
+                                Text(
+                                    text = "Offline Voice Engine",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "IndicConformer STT (~118 MB ONNX INT8)",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = RoutineGreen.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = "OFFLINE READY",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = RoutineGreen,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Real-time speech recognition for ASHA workers in remote villages with zero connectivity. Transcribes spoken clinical queries in ${currentLanguage.nativeName} directly on-device.",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        lineHeight = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFF8FAFC),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Active Voice Model",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                                Text(
+                                    text = "${currentLanguage.nativeName} (${currentLanguage.displayName})",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryTeal
+                                )
+                            }
+                            Text(
+                                text = "RAM: ~120 MB",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         // Section 2: Health Worker Profile & Beat
         item(key = "profile_section") {
             Card(

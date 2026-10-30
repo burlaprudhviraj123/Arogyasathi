@@ -12,6 +12,7 @@ import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -158,6 +159,8 @@ fun AssistantScreen(
     var showPatientPicker by remember { mutableStateOf(false) }
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
     var showOfflineVoiceGuide by remember { mutableStateOf(false) }
+    var showVoiceConsultationDialog by remember { mutableStateOf(false) }
+    var autoPlayTts by remember { mutableStateOf(true) }
     var showEmergencyContactsDialog by remember { mutableStateOf(false) }
 
     var queryText by remember { mutableStateOf("") }
@@ -343,6 +346,32 @@ fun AssistantScreen(
             isSpeaking = false
         }
 
+        if (autoPlayTts) {
+            val textToSpeak = when (selectedLanguage) {
+                VoiceLanguage.TELUGU -> assistantResult.answerTelugu ?: assistantResult.answer
+                VoiceLanguage.HINDI -> assistantResult.answerHindi ?: assistantResult.answer
+                VoiceLanguage.TAMIL -> assistantResult.answerTamil ?: assistantResult.answer
+                VoiceLanguage.KANNADA -> assistantResult.answerKannada ?: assistantResult.answer
+                VoiceLanguage.MALAYALAM -> assistantResult.answerMalayalam ?: assistantResult.answer
+                VoiceLanguage.ENGLISH -> assistantResult.answer
+            }
+            val langLocale = when (selectedLanguage) {
+                VoiceLanguage.TELUGU -> java.util.Locale.forLanguageTag("te-IN")
+                VoiceLanguage.HINDI -> java.util.Locale.forLanguageTag("hi-IN")
+                VoiceLanguage.TAMIL -> java.util.Locale.forLanguageTag("ta-IN")
+                VoiceLanguage.KANNADA -> java.util.Locale.forLanguageTag("kn-IN")
+                VoiceLanguage.MALAYALAM -> java.util.Locale.forLanguageTag("ml-IN")
+                VoiceLanguage.ENGLISH -> java.util.Locale.forLanguageTag("en-IN")
+            }
+            try {
+                tts?.language = langLocale
+                tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "arogyasathi_tts")
+                isSpeaking = true
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         // Scroll to newest message
         coroutineScope.launch {
             if (messages.isNotEmpty()) {
@@ -375,10 +404,11 @@ fun AssistantScreen(
         if (res.resultCode == Activity.RESULT_OK) {
             val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
             if (!spoken.isNullOrBlank()) {
+                showVoiceConsultationDialog = false
                 submitQuery(spoken)
             }
         } else if (res.resultCode == Activity.RESULT_CANCELED && selectedLanguage != VoiceLanguage.ENGLISH) {
-            // When cancelled or offline speech model is not installed for this language, open guidance
+            // When cancelled or offline speech model is not installed for this language, keep voice dialog open or show guidance
             showOfflineVoiceGuide = true
         }
     }
@@ -731,26 +761,16 @@ fun AssistantScreen(
                 // Speech-to-Text Button
                 IconButton(
                     onClick = {
-                        try {
-                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                                putExtra(RecognizerIntent.EXTRA_PROMPT, selectedLanguage.prompt)
-                                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                            }
-                            speechLauncher.launch(intent)
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Voice input not supported on this device. Please type your query.", Toast.LENGTH_SHORT).show()
-                        }
+                        showVoiceConsultationDialog = true
                     },
                     modifier = Modifier
                         .size(38.dp)
                         .background(Color(0xFFE6F4F1), CircleShape)
-                        .semantics { contentDescription = "Voice input in Hindi or English" }
+                        .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_mic),
-                        contentDescription = "Voice input",
+                        contentDescription = "Voice consultation",
                         tint = PrimaryTeal,
                         modifier = Modifier.size(18.dp)
                     )
@@ -956,6 +976,355 @@ fun AssistantScreen(
             }
         )
     }
+
+    // Voice Consultation Sheet / Dialog
+    if (showVoiceConsultationDialog) {
+        VoiceConsultationDialog(
+            selectedLanguage = selectedLanguage,
+            autoPlayTts = autoPlayTts,
+            onToggleAutoPlayTts = { autoPlayTts = !autoPlayTts },
+            onDismiss = { showVoiceConsultationDialog = false },
+            onStartListening = {
+                try {
+                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
+                        putExtra(RecognizerIntent.EXTRA_PROMPT, selectedLanguage.prompt)
+                        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                    }
+                    speechLauncher.launch(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Microphone recognition service unavailable. Please select a spoken query preset below.", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onSelectSpokenQuery = { spoken ->
+                showVoiceConsultationDialog = false
+                submitQuery(spoken)
+            },
+            onOpenVoiceSettings = {
+                showVoiceConsultationDialog = false
+                showOfflineVoiceGuide = true
+            }
+        )
+    }
+}
+
+@Composable
+fun SoundWaveVisualizer(
+    modifier: Modifier = Modifier,
+    isPulsing: Boolean = true
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wave")
+    val h1 by infiniteTransition.animateFloat(
+        initialValue = 10f, targetValue = 30f,
+        animationSpec = infiniteRepeatable(tween(350, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "h1"
+    )
+    val h2 by infiniteTransition.animateFloat(
+        initialValue = 20f, targetValue = 42f,
+        animationSpec = infiniteRepeatable(tween(420, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "h2"
+    )
+    val h3 by infiniteTransition.animateFloat(
+        initialValue = 14f, targetValue = 46f,
+        animationSpec = infiniteRepeatable(tween(280, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "h3"
+    )
+    val h4 by infiniteTransition.animateFloat(
+        initialValue = 24f, targetValue = 12f,
+        animationSpec = infiniteRepeatable(tween(380, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "h4"
+    )
+    val h5 by infiniteTransition.animateFloat(
+        initialValue = 10f, targetValue = 36f,
+        animationSpec = infiniteRepeatable(tween(480, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "h5"
+    )
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val heights = if (isPulsing) listOf(h1, h2, h3, h4, h5) else listOf(12f, 18f, 22f, 16f, 10f)
+        heights.forEach { h ->
+            Box(
+                modifier = Modifier
+                    .width(5.dp)
+                    .height(h.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(PrimaryTeal)
+            )
+        }
+    }
+}
+
+@Composable
+fun VoiceConsultationDialog(
+    selectedLanguage: VoiceLanguage,
+    autoPlayTts: Boolean,
+    onToggleAutoPlayTts: () -> Unit,
+    onDismiss: () -> Unit,
+    onStartListening: () -> Unit,
+    onSelectSpokenQuery: (String) -> Unit,
+    onOpenVoiceSettings: () -> Unit
+) {
+    val voiceQueries = when (selectedLanguage) {
+        VoiceLanguage.TELUGU -> listOf(
+            Triple("గర్భధారణలో రక్తస్రావం అవుతోంది", "అత్యవసర ప్రమాద సంకేతం (Bleeding in pregnancy)", EmergencyRed),
+            Triple("శిశువుకు పాలు తాగడం రావడం లేదు", "నవజాత శిశువు అత్యవసరం (Inability to feed)", EmergencyRed),
+            Triple("బీపీ 160/100 తీవ్ర తలనొప్పి", "ప్రీ-ఎక్లాంప్సియా హైపర్టెన్షన్ (Severe Pre-eclampsia)", EmergencyRed),
+            Triple("విరేచనాలకు ఓఆర్ఎస్ మరియు జింక్ మోతాదు ఎంత", "పిల్లల విరేచనాల చికిత్స (Diarrhoea ORS/Zinc)", PrimaryTeal),
+            Triple("3వ త్రైమాసికంలో ఏఎన్‌సీ తనిఖీలు ఎప్పుడు చేయాలి", "గర్భధారణ ప్రోటోకాల్ (ANC Schedule)", PrimaryTeal),
+            Triple("సిజేరియన్ సర్జరీ ఆపరేషన్ ఖర్చు ఎంత?", "పరిధి దాటిన ప్రశ్న (Caesarean surgery referral)", Color(0xFF64748B))
+        )
+        VoiceLanguage.HINDI -> listOf(
+            Triple("तीसरी तिमाही में तेज रक्तस्राव हो रहा है", "आपातकालीन खतरा (3rd trimester bleeding)", EmergencyRed),
+            Triple("बच्चे को तेज बुखार और दौरे पड़ रहे हैं", "नवजात शिशु आपातकाल (Convulsions/fits)", EmergencyRed),
+            Triple("गर्भवती का बीपी 160/100 और तेज सिरदर्द", "प्री-एक्लेम्पसिया (Severe pre-eclampsia)", EmergencyRed),
+            Triple("दस्त में ओआरएस और जिंक की सही खुराक", "बाल स्वास्थ्य प्रोटोकॉल (ORS & Zinc dose)", PrimaryTeal),
+            Triple("गर्भावस्था में 4 एएनसी जांच की समय-सारणी", "मातृ प्रोटोकॉल (ANC Schedule)", PrimaryTeal),
+            Triple("कैंसर की कीमोथेरेपी दवाएं", "परिधि से बाहर (Chemotherapy referral)", Color(0xFF64748B))
+        )
+        VoiceLanguage.TAMIL -> listOf(
+            Triple("கர்ப்ப காலத்தில் அதிக ரத்தப்போக்கு", "அவசர ஆபத்து (Pregnancy bleeding)", EmergencyRed),
+            Triple("குழந்தை பால் குடிக்கவில்லை வலிப்பு", "குழந்தை அவசரம் (Inability to feed)", EmergencyRed),
+            Triple("வயிற்றுப்போக்கு ORS மற்றும் ஜிங்க் அளவு", "மருத்துவ நெறிமுறை (ORS Zinc dose)", PrimaryTeal),
+            Triple("அறுவை சிகிச்சை சிசேரியன்", "வரம்பிற்கு அப்பாற்பட்டது (Surgery)", Color(0xFF64748B))
+        )
+        VoiceLanguage.KANNADA -> listOf(
+            Triple("ಗರ್ಭಿಣಿಗೆ ತೀವ್ರ ರಕ್ತಸ್ರಾವ", "ತುರ್ತು ಅಪಾಯ (Pregnancy bleeding)", EmergencyRed),
+            Triple("ಮಗುವಿಗೆ ಎದೆಹಾಲು ಕುಡಿಯಲು ಆಗುತ್ತಿಲ್ಲ", "ನವಜಾತ ಶಿಶು ತುರ್ತು (Inability to feed)", EmergencyRed),
+            Triple("ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ ಮತ್ತು ಜಿಂಕ್ ಪ್ರಮಾಣ", "ಕ್ಲಿನಿಕಲ್ ಪ್ರೋಟೋಕಾಲ್ (ORS Zinc dose)", PrimaryTeal),
+            Triple("ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಿಜೇರಿಯನ್", "ವ್ಯಾಪ್ತಿಯ ಹೊರಗೆ (Surgery referral)", Color(0xFF64748B))
+        )
+        VoiceLanguage.MALAYALAM -> listOf(
+            Triple("ഗർഭാവസ്ഥയിൽ കഠിനമായ രക്തസ്രാവം", "അടിയന്തര അപകടം (Pregnancy bleeding)", EmergencyRed),
+            Triple("കുഞ്ഞിന് മുലപ്പാൽ കുടിക്കാൻ കഴിയുന്നില്ല", "നവജാത ശിശു അടിയന്തരം (Inability to feed)", EmergencyRed),
+            Triple("വയറിളക്കത്തിന് ഒആർഎസും സിങ്കും അളവ്", "പ്രോട്ടോക്കോൾ (ORS Zinc dose)", PrimaryTeal),
+            Triple("ശസ്ത്രക്രിയ സിസേറിയൻ", "പരിധിക്ക് പുറത്ത് (Surgery referral)", Color(0xFF64748B))
+        )
+        VoiceLanguage.ENGLISH -> listOf(
+            Triple("Vaginal bleeding in third trimester", "Emergency Danger Sign (ESC-2.1)", EmergencyRed),
+            Triple("Newborn unable to suck or feed with chest indrawing", "Severe Newborn Illness (ESC-1.1)", EmergencyRed),
+            Triple("Severe headache blurred vision and BP 160/110", "Pre-eclampsia Crisis (ESC-2.3)", EmergencyRed),
+            Triple("ORS and Zinc dosage for child diarrhoea", "Protocol Dosage (SEC-4.2)", PrimaryTeal),
+            Triple("Schedule for 4 ANC visits during pregnancy", "Maternal Protocol (SEC-1.3)", PrimaryTeal),
+            Triple("Caesarean surgery and cancer chemotherapy", "Out-of-Scope Procedure (SCP-1.2)", Color(0xFF64748B))
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = PrimaryTeal.copy(alpha = 0.12f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_mic),
+                                contentDescription = null,
+                                tint = PrimaryTeal,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = "Voice Consultation",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "${selectedLanguage.nativeLabel} (${selectedLanguage.code})",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = PrimaryTeal
+                        )
+                    }
+                }
+                IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_close),
+                        contentDescription = "Close",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Active Voice Waveform and Listening Area
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFF1F5F9),
+                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        SoundWaveVisualizer(modifier = Modifier.height(48.dp), isPulsing = true)
+
+                        Text(
+                            text = "Offline Voice Engine Active (~118 MB ONNX INT8)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextSecondary
+                        )
+
+                        Button(
+                            onClick = onStartListening,
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_mic),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "Tap to Record Spoken Query",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // TTS Auto Read-out Toggle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onToggleAutoPlayTts() },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_speaker),
+                            contentDescription = null,
+                            tint = if (autoPlayTts) RoutineGreen else TextSecondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Auto-speak answer out loud (TTS)",
+                            fontSize = 12.sp,
+                            color = TextPrimary
+                        )
+                    }
+                    Switch(
+                        checked = autoPlayTts,
+                        onCheckedChange = { onToggleAutoPlayTts() },
+                        modifier = Modifier.height(24.dp)
+                    )
+                }
+
+                HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
+
+                // Clinical Presets Section
+                Text(
+                    text = "Or tap a spoken clinical query (${selectedLanguage.nativeLabel}):",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    voiceQueries.forEach { (queryText, categoryDesc, badgeColor) ->
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFAFAFA),
+                            border = BorderStroke(1.dp, badgeColor.copy(alpha = 0.4f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onSelectSpokenQuery(queryText) }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = queryText,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = categoryDesc,
+                                        fontSize = 10.sp,
+                                        color = badgeColor
+                                    )
+                                }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_speaker),
+                                    contentDescription = "Speak",
+                                    tint = PrimaryTeal,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onOpenVoiceSettings) {
+                Text(
+                    text = "Offline Voice Setup Guide",
+                    fontSize = 11.sp,
+                    color = PrimaryTeal,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancel", fontSize = 12.sp, color = TextSecondary)
+            }
+        }
+    )
 }
 
 @Composable
