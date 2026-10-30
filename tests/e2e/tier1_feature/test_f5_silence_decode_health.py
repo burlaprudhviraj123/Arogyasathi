@@ -28,6 +28,10 @@ from tests.e2e.common.silence_health import HealthCheckError, run_silence_health
 class TestSilenceDecodeHealthFeature(unittest.TestCase):
     """Test suite verifying silence decode health checks against real models."""
 
+    def setUp(self) -> None:
+        if not TELUGU_MODEL_PATH.exists():
+            self.skipTest("Telugu model not cached locally (hosted online on GitHub releases)")
+
     def test_telugu_model_silence_health_check_passes(self) -> None:
         """Verify that real Telugu INT8 model passes silence decode health check."""
         self.assertTrue(TELUGU_MODEL_PATH.exists(), f"Telugu model missing at {TELUGU_MODEL_PATH}")

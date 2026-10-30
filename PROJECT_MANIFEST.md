@@ -1,1 +1,0 @@
-docs/PROJECT_MANIFEST.md

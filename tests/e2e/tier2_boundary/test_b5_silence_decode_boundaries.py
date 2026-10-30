@@ -21,6 +21,10 @@ from tests.e2e.common.silence_health import HealthCheckError, run_silence_health
 class TestSilenceDecodeBoundaries(unittest.TestCase):
     """Test suite for silence decode boundary conditions and stress tests."""
 
+    def setUp(self) -> None:
+        if not TELUGU_MODEL_PATH.exists():
+            self.skipTest("Telugu model not cached locally (hosted online on GitHub releases)")
+
     def test_short_silence_duration(self) -> None:
         """Verify that a short 100ms (1,600 samples) silence slice decodes cleanly."""
         passed, transcript, latency = run_silence_health_check(

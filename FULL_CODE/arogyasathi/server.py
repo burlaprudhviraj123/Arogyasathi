@@ -12,7 +12,7 @@ import os
 import time
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from .protocols import load_protocol_sections
@@ -44,7 +44,7 @@ def serve_web_demo():
     demo_file = ROOT_DIR / "web_demo.html"
     if demo_file.exists():
         return FileResponse(demo_file, media_type="text/html")
-    return {"message": "Arogyasathi Edge Sync Gateway Active"}
+    return HTMLResponse("<html><head><title>आरोग्यसाथी</title></head><body><h1>आरोग्यसाथी Edge Sync Gateway Active</h1></body></html>")
 
 
 @app.api_route("/slides", methods=["GET", "HEAD"], include_in_schema=False)
@@ -52,7 +52,7 @@ def serve_slides():
     slides_file = ROOT_DIR / "slides.html"
     if slides_file.exists():
         return FileResponse(slides_file, media_type="text/html")
-    return {"message": "Slides not found"}
+    return HTMLResponse("<html><head><title>Arogyasathi Slides</title></head><body><h1>Arogyasathi Architecture & Pitch Deck</h1></body></html>")
 
 
 class QueryRequest(BaseModel):

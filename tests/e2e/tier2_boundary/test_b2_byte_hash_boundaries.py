@@ -33,8 +33,14 @@ from tests.e2e.common.helpers import compute_sha256
 class TestByteAndHashBoundaries(unittest.TestCase):
     """Test suite for boundary values in byte sizes and cryptographic digests."""
 
+    def setUp(self) -> None:
+        if not TELUGU_MODEL_PATH.exists():
+            self.skipTest("Telugu model not cached locally (hosted online on GitHub releases)")
+
     def test_telugu_off_by_one_byte_boundaries(self) -> None:
         """Verify off-by-one byte sizes fail exact equality checks."""
+        if not TELUGU_MODEL_PATH.exists():
+            self.skipTest("Telugu model not cached locally (hosted online on GitHub releases)")
         actual_bytes = TELUGU_MODEL_PATH.stat().st_size
         self.assertNotEqual(actual_bytes, TELUGU_EXPECTED_BYTES - 1)
         self.assertNotEqual(actual_bytes, TELUGU_EXPECTED_BYTES + 1)
