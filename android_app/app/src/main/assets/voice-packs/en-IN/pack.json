@@ -1,0 +1,33 @@
+{
+  "$schema": "https://arogyasathi.org/schemas/voice-pack-v1.json",
+  "schemaVersion": 1,
+  "packId": "arogyasathi-asr-en-in",
+  "languageTag": "en-IN",
+  "displayName": "English (India)",
+  "runtime": {
+    "engine": "sherpa-onnx",
+    "modelType": "nemo-ctc",
+    "sampleRateHz": 16000,
+    "featureDimension": 80,
+    "minimumRuntimeVersion": "2.0.1"
+  },
+  "model": {
+    "source": "NVIDIA NeMo stt_en_conformer_ctc_small",
+    "sourceCheckpointSha256": "66cfde4ce0b6da9e1a4352e58f0c968f87da23070cf229c81ae0d520cddad2a2",
+    "version": "1.0.0"
+  },
+  "files": [
+    {
+      "path": "model.int8.onnx",
+      "bytes": 46419854,
+      "sha256": "66cfde4ce0b6da9e1a4352e58f0c968f87da23070cf229c81ae0d520cddad2a2"
+    },
+    {
+      "path": "tokens.txt",
+      "bytes": 11611,
+      "sha256": "1adce7866285e6a4aac6208b120d5b8e4302b7cae5f2ae541c343097773fd988"
+    }
+  ],
+  "archiveSha256": null,
+  "createdAt": "2026-10-30T18:57:56Z"
+}

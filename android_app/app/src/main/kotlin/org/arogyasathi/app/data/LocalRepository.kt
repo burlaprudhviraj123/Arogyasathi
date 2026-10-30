@@ -220,7 +220,7 @@ class ArogyasathiRepository(private val context: Context) {
         val selectionArgs = mutableListOf<String>()
 
         if (!villageFilter.isNullOrBlank() && villageFilter != "All") {
-            if (villageFilter == "My Beat") {
+            if (villageFilter == "My Villages" || villageFilter == "My Beat") {
                 val activeVillages = getActiveProfile().villages
                 val placeholders = activeVillages.joinToString(",") { "?" }
                 selection.add("village IN ($placeholders)")
@@ -312,7 +312,7 @@ class ArogyasathiRepository(private val context: Context) {
             .filter {
                 when {
                     villageFilter.isNullOrBlank() || villageFilter == "All" -> true
-                    villageFilter == "My Beat" -> it.village in activeVillages
+                    villageFilter == "My Villages" || villageFilter == "My Beat" -> it.village in activeVillages
                     else -> it.village == villageFilter
                 }
             }

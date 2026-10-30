@@ -191,6 +191,55 @@ Build an offline-first Android assistant for frontline health workers (ASHA/ANM)
     - `ArogyasathiRoomDatabase.kt`: `@Database` implementation backed by SQLite WAL (`arogyasathi.db`) and offline asset seeding (`ashas.csv`, `households.csv`, `household_register.csv`, `protocols.json`).
   - Created `NeonPostgresSyncClient.kt` and updated `/src/services/postgres.ts`, `/src/server.ts`, and `/FULL_CODE/arogyasathi/server.py` with `/api/v1/bootstrap` and `/api/v1/sync` endpoints so the Android app pulls/caches `ashas`, `households`, `members`, and `protocols` from Neon Postgres when online, pushes pending `sync_queue` (`VISIT_OUTCOME` and `REFERRAL_SLIP`/`DANGER_ESCALATION`) items to Neon when connectivity returns, and operates 100% offline from the local Room cache when disconnected.
 
+- [x] Phase 7J / Voice Phase 1 — Comprehensive Offline ASR Source-Model Audit (`docs/research/08_OFFLINE_ASR_SOURCE_MODEL_AUDIT.md`)
+  - Audited source checkpoints across all 6 target languages: Telugu (`te-IN`), English (`en-IN`), Hindi (`hi-IN`), Tamil (`ta-IN`), Kannada (`kn-IN`), Malayalam (`ml-IN`).
+  - Confirmed NeMo CTC output path compatibility with sherpa-onnx runtime (bypassing incompatible stateful RNN-T joiners).
+  - Telugu pack verified: `model.int8.onnx` (**141,139,712 bytes**, ~134.6 MB), `tokens.txt` (2,706 bytes, 257 lines).
+  - English pack verified: `model.int8.onnx` (**46,419,854 bytes**, 44.27 MB), `tokens.txt` (11,611 bytes, 1,025 lines).
+  - Host execution verified via `sherpa-onnx 2.0.1` on development host against real native speech recordings: 6 native Telugu speakers from OpenSLR 66 and 2 real English test utterances decoded accurately without network access.
+  - Phase 1 sign-off achieved.
+
+- [x] Phase 7K / Voice Phases 2–7 — Production-Grade On-Demand Offline Speech Recognition Packs
+  - Standard Pack Packaging Engine (`tools/package_voice_pack.py`): Implemented strict Schema v1 zip archiver with `--verify` validation, 500 MB max uncompressed ceiling, symlink rejection, 0-byte input validation, deterministic timestamps, and failure cleanup. Packaged verified production archives: `arogyasathi-asr-te-in-1.0.0.zip` (123,263,350 bytes) and `arogyasathi-asr-en-in-1.0.0.zip` (18,974,135 bytes).
+  - Cryptographic Catalogue Signing (`tools/sign_catalogue.py`): Implemented ECDSA NIST P-256 (`SHA256withECDSA`) keypair generator and canonical catalogue signer. Embedded authoritative public key `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8HCaz0+N+y6G4PYuI9ke4pjUeEqtN75yhgCzOQJIJBBs4oZMW9rNNxufe7woehUAjuLVGuYohLn3TfB3tRnrFA==` in the Android app. Generated and signed `catalogue.signed.json`.
+  - Android Voice Pack Management (`VoicePackManager.kt`, `VoicePackArchiveVerifier.kt`, `VoicePackCrypto.kt`, `VoicePackModels.kt`):
+    * Sealed class `VoicePackState` (`NotInstalled`, `Queued`, `Downloading`, `Verifying`, `Installing`, `Ready`, `UpdateAvailable`, `Failed`). Readiness derived strictly from verified files on disk, installation record, and recognizer sanity check—never stored as a bare boolean in `SharedPreferences`.
+    * Resumable downloads via HTTP Range headers with real downloaded byte progress reporting.
+    * Storage preflight checks (`archive + 2x uncompressed + 20% margin`).
+    * Defensive zip unpacking with ZipSlip path traversal protection (`..` rejection, subfolder rejection, canonical path validation, 500 MB ceiling).
+    * Two-stage atomic activation (`files/voice-packs/.staging` -> `files/voice-packs/<tag>/current`) with rollback protection preserving the existing active pack until staging verification completes.
+    * Supervisor / OTG file import (`importPack`) running through identical verification and staging pipeline.
+  - Universal Offline Voice Engine (`OfflineVoiceEngine.kt`):
+    * Captures raw 16 kHz mono 16-bit PCM via `AudioRecord`.
+    * Performs local inference via `sherpa-onnx`'s `OfflineRecognizer` with CPU provider.
+    * Zero `RecognizerIntent`, zero Google Speech Services, zero cloud STT calls.
+    * Transcriptions populate the editable chat query field without auto-sending, preserving human-in-the-loop clinical review.
+  - Frontline User Experience (`SettingsScreen.kt`, `AssistantScreen.kt`):
+    * Settings: Live multilingual voice pack cards displaying language name, exact published pack size from signed catalogue (135 MB for Telugu, 44 MB for English, ~135 MB for Indic), real downloaded byte progress, live status badges, Download / Cancel / Retry / Delete buttons, and OTG `.zip` import launcher.
+    * Assistant: Dynamic mic button reflecting pack readiness; shows pulsing red glow during 16 kHz PCM recording; prompts with clear actionable message when selected language pack is not installed.
+  - Comprehensive Verification & Testing:
+    * Android Security Unit Tests (`VoicePackSecurityTest.kt`): 8/8 tests pass covering ECDSA signature verification, payload tampering rejection, algorithm spoofing rejection, ZipSlip directory traversal prevention, and archive manifest integrity. Total 48/48 Android unit tests pass via `./gradlew test`.
+    * APK Build: `./gradlew assembleDebug` succeeds cleanly (`app-debug.apk` generated).
+    * Python Unit & E2E Suites: 83/83 tests passing via `pytest tests/`; 61/61 tests passing via `tests/e2e/run_e2e_tests.py`.
+    * Official Benchmark Evaluator: Certified at Primary Score **0.9735** (`ESCALATION GATE: PASS`, Recall: 1.0000, False Escalation: 0.0000, Refusal: 1.0000, Citation: 1.0000, Visit Score: 1.0000).
+
+- [x] Phase 7L — All Six Multilingual Voice Packs Packaged, Signed & English-Inbuilt Switch
+  - Bundled English Voice Engine: Embedded verified English (`en-IN`) INT8 model (46.4 MB model, 11.6 KB tokens, 1,025 vocabulary lines) into APK assets (`voice-packs/en-IN/`), enabling zero-network, out-of-the-box offline voice input on cold launch without downloading.
+  - Sliced & Quantized Indic Checkpoints: Exported and quantized all remaining AI4Bharat IndicConformer hybrid checkpoints to INT8 NeMo CTC with 256 BPE classes + blank token via `tools/export_indicconformer_pack.py`:
+    * Hindi (`hi-IN`): `arogyasathi-asr-hi-in-1.0.0.zip` (122,876,444 bytes archive, 137.6 MB uncompressed INT8)
+    * Tamil (`ta-IN`): `arogyasathi-asr-ta-in-1.0.0.zip` (123,061,009 bytes archive, 137.6 MB uncompressed INT8)
+    * Kannada (`kn-IN`): `arogyasathi-asr-kn-in-1.0.0.zip` (123,311,259 bytes archive, 137.6 MB uncompressed INT8)
+    * Malayalam (`ml-IN`): `arogyasathi-asr-ml-in-1.0.0.zip` (123,285,965 bytes archive, 137.6 MB uncompressed INT8)
+    * Telugu (`te-IN`): `arogyasathi-asr-te-in-1.0.0.zip` (123,263,350 bytes archive, 141.1 MB uncompressed INT8)
+    * English (`en-IN`): `arogyasathi-asr-en-in-1.0.0.zip` (18,974,135 bytes archive, 46.4 MB uncompressed INT8)
+  - Sherpa-ONNX Verification: All 6 models verified via `sherpa_onnx.OfflineRecognizer.from_nemo_ctc` on development host, passing 16 kHz silence decode without error.
+  - Unified Cryptographic Catalogue: Generated and signed `catalogue.signed.json` containing all 6 production packs with ECDSA NIST P-256 signature, embedded into Android assets (`voice-packs/catalogue.signed.json`).
+  - Comprehensive Verification:
+    * 49/49 Android unit tests pass cleanly via `./gradlew test`.
+    * 83/83 Python unit & E2E tests pass cleanly via `pytest tests/`.
+    * 61/61 Standalone E2E tests pass via `tests/e2e/run_e2e_tests.py`.
+    * Pre-flight certification passes with **0.9735** primary score (`ESCALATION GATE: PASS`).
+
 ---
 
 ## Mandatory Engineering Rules

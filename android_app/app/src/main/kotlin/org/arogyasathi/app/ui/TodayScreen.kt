@@ -179,7 +179,7 @@ fun TodayScreen(
         // Village Filter Chips (Scrolls with list)
         item(key = "village_filters") {
             val villageOptions = remember(activeProfile) {
-                listOf("All", "My Beat") + repository.getAllVillages()
+                listOf("All", "My Villages") + repository.getAllVillages()
             }
             Row(
                 modifier = Modifier
@@ -358,6 +358,7 @@ fun VisitCard(
     onCompleteClick: () -> Unit,
     onConsultProtocolClick: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val priorityColor = when (item.priority) {
         Priority.HIGH -> EmergencyRed
         Priority.MEDIUM -> HighPriorityOrange
@@ -432,9 +433,9 @@ fun VisitCard(
                     ) {
                         Text(
                             text = when (item.priority) {
-                                Priority.HIGH -> "URGENT"
-                                Priority.MEDIUM -> "MEDIUM"
-                                Priority.LOW -> "ROUTINE"
+                                Priority.HIGH -> strings.filterP1
+                                Priority.MEDIUM -> strings.filterP2
+                                Priority.LOW -> strings.filterP3
                             },
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -510,7 +511,7 @@ fun VisitCard(
                                 tint = PrimaryTeal,
                                 modifier = Modifier.size(13.dp)
                             )
-                            Text("Protocols", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.protocolsButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -534,7 +535,7 @@ fun VisitCard(
                                 tint = Color.White,
                                 modifier = Modifier.size(13.dp)
                             )
-                            Text("Complete", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.completeButton, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -549,6 +550,7 @@ fun VisitOutcomeDialog(
     onDismiss: () -> Unit,
     onSave: (status: String, notes: String) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var selectedStatus by remember { mutableStateOf("COMPLETED") }
     var notesText by remember { mutableStateOf("") }
 
@@ -556,7 +558,7 @@ fun VisitOutcomeDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Record Visit Outcome",
+                text = strings.completeButton,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -571,7 +573,7 @@ fun VisitOutcomeDialog(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text("Outcome Status:", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Text(strings.outcomeStatusLabel, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -595,8 +597,8 @@ fun VisitOutcomeDialog(
                 OutlinedTextField(
                     value = notesText,
                     onValueChange = { notesText = it },
-                    label = { Text("Field Notes / Observations") },
-                    placeholder = { Text("e.g. BP 120/80 checked, IFA distributed, no danger signs.") },
+                    label = { Text(strings.fieldNotesLabel) },
+                    placeholder = { Text(strings.fieldNotesPlaceholder) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
@@ -607,12 +609,12 @@ fun VisitOutcomeDialog(
                 onClick = { onSave(selectedStatus, notesText) },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal)
             ) {
-                Text("Save to Outbox", color = Color.White)
+                Text(strings.saveToOutbox, color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text(strings.cancel, color = TextSecondary)
             }
         }
     )

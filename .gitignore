@@ -27,3 +27,6 @@ release_bundle/
 node_modules/
 .env.local
 dist/
+*.onnx
+build/
+.agents/

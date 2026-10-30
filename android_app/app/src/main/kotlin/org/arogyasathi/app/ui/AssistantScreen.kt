@@ -1,7 +1,6 @@
 package org.arogyasathi.app.ui
 
 import android.Manifest
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -9,9 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.widget.Toast
@@ -38,6 +34,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.arogyasathi.app.R
@@ -61,6 +59,8 @@ import org.arogyasathi.app.core.ReferralSlip
 import org.arogyasathi.app.core.maskPhoneNumber
 import org.arogyasathi.app.data.ArogyasathiRepository
 import org.arogyasathi.app.data.AssistantResult
+import org.arogyasathi.app.voice.OfflineVoiceEngine
+import org.arogyasathi.app.voice.VoicePackManager
 import java.util.Locale
 import java.util.UUID
 
@@ -160,6 +160,7 @@ fun AssistantScreen(
     repository: ArogyasathiRepository,
     initialQuery: String? = null,
     initialPatient: Member? = null,
+    bottomBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onClearInitialContext: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -175,11 +176,38 @@ fun AssistantScreen(
     var activeReferralSlip by remember { mutableStateOf<ReferralSlip?>(null) }
     var showVoiceConsultationDialog by remember { mutableStateOf(false) }
     var autoPlayTts by remember { mutableStateOf(true) }
-    var showEmergencyContactsDialog by remember { mutableStateOf(false) }
 
     var queryText by remember { mutableStateOf("") }
     var isProcessingQuery by remember { mutableStateOf(false) }
     var isSpeaking by remember { mutableStateOf(false) }
+    var isOfflineRecording by remember { mutableStateOf(false) }
+    val micTransition = rememberInfiniteTransition(label = "offlineMic")
+    val micScale by micTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isOfflineRecording) 1.16f else 1f,
+        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
+        label = "offlineMicScale",
+    )
+    val voicePackManager = remember(context) { VoicePackManager(context) }
+    val offlineVoiceEngine = remember(context, voicePackManager) { OfflineVoiceEngine(context, voicePackManager) }
+    DisposableEffect(offlineVoiceEngine) { onDispose { offlineVoiceEngine.close() } }
+    val microphonePermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val langTag = selectedLanguage.code
+        if (granted && voicePackManager.isPackReady(langTag)) {
+            offlineVoiceEngine.startRecording(
+                languageTag = langTag,
+                onError = { message ->
+                    isOfflineRecording = false
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            )
+            isOfflineRecording = true
+        } else if (!granted) {
+            Toast.makeText(context, "Microphone permission is required for offline voice input.", Toast.LENGTH_SHORT).show()
+        }
+    }
     val activeProfile = remember(repository) { repository.getActiveProfile() }
 
     val messages = remember { mutableStateListOf<ChatMessage>() }
@@ -283,6 +311,14 @@ fun AssistantScreen(
                     patientName = patient?.name
                 )
             )
+        }
+
+        coroutineScope.launch {
+            if (messages.isNotEmpty()) {
+                listState.scrollToItem(messages.size - 1)
+                yield()
+                listState.scrollToItem(messages.size - 1)
+            }
         }
     }
 
@@ -403,45 +439,163 @@ fun AssistantScreen(
         reloadMessages(activePatient)
     }
 
-    // Direct Native Speech Recognition Launcher
-    val speechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { res ->
-        if (res.resultCode == Activity.RESULT_OK) {
-            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spoken.isNullOrBlank()) {
-                submitQuery(spoken)
-            }
-        } else if (res.resultCode != Activity.RESULT_CANCELED) {
-            showVoiceConsultationDialog = true
+    // Automatically scroll to bottom when any chat is opened, switched, or when messages change
+    LaunchedEffect(messages.size, activePatient, messages.lastOrNull()?.id) {
+        if (messages.isNotEmpty()) {
+            listState.scrollToItem(messages.size - 1)
+            yield()
+            listState.scrollToItem(messages.size - 1)
         }
     }
 
     // Dynamic suggested topics based on active patient context
     val quickTopics = when {
-        activePatient?.isPregnant == true -> listOf(
-            "Bleeding in pregnancy danger signs",
-            "Pre-eclampsia high BP and severe headache",
-            "Daily IFA and Calcium tablet schedule",
-            "3rd ANC checkup window weeks"
-        )
-        activePatient?.ncdCondition != null -> listOf(
-            "BP 140/90 hypertension management",
-            "Random blood sugar >=200 guidelines",
-            "Salt reduction and exercise counselling"
-        )
-        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isChildUnderFive == true -> listOf(
-            "Motions avthunnai (ORS and Zinc dose)",
-            "Fast breathing and chest indrawing",
-            "Next due vaccine schedule",
-            "MUAC malnutrition screening"
-        )
-        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isNewbornUnderTwoMonths == true -> listOf(
-            "Baby unable to suck or feed",
-            "Baby cold to touch hypothermia",
-            "Cord care and delayed bathing",
-            "HBNC home visit schedule"
-        )
+        activePatient?.isPregnant == true -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "గర్భధారణలో రక్తస్రావం ప్రమాద సంకేతాలు",
+                "ప్రీ-ఎక్లాంప్సియా అధిక రక్తపోటు మరియు తీవ్ర తలనొప్పి",
+                "రోజువారీ ఐఎఫ్‌ఏ మరియు కాల్షియం మాత్రల షెడ్యూల్",
+                "3వ ఏఎన్‌సీ తనిఖీ సమయం (వారాలు)"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "गर्भावस्था में रक्तस्राव खतरे के संकेत",
+                "प्री-एक्लेमप्सिया उच्च रक्तचाप और गंभीर सिरदर्द",
+                "दैनिक आईएफए और कैल्शियम गोली की समय-सारणी",
+                "तीसरी एएनसी जांच की समय-सीमा"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "கர்ப்பகாலத்தில் ரத்தப்போக்கு ஆபத்து அறிகுறிகள்",
+                "உயர் ரத்த அழுத்தம் மற்றும் கடுமையான தலைவலி",
+                "தினசரி இரும்பு மற்றும் கால்சியம் மாத்திரைகள்",
+                "3வது ANC பரிசோதனை காலம்"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ರಕ್ತಸ್ರಾವ ಅಪಾಯದ ಚಿಹ್ನೆಗಳು",
+                "ಅಧಿಕ ರಕ್ತದೊತ್ತಡ ಮತ್ತು ತೀವ್ರ ತಲೆನೋವು",
+                "ದೈನಂದಿನ ಐಎಫ್‌ಎ ಮತ್ತು ಕ್ಯಾಲ್ಸಿಯಂ ಮಾತ್ರೆಗಳು",
+                "3ನೇ ಎಎನ್‌ಸಿ ತಪಾಸಣೆ ಸಮಯ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "ഗർഭകാലത്തെ രക്തസ്രാവം അപകട ലക്ഷണങ്ങൾ",
+                "ഉയർന്ന രക്തസമ്മർദ്ദവും കഠിനമായ തലവേദനയും",
+                "ദിവസേനയുള്ള അയൺ, കാൽസ്യം ഗുളികകൾ",
+                "മൂന്നാമത്തെ ANC പരിശോധനാ സമയം"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Bleeding in pregnancy danger signs",
+                "Pre-eclampsia high BP and severe headache",
+                "Daily IFA and Calcium tablet schedule",
+                "3rd ANC checkup window weeks"
+            )
+        }
+        activePatient?.ncdCondition != null -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "బీపీ 140/90 రక్తపోటు నిర్వహణ మార్గదర్శకాలు",
+                "రక్తంలో చక్కెర (షుగర్) >=200 మార్గదర్శకాలు",
+                "ఉప్పు తగ్గించడం మరియు వ్యాయామ సలహాలు"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "बीपी 140/90 उच्च रक्तचाप प्रबंधन",
+                "रैंडम ब्लड शुगर >=200 दिशा-निर्देश",
+                "नमक कम करने और व्यायाम की सलाह"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "ரத்த அழுத்தம் 140/90 மேலாண்மை நெறிமுறை",
+                "சர்க்கரை அளவு >=200 வழிகாட்டுதல்கள்",
+                "உப்பு குறைப்பு மற்றும் உடற்பயிற்சி ஆலோசனைகள்"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಬಿಪಿ 140/90 ರಕ್ತದೊತ್ತಡ ನಿರ್ವಹಣಾ ಮಾರ್ಗಸೂಚಿಗಳು",
+                "ರಕ್ತದ ಸಕ್ಕರೆ ಪ್ರಮಾಣ >=200 ಮಾರ್ಗಸೂಚಿಗಳು",
+                "ಉಪ್ಪು ಕಡಿಮೆ ಮಾಡುವುದು ಮತ್ತು ವ್ಯಾಯಾಮ ಸಲಹೆ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "ബിപി 140/90 രക്താതിമർദ്ദ നിയന്ത്രണം",
+                "ബ്ലഡ് ഷുഗർ >=200 മാർഗ്ഗനിർദ്ദേശങ്ങൾ",
+                "ഉപ്പ് കുറയ്ക്കലും വ്യായാമ നിർദ്ദേശങ്ങളും"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "BP 140/90 hypertension management",
+                "Random blood sugar >=200 guidelines",
+                "Salt reduction and exercise counselling"
+            )
+        }
+        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isChildUnderFive == true -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "విరేచనాలకు ఓఆర్ఎస్ మరియు జింక్ మోతాదు",
+                "వేగంగా శ్వాస మరియు ఛాతీ లోపలికి లాగడం",
+                "రాబోయే టీకాల షెడ్యూల్",
+                "MUAC పోషకాహార లోప తనిఖీ"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "दस्त में ओआरएस और जिंक की खुराक",
+                "तेज सांस और छाती धंसना (निमोनिया)",
+                "अगला टीकाकरण शेड्यूल",
+                "MUAC कुपोषण जांच"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "வயிற்றுப்போக்கு ORS மற்றும் ஜிங்க் அளவு",
+                "வேகமான மூச்சு மற்றும் நிமோனியா",
+                "தடுப்பூசி அட்டவணை",
+                "MUAC ஊட்டச்சத்து குறைபாடு பரிசோதனை"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಭೇದಿಗೆ ಓಆರ್‌ಎಸ್ ಮತ್ತು ಜಿಂಕ್ ಪ್ರಮಾಣ",
+                "ವೇಗದ ಉಸಿರಾಟ ಮತ್ತು ನ್ಯುಮೋನಿಯಾ",
+                "ಮುಂದಿನ ಲಸಿಕೆ ವೇಳಾಪಟ್ಟಿ",
+                "MUAC ಅಪೌಷ್ಟಿಕತೆ ಪರೀಕ್ಷೆ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "വയറിളക്കത്തിന് ഒആർഎസും സിങ്കും",
+                "വേഗതയേറിയ ശ്വാസോച്ഛ്വാസം ന്യുമോണിയ",
+                "വാക്സിനേഷൻ ഷെഡ്യൂൾ",
+                "MUAC പോഷകാഹാര പരിശോധന"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Diarrhoea ORS and Zinc dose",
+                "Fast breathing and chest indrawing",
+                "Next due vaccine schedule",
+                "MUAC malnutrition screening"
+            )
+        }
+        activePatient != null && org.arogyasathi.app.laya.PatientAgeCalculator.calculate(activePatient!!.dob)?.isNewbornUnderTwoMonths == true -> when (selectedLanguage) {
+            VoiceLanguage.TELUGU -> listOf(
+                "శిశువు పాలు తాగలేకపోతోంది",
+                "శిశువు శరీరం చల్లబడటం (హైపోథర్మియా)",
+                "బొడ్డు సంరక్షణ మరియు స్నానం వాయిదా",
+                "HBNC గృహ సందర్శన షెడ్యూల్"
+            )
+            VoiceLanguage.HINDI -> listOf(
+                "शिशु दूध नहीं पी पा रहा है",
+                "शिशु का शरीर ठंडा पड़ना (हाइपोथर्मिया)",
+                "नाल की देखभाल और नहलाने में देरी",
+                "HBNC गृह भ्रमण समय-सारणी"
+            )
+            VoiceLanguage.TAMIL -> listOf(
+                "குழந்தை பால் குடிக்க முடியவில்லை",
+                "குழந்தை உடல் குளிர்ச்சியடைதல் (ஹைபோதெர்மியா)",
+                "தொப்புள் கொடி பராமரிப்பு மற்றும் குளிப்பாட்டுதல்",
+                "HBNC இல்ல வருகை அட்டவணை"
+            )
+            VoiceLanguage.KANNADA -> listOf(
+                "ಮಗು ಹಾಲು ಕುಡಿಯಲು ಅಸಮರ್ಥತೆ",
+                "ಮಗುವಿನ ದೇಹ ತಣ್ಣಗಾಗುವುದು (ಹೈಪೋಥರ್ಮಿಯಾ)",
+                "ಹೊಕ್ಕುಳಬಳ್ಳಿ ಆರೈಕೆ ಮತ್ತು ಸ್ನಾನ ಮುಂದೂಡುವುದು",
+                "HBNC ಮನೆ ಭೇಟಿ ವೇಳಾಪಟ್ಟಿ"
+            )
+            VoiceLanguage.MALAYALAM -> listOf(
+                "കുഞ്ഞിന് പാൽ കുടിക്കാൻ കഴിയുന്നില്ല",
+                "കുഞ്ഞിന്റെ ശരീരം തണുത്തുപോകൽ (ഹൈപ്പോതെർമിയ)",
+                "പൊക്കിൾക്കൊടി പരിചരണവും കുളി മാറ്റിവയ്ക്കലും",
+                "HBNC ഗൃഹസന്ദർശന ഷെഡ്യൂൾ"
+            )
+            VoiceLanguage.ENGLISH -> listOf(
+                "Baby unable to suck or feed",
+                "Baby cold to touch hypothermia",
+                "Cord care and delayed bathing",
+                "HBNC home visit schedule"
+            )
+        }
         else -> when (selectedLanguage) {
             VoiceLanguage.HINDI -> listOf(
                 "दस्त में ओआरएस और जिंक की खुराक",
@@ -501,8 +655,7 @@ fun AssistantScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Patient Context Pill
                 Surface(
@@ -533,7 +686,7 @@ fun AssistantScreen(
                             }
                         }
                         Text(
-                            text = if (activePatient != null) "${activePatient!!.name} • ${activePatient!!.village}" else "General Consultation",
+                            text = if (activePatient != null) "${activePatient!!.name} • ${activePatient!!.village}" else strings.generalConsultation,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (activePatient != null) DarkTeal else TextPrimary,
@@ -556,43 +709,6 @@ fun AssistantScreen(
                                 )
                             }
                         }
-                    }
-                }
-
-                // Emergency SOS Speed Dial Button
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color(0xFFFEF2F2),
-                    border = BorderStroke(1.dp, EmergencyRed.copy(alpha = 0.35f)),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable { showEmergencyContactsDialog = true }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = EmergencyRed,
-                            modifier = Modifier.size(16.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_emergency),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(10.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = "SOS 108",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = EmergencyRed
-                        )
                     }
                 }
             }
@@ -673,6 +789,9 @@ fun AssistantScreen(
             }
         }
 
+        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+        val extraImePadding = maxOf(0.dp, imeBottom - bottomBarPadding)
+
         // Bottom Chat Input Bar (Rich Floating Capsule with Tactile Action Twins)
         Surface(
             shape = RoundedCornerShape(28.dp),
@@ -681,7 +800,7 @@ fun AssistantScreen(
             shadowElevation = 3.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .imePadding()
+                .padding(bottom = extraImePadding)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Row(
@@ -714,7 +833,7 @@ fun AssistantScreen(
                         Box(contentAlignment = Alignment.CenterStart) {
                             if (queryText.isEmpty()) {
                                 Text(
-                                    text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
+                                    text = if (activePatient != null) "${strings.askQuestionForPrefix} ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
                                     fontSize = 13.sp,
                                     color = Color(0xFF94A3B8),
                                     maxLines = 1,
@@ -733,37 +852,69 @@ fun AssistantScreen(
                     border = BorderStroke(1.dp, Color(0xFF99F6E4)),
                     modifier = Modifier
                         .size(38.dp)
+                        .scale(micScale)
                         .clip(CircleShape)
                         .clickable {
-                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
-                                putExtra(RecognizerIntent.EXTRA_PROMPT, "మాట్లాడండి (Speak in ${selectedLanguage.nativeLabel})...")
-                                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-                            }
-                            try {
-                                speechLauncher.launch(intent)
-                            } catch (e: Exception) {
-                                showVoiceConsultationDialog = true
+                            val langTag = selectedLanguage.code
+                            if (voicePackManager.isPackReady(langTag)) {
+                                if (isOfflineRecording) {
+                                    isOfflineRecording = false
+                                    offlineVoiceEngine.stopRecording(
+                                        languageTag = langTag,
+                                        onResult = { spoken ->
+                                            if (spoken.isNotBlank()) queryText = spoken
+                                            else Toast.makeText(context, "No speech detected. Please try again.", Toast.LENGTH_SHORT).show()
+                                        },
+                                        onError = { message -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show() },
+                                    )
+                                } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                    offlineVoiceEngine.startRecording(
+                                        languageTag = langTag,
+                                        onError = { message ->
+                                            isOfflineRecording = false
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        }
+                                    )
+                                    isOfflineRecording = true
+                                } else {
+                                    microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Offline voice pack for ${selectedLanguage.nativeLabel} is not installed. Download or import it in Settings.",
+                                    Toast.LENGTH_LONG,
+                                ).show()
                             }
                         }
-                        .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
+                        .semantics {
+                            contentDescription = if (isOfflineRecording) {
+                                "Recording ${selectedLanguage.nativeLabel} voice. Tap to stop."
+                            } else {
+                                "Start ${selectedLanguage.nativeLabel} offline voice input"
+                            }
+                        }
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
-                                Brush.verticalGradient(
-                                    listOf(Color(0xFFF0FDFA), Color(0xFFCCFBF1))
-                                )
+                                if (isOfflineRecording) {
+                                    Brush.verticalGradient(
+                                        listOf(Color(0xFFFEE2E2), Color(0xFFFECACA))
+                                    )
+                                } else {
+                                    Brush.verticalGradient(
+                                        listOf(Color(0xFFF0FDFA), Color(0xFFCCFBF1))
+                                    )
+                                }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_mic),
                             contentDescription = "Voice consultation",
-                            tint = Color(0xFF0F766E),
+                            tint = if (isOfflineRecording) EmergencyRed else Color(0xFF0F766E),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -818,18 +969,6 @@ fun AssistantScreen(
                 reloadMessages(selected)
             },
             onDismiss = { showPatientPicker = false }
-        )
-    }
-
-    // Emergency Clinical Contacts Dialog
-    if (showEmergencyContactsDialog) {
-        EmergencyContactsDialog(
-            activeProfile = activeProfile,
-            onCallMo = { dialEmergency(context, activeProfile.medicalOfficerPhone) },
-            onCallAnm = { dialEmergency(context, activeProfile.anmPhone) },
-            onCall108 = { dialEmergency(context, "108") },
-            onCall102 = { dialEmergency(context, "102") },
-            onDismiss = { showEmergencyContactsDialog = false }
         )
     }
 
@@ -924,32 +1063,14 @@ fun VoiceConsultationDialog(
     onSelectSpokenQuery: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var isModelDownloaded by remember { mutableStateOf(repository.isVoiceModelDownloaded()) }
-    var isDownloadingModel by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableFloatStateOf(0f) }
+    val isModelDownloaded = true
     var isListening by remember { mutableStateOf(false) }
     var spokenInputText by remember { mutableStateOf("") }
     var statusMessage by remember {
         mutableStateOf(
-            if (isModelDownloaded) "మైక్రోఫోన్ ప్రారంభించండి (Tap to Speak)"
-            else "వాయిస్ మోడల్ డౌన్‌లోడ్ చేయబడలేదు (118 MB)"
+            if (isModelDownloaded) "తెలుగు ప్యాక్ APKలో ఉంది — ప్రధాన మైక్రోఫోన్‌ను ఉపయోగించండి"
+            else "తెలుగు ఆఫ్‌లైన్ ప్యాక్ మాత్రమే ఈ APKలో ఉంది"
         )
-    }
-
-    val dialogSpeechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { res ->
-        isListening = false
-        if (res.resultCode == Activity.RESULT_OK) {
-            val spoken = res.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spoken.isNullOrBlank()) {
-                spokenInputText = spoken
-                statusMessage = "గుర్తించబడింది: $spoken"
-            }
-        } else {
-            statusMessage = "వాయిస్ రాలేదు. దయచేసి మళ్ళీ మాట్లాడండి లేదా క్రింది ప్రశ్నను ఎంచుకోండి."
-        }
     }
 
     val voiceQueries = when (selectedLanguage) {
@@ -1054,84 +1175,6 @@ fun VoiceConsultationDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Download Voice Model Banner if not downloaded
-                if (!isModelDownloaded) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFFEF3C7),
-                        border = BorderStroke(1.dp, Color(0xFFF59E0B)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_info),
-                                    contentDescription = null,
-                                    tint = Color(0xFFB45309),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(
-                                    text = "ఆఫ్‌లైన్ వాయిస్ ప్యాక్ (118 MB) అందుబాటులో ఉంది",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF92400E)
-                                )
-                            }
-                            Text(
-                                text = "Wi-Fi / మొబైల్ డేటాతో 118 MB మోడల్‌ను డౌన్‌లోడ్ చేసుకోండి లేదా సిస్టమ్ మైక్ ద్వారా మాట్లాడండి.",
-                                fontSize = 10.sp,
-                                color = Color(0xFF78350F)
-                            )
-                            if (isDownloadingModel) {
-                                LinearProgressIndicator(
-                                    progress = { downloadProgress },
-                                    modifier = Modifier.fillMaxWidth().height(4.dp),
-                                    color = PrimaryTeal,
-                                    trackColor = Color(0xFFE2E8F0)
-                                )
-                                Text(
-                                    text = "డౌన్‌లోడ్ అవుతోంది... ${(downloadProgress * 100).toInt()}%",
-                                    fontSize = 10.sp,
-                                    color = PrimaryTeal,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                Button(
-                                    onClick = {
-                                        isDownloadingModel = true
-                                        coroutineScope.launch {
-                                            for (p in 1..10) {
-                                                kotlinx.coroutines.delay(100)
-                                                downloadProgress = p / 10f
-                                            }
-                                            repository.setVoiceModelDownloaded(true)
-                                            isModelDownloaded = true
-                                            isDownloadingModel = false
-                                            statusMessage = "వాయిస్ మోడల్ డౌన్‌లోడ్ పూర్తయింది!"
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB45309)),
-                                    shape = RoundedCornerShape(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                                ) {
-                                    Text(
-                                        text = "మోడల్‌ను డౌన్‌లోడ్ చేయండి (118 MB)",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
                 // In-App Soundwave & Recording Card
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -1160,21 +1203,8 @@ fun VoiceConsultationDialog(
                         // Big In-App Record Button
                         Button(
                             onClick = {
-                                isListening = true
-                                statusMessage = "🔴 వింటున్నాము... మాట్లాడండి (Listening...)"
-                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, selectedLanguage.code)
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, selectedLanguage.code)
-                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "మాట్లాడండి (Speak now in ${selectedLanguage.nativeLabel})...")
-                                    putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-                                }
-                                try {
-                                    dialogSpeechLauncher.launch(intent)
-                                } catch (e: Exception) {
-                                    isListening = false
-                                    statusMessage = "మైక్రోఫోన్ ప్రారంభించలేకపోయాము: ${e.message}"
-                                }
+                                isListening = false
+                                statusMessage = "ఈ పాత డైలాగ్‌లో వాయిస్ ఇన్‌పుట్ లేదు. దాన్ని మూసి ప్రధాన తెలుగు మైక్రోఫోన్‌ను ఉపయోగించండి."
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isListening) EmergencyRed else PrimaryTeal
@@ -1359,6 +1389,7 @@ fun ChatBubble(
     onCall108: () -> Unit,
     onOpenReferralSlip: (ReferralSlip) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val isUser = message.sender == MessageSender.USER
     val res = message.result
     val context = LocalContext.current
@@ -1457,9 +1488,9 @@ fun ChatBubble(
                                         )
                                         Text(
                                             text = when {
-                                                isEscalation -> "DANGER SIGN — CALL 108"
-                                                isRefusal -> "DOCTOR REFERRAL (PHC)"
-                                                else -> "CLINICAL PROTOCOL"
+                                                isEscalation -> strings.dangerSignAlert
+                                                isRefusal -> strings.doctorReferralAlert
+                                                else -> strings.clinicalProtocolAlert
                                             },
                                             color = priorityColor,
                                             fontWeight = FontWeight.ExtraBold,
@@ -1540,7 +1571,7 @@ fun ChatBubble(
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("Call MO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.profileCallMo, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
 
@@ -1578,7 +1609,7 @@ fun ChatBubble(
                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                         modifier = Modifier.weight(1.2f).height(30.dp)
                                     ) {
-                                        Text("Slip", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text(strings.referralSlipButton, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             } else if (isRefusal) {
@@ -1596,7 +1627,7 @@ fun ChatBubble(
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("Call MO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.profileCallMo, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
 
@@ -1609,7 +1640,7 @@ fun ChatBubble(
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("Call ANM", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.profileCallAnm, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -1629,7 +1660,7 @@ fun ChatBubble(
                                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                                         modifier = Modifier.height(24.dp)
                                     ) {
-                                        Text("Copy Guidance", fontSize = 10.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
+                                        Text(strings.copyGuidance, fontSize = 10.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
                             }
@@ -1650,6 +1681,7 @@ fun EmergencyContactsDialog(
     onCall102: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -1673,13 +1705,13 @@ fun EmergencyContactsDialog(
                 }
                 Column {
                     Text(
-                        text = "Clinical Escalation & SOS",
+                        text = strings.emergencyDialogTitle,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = TextPrimary
                     )
                     Text(
-                        text = "Direct emergency contact line",
+                        text = strings.emergencyDialogSubtitle,
                         fontSize = 11.sp,
                         color = TextSecondary
                     )
@@ -1704,7 +1736,7 @@ fun EmergencyContactsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Medical Officer In-Charge", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PrimaryTeal)
+                            Text(strings.moInChargeTitle, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PrimaryTeal)
                             Text(activeProfile.medicalOfficerName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                             Text(activeProfile.parentPhc, fontSize = 11.sp, color = TextSecondary)
                         }
@@ -1715,7 +1747,7 @@ fun EmergencyContactsDialog(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Text("CALL MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.profileCallMo, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1733,7 +1765,7 @@ fun EmergencyContactsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Designated Sector ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = RoutineGreen)
+                            Text(strings.anmTitle, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = RoutineGreen)
                             Text(activeProfile.anmName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                             Text(activeProfile.subCentre, fontSize = 11.sp, color = TextSecondary)
                         }
@@ -1744,7 +1776,7 @@ fun EmergencyContactsDialog(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Text("CALL ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.profileCallAnm, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1762,9 +1794,9 @@ fun EmergencyContactsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("National Ambulances", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = EmergencyRed)
+                            Text(strings.nationalAmbulancesTitle, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = EmergencyRed)
                             Text("108 (Emergency) • 102 (JSSK)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                            Text("Toll-free 24x7 government helpline", fontSize = 11.sp, color = TextSecondary)
+                            Text(strings.tollFreeHelplineDesc, fontSize = 11.sp, color = TextSecondary)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Button(
@@ -1792,7 +1824,7 @@ fun EmergencyContactsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = TextSecondary)
+                Text(strings.close, color = TextSecondary)
             }
         }
     )
@@ -1804,6 +1836,7 @@ fun PatientPickerDialog(
     onSelectPatient: (Member) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var searchQuery by remember { mutableStateOf("") }
     val allMembers = remember { repository.getAllMembers() }
 
@@ -1825,12 +1858,12 @@ fun PatientPickerDialog(
         title = {
             Column {
                 Text(
-                    text = "Select Patient for Clinical Chat",
+                    text = strings.selectPatientTitle,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
                 Text(
-                    text = "Links chat history and tailors protocol answers to this person",
+                    text = strings.selectPatientSubtitle,
                     fontSize = 11.sp,
                     color = TextSecondary
                 )
@@ -1846,7 +1879,7 @@ fun PatientPickerDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search name, village or ID...", fontSize = 12.sp) },
+                    placeholder = { Text(strings.searchPatientPlaceholder, fontSize = 12.sp) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true
@@ -1913,7 +1946,7 @@ fun PatientPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text(strings.cancel, color = TextSecondary)
             }
         }
     )
@@ -1928,6 +1961,7 @@ fun ReferralSlipDialog(
     onSaveToOutbox: () -> Unit
 ) {
     val context = LocalContext.current
+    val strings = LocalAppStrings.current
 
     val formattedSms = """
 AROGYASATHI EMERGENCY REFERRAL SLIP
@@ -1966,12 +2000,12 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                 }
                 Column {
                     Text(
-                        text = "Clinical Referral Slip",
+                        text = strings.referralSlipTitle,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     Text(
-                        text = "Grounded in GoI Leaf Protocols",
+                        text = strings.referralSlipSubtitle,
                         fontSize = 11.sp,
                         color = TextSecondary
                     )
@@ -1998,40 +2032,40 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Village: ${slip.village} • Household: ${slip.householdId}",
+                            text = "${strings.village}: ${slip.village} • Household: ${slip.householdId}",
                             fontSize = 11.sp,
                             color = TextPrimary
                         )
                         Text(
-                            text = "Identified Danger Sign: ${slip.suspectedCondition}",
+                            text = "${strings.dangerSignLabel} ${slip.suspectedCondition}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = EmergencyRed
                         )
                         Text(
-                            text = "Protocol Citation: ${slip.protocolCitation}",
+                            text = "${strings.protocolCitationLabel} ${slip.protocolCitation}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarkTeal
                         )
                         Text(
-                            text = "Vitals / Observations: ${slip.vitalSigns}",
+                            text = "${strings.vitalsObservationsLabel} ${slip.vitalSigns}",
                             fontSize = 11.sp,
                             color = TextSecondary
                         )
                         Text(
-                            text = "Referred Facility: ${slip.referredFacility}",
+                            text = "${strings.referredFacilityLabel} ${slip.referredFacility}",
                             fontSize = 11.sp,
                             color = TextPrimary
                         )
                         Text(
-                            text = "Attending MO: ${slip.medicalOfficerName} (${maskPhoneNumber(slip.medicalOfficerPhone)})",
+                            text = "${strings.attendingMoLabel} ${slip.medicalOfficerName} (${maskPhoneNumber(slip.medicalOfficerPhone)})",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryTeal
                         )
                         Text(
-                            text = "Attending ASHA: ${slip.ashaName} (${slip.ashaPhone})",
+                            text = "${strings.attendingAshaLabel} ${slip.ashaName} (${slip.ashaPhone})",
                             fontSize = 10.sp,
                             color = TextSecondary
                         )
@@ -2048,7 +2082,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Call MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(strings.profileCallMo, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -2058,7 +2092,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Call 108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -2073,7 +2107,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Copy", fontSize = 10.sp)
+                    Text(strings.copyButton, fontSize = 10.sp)
                 }
 
                 Button(
@@ -2083,13 +2117,13 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Outbox", fontSize = 10.sp)
+                    Text(strings.outboxButton, fontSize = 10.sp)
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = TextSecondary)
+                Text(strings.close, color = TextSecondary)
             }
         }
     )
