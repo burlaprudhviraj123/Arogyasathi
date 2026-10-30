@@ -758,24 +758,6 @@ fun AssistantScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Speech-to-Text Button
-                IconButton(
-                    onClick = {
-                        showVoiceConsultationDialog = true
-                    },
-                    modifier = Modifier
-                        .size(38.dp)
-                        .background(Color(0xFFE6F4F1), CircleShape)
-                        .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_mic),
-                        contentDescription = "Voice consultation",
-                        tint = PrimaryTeal,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
                 // Text Input Field
                 OutlinedTextField(
                     value = queryText,
@@ -798,6 +780,24 @@ fun AssistantScreen(
                     ),
                     maxLines = 2
                 )
+
+                // Speech-to-Text Button (Beside Send button)
+                IconButton(
+                    onClick = {
+                        showVoiceConsultationDialog = true
+                    },
+                    modifier = Modifier
+                        .size(38.dp)
+                        .background(Color(0xFFE6F4F1), CircleShape)
+                        .semantics { contentDescription = "Voice consultation in Telugu, Hindi or English" }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_mic),
+                        contentDescription = "Voice consultation",
+                        tint = PrimaryTeal,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
 
                 // Send Button
                 IconButton(
