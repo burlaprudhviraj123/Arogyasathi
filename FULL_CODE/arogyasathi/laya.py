@@ -170,6 +170,7 @@ class LayaRetriever:
                     s += idf * (tf[t] * (self.k1 + 1)) / denom
             scores.append((s, self.doc_ids[i]))
             
+        scores = [sc for sc in scores if sc[0] > 0.0]
         scores.sort(reverse=True)
         return scores[:top_k]
 

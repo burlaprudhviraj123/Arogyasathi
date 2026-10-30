@@ -273,7 +273,8 @@ class LayaRetriever(private val sections: List<ProtocolSection>) {
                 score += idf * (tf * (k1 + 1.0)) / denom
             }
             Pair(score, sections[i])
-        }.sortedByDescending { it.first }
+        }.filter { it.first > 0.0 }
+        .sortedByDescending { it.first }
 
         return scored.take(topK).map { it.second }
     }

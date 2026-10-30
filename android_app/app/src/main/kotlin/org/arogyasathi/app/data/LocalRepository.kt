@@ -565,19 +565,20 @@ class ArogyasathiRepository(private val context: Context) {
         // Legitimate pediatric cold signs permitted by protocols (CHD-3.1 non-severe cold)
         if ("runny nose" in q || "running nose" in q) {
             // Permitted for respiratory protocol
-        } else if (Regex("\\b(bleed|bleeding).*from.*(nose|naak|mookku)\\b|\\bnosebleed\\b|\\bepistaxis\\b|\\bnaak se khoon\\b|\\bnose\\b|\\bnaak\\b|\\bmookku\\b|\\bnaasi\\b").containsMatchIn(q)) {
+        } else if (Regex("\\b(ble{1,3}d|ble{1,3}ding|blood|raktham|khoon).*from.*(nose|naak|mookku|mukku|mooku)\\b|\\bnosebleed\\b|\\bepistaxis\\b|\\bnaak se khoon\\b|\\bnose\\b|\\bnaak\\b|\\bmookku\\b|\\bmukku\\b|\\bmooku\\b|\\bnaasi\\b").containsMatchIn(q)) {
             return true
         }
 
         // Non-protocol anatomical systems
         val nonProtocolOrgans = listOf(
-            Regex("\\bear\\b|\\bears\\b|\\bkaan\\b|\\bchevi\\b|\\bkaadhu\\b|\\bkevi\\b"),
-            Regex("\\btooth\\b|\\bteeth\\b|\\bdaant\\b|\\bdant\\b|\\bpal\\b|\\bhallu\\b|\\bgum\\b|\\bdentist\\b"),
-            Regex("\\bthroat\\b|\\bgala\\b|\\bthonda\\b|\\bgontu\\b|\\btonsil\\b"),
-            Regex("\\burine\\b|\\bpeshab\\b|\\bmutram\\b|\\bmootram\\b|\\bkidney\\b|\\bstone\\b|\\bpathri\\b"),
-            Regex("\\bfracture\\b|\\bbone\\b|\\bhaddi\\b|\\belumbu\\b|\\bjoint\\b|\\bghutn[a-z]*\\b|\\bknee\\b"),
-            Regex("\\bskin rash\\b|\\bkhujli\\b|\\bitching\\b|\\bringworm\\b|\\bfungal\\b|\\babscess\\b"),
-            Regex("\\bburn\\b|\\bjal gaya\\b|\\btheekayam\\b")
+            Regex("\\bear\\b|\\bears\\b|\\bkaan\\b|\\bchevi\\b|\\bchevu\\b|\\bchevulu\\b|\\bcevu\\b|\\bcevi\\b|\\bkaadhu\\b|\\bkevi\\b|\\bkivi\\b|చెవు|చెవి"),
+            Regex("\\btooth\\b|\\bteeth\\b|\\bdaant\\b|\\bdant\\b|\\bpal\\b|\\bpallu\\b|\\bhallu\\b|\\bgum\\b|\\bdentist\\b|పళ్ళు|పన్ను"),
+            Regex("\\bthroat\\b|\\bgala\\b|\\bthonda\\b|\\bgontu\\b|\\bgonthu\\b|\\btonsil\\b|గొంతు"),
+            Regex("\\burine\\b|\\bpeshab\\b|\\bmutram\\b|\\bmootram\\b|\\bmoothram\\b|\\bkidney\\b|\\bstone\\b|\\bpathri\\b|మూత్రం"),
+            Regex("\\bfracture\\b|\\bbone\\b|\\bhaddi\\b|\\belumbu\\b|\\bjoint\\b|\\bghutn[a-z]*\\b|\\bknee\\b|\\byemuka\\b|\\bemuka\\b|\\bvirigindi\\b|విరిగింది"),
+            Regex("\\bskin rash\\b|\\bkhujli\\b|\\bitching\\b|\\bringworm\\b|\\bfungal\\b|\\babscess\\b|\\bgajji\\b|\\bduradha\\b|దురద|గజ్జి"),
+            Regex("\\bburn\\b|\\bjal gaya\\b|\\btheekayam\\b|\\bkaalindhi\\b|కాలింది"),
+            Regex("\\beye\\b|\\beyes\\b|\\baankh\\b|\\bankh\\b|\\baankhon\\b|\\bkallu\\b|\\bkannu\\b|\\bkanla\\b|\\bkannil\\b|కళ్ళు|కన్ను")
         )
         if (nonProtocolOrgans.any { it.containsMatchIn(q) }) {
             return true
@@ -588,7 +589,8 @@ class ArogyasathiRepository(private val context: Context) {
             val maternalWords = listOf(
                 Regex("\\bpregnan[a-z]*\\b"), Regex("\\bgarbh[a-z]*\\b"), Regex("\\btrimester\\b"), Regex("\\bvagina[a-z]*\\b"),
                 Regex("\\bmahila\\b"), Regex("\\baurat\\b"), Regex("\\bprasav\\b"), Regex("\\bfoetal\\b"), Regex("\\bfetal\\b"),
-                Regex("\\bdelivery\\b"), Regex("\\bpad\\b"), Regex("\\bpostpartum\\b"), Regex("\\bpregnancy\\b")
+                Regex("\\bdelivery\\b"), Regex("\\bpad\\b"), Regex("\\bpostpartum\\b"), Regex("\\bpregnancy\\b"),
+                Regex("\\bnela\\b"), Regex("\\bnelalu\\b"), Regex("\\bthalli\\b"), Regex("\\bbidda\\b")
             )
             if (!maternalWords.any { it.containsMatchIn(q) }) {
                 return true
@@ -702,16 +704,16 @@ class ArogyasathiRepository(private val context: Context) {
             )
         } else {
             AssistantResult(
-                answer = "Follow routine protocol guidelines. Please consult your supervisor (SCP-1.1).",
-                citedSection = "SCP-1.1",
+                answer = "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).",
+                citedSection = "SCP-1.2",
                 isEscalation = false,
                 isRefusal = true,
                 triageLevel = "OUT_OF_SCOPE",
-                answerHindi = "कृपया नियमित प्रोटोकॉल दिशा-निर्देशों का पालन करें और अपने पर्यवेक्षक से सलाह लें (SCP-1.1)।",
-                answerTelugu = "దయచేసి సాధారణ ప్రోటోకాల్ మార్గదర్శకాలను పాటించండి మరియు మీ సూపర్‌వైజర్‌ను సంప్రదించండి (SCP-1.1).",
-                answerTamil = "வழக்கமான நெறிமுறை வழிகாட்டுதல்களைப் பின்பற்றவும். மேற்பார்வையாளரைக் கலந்தாலோசிக்கவும் (SCP-1.1).",
-                answerKannada = "ಸಾಮಾನ್ಯ ಪ್ರೋಟೋಕಾಲ್ ಮಾರ್ಗಸೂಚಿಗಳನ್ನು ಅನುಸರಿಸಿ. ಮೇಲ್ವಿಚಾರಕರನ್ನು ಸಂಪರ್ಕಿಸಿ (SCP-1.1).",
-                answerMalayalam = "സാധാരണ പ്രോട്ടോക്കോൾ മാർഗ്ഗനിർദ്ദേശങ്ങൾ പാലിക്കുക. സൂപ്പർവൈസറുമായി ബന്ധപ്പെടുക (SCP-1.1).",
+                answerHindi = "यह विषय मेरे प्रोटोकॉल से बाहर है। कृपया प्राथमिक स्वास्थ्य केंद्र (PHC) के चिकित्सा अधिकारी या अपनी एएनएम से परामर्श लें (SCP-1.2)।",
+                answerTelugu = "ఈ విషయం నా ప్రోటోకాల్ పరిధికి మించినది. దయచేసి ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) మెడికల్ ఆఫీసర్ లేదా మీ ANM ను సంప్రదించండి (SCP-1.2).",
+                answerTamil = "இந்த கேள்வி நெறிமுறைக்கு அப்பாற்பட்டது. தயவுசெய்து ஆரம்ப சுகாதார நிலைய (PHC) மருத்துவ அதிகாரி அல்லது ANM-ஐ அணுகவும் (SCP-1.2).",
+                answerKannada = "ಈ ವಿಷಯವು ಪ್ರೋಟೋಕಾಲ್ ವ್ಯಾಪ್ತಿಯಿಂದ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಪ್ರಾಥಮಿಕ ಆರೋಗ್ಯ ಕೇಂದ್ರದ (PHC) ವೈದ್ಯಾಧಿಕಾರಿ ಅಥವಾ ANM ಅವರನ್ನು ಸಂಪರ್ಕಿಸಿ (SCP-1.2).",
+                answerMalayalam = "ഈ വിഷയം പ്രോട്ടോക്കോൾ പരിധിക്ക് പുറത്താണ്. പ്രാഥമികാരോഗ്യ കേന്ദ്രത്തിലെ (PHC) മെഡിക്കൽ ഓഫീസറോടോ ANM-നോടോ ഉപദേശം തേടുക (SCP-1.2).",
                 patientContext = if (effectivePatient != null) "Patient: ${effectivePatient.name}" else null
             )
         }

@@ -466,4 +466,38 @@ class LayaTest {
         assertEquals("ಕನ್ನಡದಲ್ಲಿ ಪ್ರೋಟೋಕಾಲ್ ಮಾರ್ಗದರ್ಶನ (CHD-1.2).", result.getAnswerForLanguage("kn"))
         assertEquals("മലയാളത്തിൽ ക്ലിനിക്കൽ പ്രോട്ടോക്കോൾ (CHD-1.2).", result.getAnswerForLanguage("ml"))
     }
+
+    @Test
+    fun testAnatomicalIntentAndScopeGuardrails() {
+        val nonProtocolQueries = listOf(
+            "bleeeding from nose",
+            "chevu nunchi blood ostundhi",
+            "chevu lo nunchi raktham",
+            "ముక్కు నుంచి రక్తస్రావం",
+            "daant me dard",
+            "pallu noppi",
+            "kaan se khoon",
+            "kaalu virigindi",
+            "gontu noppi",
+            "kalla noppi"
+        )
+
+        for (q in nonProtocolQueries) {
+            val scp = org.arogyasathi.app.jev.JEVScope.evaluate(q)
+            assertNotNull("JEVScope must catch out-of-scope organ symptom: $q", scp)
+            assertEquals("SCP-1.2", scp?.first)
+
+            val esc = org.arogyasathi.app.jev.JEVEscalate.evaluate(q)
+            assertNull("Non-pregnancy bleeding or organ symptoms must NOT falsely escalate: $q", esc)
+        }
+
+        // Legitimate obstetric danger signs MUST still escalate
+        val escPregnancy = org.arogyasathi.app.jev.JEVEscalate.evaluate("8 mahine ki pregnant h, subah se thoda khoon aa raha neeche se, dard nahi h")
+        assertNotNull("Pregnancy vaginal bleeding must escalate", escPregnancy)
+        assertEquals("ESC-2.1", escPregnancy?.first)
+
+        val escPph = org.arogyasathi.app.jev.JEVEscalate.evaluate("abhi ghar pe delivery hui, khoon bahut beh raha, pad 3-4 minute me bhar ja raha")
+        assertNotNull("Heavy postpartum bleeding must escalate", escPph)
+        assertEquals("ESC-3.1", escPph?.first)
+    }
 }

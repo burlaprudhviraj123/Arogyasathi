@@ -21,18 +21,19 @@ def is_anatomically_incompatible(query: str, section_id: str) -> bool:
     # Legitimate pediatric cold signs permitted by protocols (CHD-3.1 non-severe cold)
     if "runny nose" in q or "running nose" in q:
         pass
-    elif re.search(r"\b(?:bleed|ble{1,2}ding).*from.*(?:nose|naak|mookku)\b|\bnosebleed\b|\bepistaxis\b|\bnaak se khoon\b|\bnose\b|\bnaak\b|\bmookku\b|\bnaasi\b", q):
+    elif re.search(r"\b(?:bleed|ble{1,2}ding|blood|raktham|khoon).*from.*(?:nose|naak|mookku|mukku|mooku)\b|\bnosebleed\b|\bepistaxis\b|\bnaak se khoon\b|\bnose\b|\bnaak\b|\bmookku\b|\bmukku\b|\bmooku\b|\bnaasi\b", q):
         return True
 
     # 1. Non-protocol body areas not covered in ASHA community protocols
     non_protocol_organs = [
-        r"\bear\b|\bears\b|\bkaan\b|\bchevi\b|\bkaadhu\b|\bkevi\b",
-        r"\btooth\b|\bteeth\b|\bdaant\b|\bdant\b|\bpal\b|\bhallu\b|\bgum\b|\bdentist\b",
-        r"\bthroat\b|\bgala\b|\bthonda\b|\bgontu\b|\btonsil\b",
-        r"\burine\b|\bpeshab\b|\bmutram\b|\bmootram\b|\bmoothram\b|\bkidney\b|\bstone\b|\bpathri\b",
-        r"\bfracture\b|\bbone\b|\bhaddi\b|\belumbu\b|\bjoint\b|\bghutn[a-z]*\b|\bknee\b",
-        r"\bskin rash\b|\bkhujli\b|\bitching\b|\bringworm\b|\bfungal\b|\babscess\b",
-        r"\bburn\b|\bjal gaya\b|\btheekayam\b",
+        r"\bear\b|\bears\b|\bkaan\b|\bchevi\b|\bchevu\b|\bchevulu\b|\bcevu\b|\bcevi\b|\bkaadhu\b|\bkevi\b|\bkivi\b|చెవు|చెవి",
+        r"\btooth\b|\bteeth\b|\bdaant\b|\bdant\b|\bpal\b|\bpallu\b|\bhallu\b|\bgum\b|\bdentist\b|పళ్ళు|పన్ను",
+        r"\bthroat\b|\bgala\b|\bthonda\b|\bgontu\b|\bgonthu\b|\btonsil\b|గొంతు",
+        r"\burine\b|\bpeshab\b|\bmutram\b|\bmootram\b|\bmoothram\b|\bkidney\b|\bstone\b|\bpathri\b|మూత్రం",
+        r"\bfracture\b|\bbone\b|\bhaddi\b|\belumbu\b|\bjoint\b|\bghutn[a-z]*\b|\bknee\b|\byemuka\b|\bemuka\b|\bvirigindi\b|విరిగింది",
+        r"\bskin rash\b|\bkhujli\b|\bitching\b|\bringworm\b|\bfungal\b|\babscess\b|\bgajji\b|\bduradha\b|దురద|గజ్జి",
+        r"\bburn\b|\bjal gaya\b|\btheekayam\b|\bkaalindhi\b|కాలింది",
+        r"\beye\b|\beyes\b|\baankh\b|\bankh\b|\baankhon\b|\bkallu\b|\bkannu\b|\bkanla\b|\bkannil\b|కళ్ళు|కన్ను",
     ]
     if any(re.search(pat, q) for pat in non_protocol_organs):
         return True
@@ -42,7 +43,8 @@ def is_anatomically_incompatible(query: str, section_id: str) -> bool:
         maternal_words = [
             r"\bpregnan[a-z]*\b", r"\bgarbh[a-z]*\b", r"\btrimester\b", r"\bvagina[a-z]*\b",
             r"\bmahila\b", r"\baurat\b", r"\bprasav\b", r"\bfoetal\b", r"\bfetal\b",
-            r"\bdelivery\b", r"\bpad\b", r"\bpostpartum\b", r"\bpregnancy\b"
+            r"\bdelivery\b", r"\bpad\b", r"\bpostpartum\b", r"\bpregnancy\b",
+            r"\bnela\b", r"\bnelalu\b", r"\bthalli\b", r"\bbidda\b"
         ]
         if not any(re.search(w, q) for w in maternal_words):
             return True

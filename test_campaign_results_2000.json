@@ -1,6 +1,6 @@
 {
   "campaign_name": "Arogyasathi 2,000-Question Quality & Robustness Campaign",
-  "timestamp_utc": "2026-10-30T05:21:22Z",
+  "timestamp_utc": "2026-10-30T06:15:05Z",
   "total_questions": 2000,
   "target_met": true,
   "escalation_recall": 1.0,
@@ -8,83 +8,83 @@
   "refusal_accuracy": 1.0,
   "citation_valid_rate": 1.0,
   "latency_metrics_ms": {
-    "mean": 0.282,
-    "median": 0.278,
-    "p95": 0.622,
-    "p99": 0.784
+    "mean": 0.345,
+    "median": 0.352,
+    "p95": 0.778,
+    "p99": 0.942
   },
   "language_distribution": {
     "en": {
       "total_queries": 580,
-      "median_latency_ms": 0.421
+      "median_latency_ms": 0.506
     },
     "hi": {
       "total_queries": 392,
-      "median_latency_ms": 0.213
+      "median_latency_ms": 0.282
     },
     "te": {
       "total_queries": 302,
-      "median_latency_ms": 0.248
+      "median_latency_ms": 0.312
     },
     "ta": {
       "total_queries": 242,
-      "median_latency_ms": 0.306
+      "median_latency_ms": 0.391
     },
     "kn": {
       "total_queries": 205,
-      "median_latency_ms": 0.302
+      "median_latency_ms": 0.377
     },
     "ml": {
       "total_queries": 196,
-      "median_latency_ms": 0.29
+      "median_latency_ms": 0.386
     },
     "code_mixed": {
       "total_queries": 83,
-      "median_latency_ms": 0.097
+      "median_latency_ms": 0.093
     }
   },
   "category_distribution": {
     "ANC": {
       "total_queries": 315,
-      "median_latency_ms": 0.369,
+      "median_latency_ms": 0.462,
       "escalations": 0,
       "refusals": 0
     },
     "PNC/HBNC": {
       "total_queries": 137,
-      "median_latency_ms": 0.48,
+      "median_latency_ms": 0.608,
       "escalations": 0,
       "refusals": 0
     },
     "Immunization": {
       "total_queries": 146,
-      "median_latency_ms": 0.374,
+      "median_latency_ms": 0.457,
       "escalations": 0,
       "refusals": 0
     },
     "Diarrhoea/ORS": {
       "total_queries": 160,
-      "median_latency_ms": 0.409,
+      "median_latency_ms": 0.508,
       "escalations": 0,
       "refusals": 0
     },
     "Respiratory/Pneumonia": {
       "total_queries": 124,
-      "median_latency_ms": 0.386,
+      "median_latency_ms": 0.475,
       "escalations": 0,
       "refusals": 0
     },
     "Malnutrition/MUAC": {
       "total_queries": 123,
-      "median_latency_ms": 0.453,
+      "median_latency_ms": 0.568,
       "escalations": 0,
       "refusals": 0
     },
     "Adult NCD": {
       "total_queries": 187,
-      "median_latency_ms": 0.43,
+      "median_latency_ms": 0.525,
       "escalations": 0,
-      "refusals": 0
+      "refusals": 8
     },
     "Emergency Escalation": {
       "total_queries": 516,
@@ -94,7 +94,7 @@
     },
     "Out-of-Scope": {
       "total_queries": 292,
-      "median_latency_ms": 0.139,
+      "median_latency_ms": 0.141,
       "escalations": 0,
       "refusals": 292
     }
@@ -102,19 +102,19 @@
   "edge_case_distribution": {
     "standard_protocol": {
       "total_queries": 1821,
-      "median_latency_ms": 0.279
+      "median_latency_ms": 0.355
     },
     "benign_lookalike": {
       "total_queries": 82,
-      "median_latency_ms": 0.53
+      "median_latency_ms": 0.657
     },
     "code_mixed": {
       "total_queries": 82,
-      "median_latency_ms": 0.097
+      "median_latency_ms": 0.092
     },
     "typo_mutation": {
       "total_queries": 15,
-      "median_latency_ms": 0.043
+      "median_latency_ms": 0.045
     }
   },
   "sample_outputs": [
@@ -129,7 +129,7 @@
         "ANC-1.2",
         "ANC-2.4"
       ],
-      "latency_ms": 5.197
+      "latency_ms": 7.234
     },
     {
       "id": "CAMP-0002",
@@ -142,7 +142,7 @@
         "ANC-3.2",
         "ESC-2.2"
       ],
-      "latency_ms": 0.538
+      "latency_ms": 0.756
     },
     {
       "id": "CAMP-0003",
@@ -155,7 +155,7 @@
         "ANC-2.4",
         "ANC-2.1"
       ],
-      "latency_ms": 0.45
+      "latency_ms": 0.545
     },
     {
       "id": "CAMP-0004",
@@ -168,7 +168,7 @@
         "ANC-1.2",
         "ANC-5.3"
       ],
-      "latency_ms": 0.39
+      "latency_ms": 0.46
     },
     {
       "id": "CAMP-0005",
@@ -181,7 +181,7 @@
         "HBNC-1.1",
         "HBNC-4.1"
       ],
-      "latency_ms": 0.379
+      "latency_ms": 0.391
     },
     {
       "id": "CAMP-0006",
@@ -191,10 +191,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.2
+      "latency_ms": 0.248
     },
     {
       "id": "CAMP-0007",
@@ -204,10 +203,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.197
+      "latency_ms": 0.256
     },
     {
       "id": "CAMP-0008",
@@ -217,10 +215,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.157
+      "latency_ms": 0.197
     },
     {
       "id": "CAMP-0009",
@@ -230,10 +227,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.161
+      "latency_ms": 0.199
     },
     {
       "id": "CAMP-0010",
@@ -243,10 +239,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.141
+      "latency_ms": 0.173
     },
     {
       "id": "CAMP-0011",
@@ -259,7 +254,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.295
+      "latency_ms": 0.333
     },
     {
       "id": "CAMP-0012",
@@ -269,10 +264,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.192
+      "latency_ms": 0.257
     },
     {
       "id": "CAMP-0013",
@@ -285,7 +279,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.305
+      "latency_ms": 0.356
     },
     {
       "id": "CAMP-0014",
@@ -295,10 +289,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.211
+      "latency_ms": 0.221
     },
     {
       "id": "CAMP-0015",
@@ -311,7 +304,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.278
+      "latency_ms": 0.285
     },
     {
       "id": "CAMP-0016",
@@ -324,7 +317,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.332
+      "latency_ms": 0.38
     },
     {
       "id": "CAMP-0017",
@@ -334,10 +327,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.205
+      "latency_ms": 0.257
     },
     {
       "id": "CAMP-0018",
@@ -347,10 +339,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.196
+      "latency_ms": 0.252
     },
     {
       "id": "CAMP-0019",
@@ -360,10 +351,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.177
+      "latency_ms": 0.234
     },
     {
       "id": "CAMP-0020",
@@ -376,7 +366,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.291
+      "latency_ms": 0.341
     },
     {
       "id": "CAMP-0021",
@@ -386,10 +376,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.175
+      "latency_ms": 0.231
     },
     {
       "id": "CAMP-0022",
@@ -402,7 +391,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.308
+      "latency_ms": 0.343
     },
     {
       "id": "CAMP-0023",
@@ -415,7 +404,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.279
+      "latency_ms": 0.325
     },
     {
       "id": "CAMP-0024",
@@ -425,10 +414,9 @@
       "escalate": false,
       "refused": false,
       "citations": [
-        "VIS-6.2",
-        "VIS-6.1"
+        "SCP-1.1"
       ],
-      "latency_ms": 0.171
+      "latency_ms": 0.23
     },
     {
       "id": "CAMP-0025",
@@ -441,7 +429,7 @@
         "ANC-1.2",
         "ANC-5.2"
       ],
-      "latency_ms": 0.3
+      "latency_ms": 0.365
     }
   ]
 }

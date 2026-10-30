@@ -31,12 +31,12 @@ object JEVEscalate {
         ),
         // 6. Postpartum hemorrhage
         Pair(
-            Regex("(pad\\s+[1-4]\\s*minute|pad\\s+3-4\\s*minute|less than 5 minutes|din me ([6-9]|\\d{2,})\\s*pad|din me 8 pad|दिन में ([5-9]|\\d{2,})\\s*पैड|more than 5 pads|changed ([5-9]|\\d{2,}) pads|6-7 kapde|[5-9]\\s*kapde|\\d{2,}\\s*kapde|khoon bahut beh raha|delivery.*khoon bahut|khoon band nahi ho raha|cloth.*soaked|soaked.*cloth|प्रसव के बाद.*खून|prasavam.*raktham|bleeding heavily|भीग गया|खून बहुत बह|రక్తస్రావం.*ఆగడం లేదు|ప్యాడ్‌లు మారాయి|తీవ్ర రక్తస్రావం|പാഡ് നനഞ്ഞു)", RegexOption.IGNORE_CASE),
+            Regex("(pad\\s+[1-4]\\s*minute|pad\\s+3-4\\s*minute|less than 5 minutes|din me ([6-9]|\\d{2,})\\s*pad|din me 8 pad|दिन में ([5-9]|\\d{2,})\\s*पैड|more than 5 pads|changed ([5-9]|\\d{2,}) pads|6-7 kapde|[5-9]\\s*kapde|\\d{2,}\\s*kapde|khoon bahut beh raha|delivery.*khoon bahut|khoon band nahi ho raha|cloth.*soaked|soaked.*cloth|प्रसव के बाद.*खून|prasavam.*raktham|bleeding heavily|भीग गया|खून बहुत बह|రక్తస్రావం.*ఆగడం లేదు|ప్యాడ్‌లు మారాయి|తీవ్ర రక్తస్రావం|പാഡ് നനഞ്ഞു|பேட் நனைந்துவிட்டது|ಪ್ಯಾಡ್ ಒದ್ದೆಯಾಗಿದೆ|ಹೆರಿಗೆ.*ರಕ್ತಸ್ರಾವ|ರಕ್ತಸ್ರಾವ ನಿಲ್ಲುತ್ತಿಲ್ಲ)", RegexOption.IGNORE_CASE),
             Pair("ESC-3.1", "Heavy postpartum bleeding (pad soaked in less than 5 minutes or more than 5 pads/day): refer immediately (call 108/102) (ESC-3.1).")
         ),
         // 7. Vaginal ble{1,2}ding in pregnancy
         Pair(
-            Regex("(ble{1,2}ding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|ble{1,2}ding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati|garbhavathi).*(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnant|garbh)|garbhavathi.*raktham|raktham paduthondi|rathappokku|raktasrava|rakthasravam|రక్తస్రావం|ரத்தப்போக்கு|ರಕ್ತಸ್ರಾವ|രക്തസ്രാവം|गर्भवती.*खून|गर्भावस्था में (?:ble{1,2}ding|ब्लीडिंग)|ब्लीडिंग|खून का दाग|blood stains on clothes|రక్తపు మరకలు)", RegexOption.IGNORE_CASE),
+            Regex("(ble{1,2}ding in (first|second|third|pregnancy)|garbh.*(khoon|bleeding)|pregnant.*(khoon|ble{1,2}ding)|pregnant.*subah se thoda khoon|8 mahine ki pregnant.*khoon|kal raat thoda khoon ka daag|khoon ka daag aaya|(mahila|aurat|garbhwati|garbhavathi).*(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnancy|garbh)|(bleeding|khoon aa raha|khoon beh|raktham).*(\\d+.*mahine|pregnant|garbh)|garbhavathi.*raktham|garbh.*raktham|pregnant.*raktham|garbham.*raktham|raktasrava.*garbh|గర్భిణి.*రక్తస్రావం|గర్భ.*రక్తస్రావం|గర్భిణి.*రక్తం|రక్తస్రావం.*గర్భిణి|గర్భవతి.*రక్తస్రావం|கர்ப்ப.*ரத்தப்போக்கு|ಗರ್ಭ.*ರಕ್ತಸ್ರಾವ|ഗർഭ.*രക്തസ്രാവം|गर्भवती.*खून|गर्भावस्था में (?:ble{1,2}ding|ब्लीडिंग)|khoon ka daag|blood stains on clothes)", RegexOption.IGNORE_CASE),
             Pair("ESC-2.1", "Any vaginal ble{1,2}ding in pregnancy: danger sign, refer immediately (call 102/108) (ESC-2.1, ESC-1.2).")
         ),
         // 8. Pre-eclampsia
@@ -151,6 +151,30 @@ object JEVScope {
         Pair(
             Regex("(rabies|kutte ne|dog bite|dog scratch|pathri ka desi ilaaj|stone ka ilaaj|covid tike.*booster abhi|hpv.*cancer.*tika|bachchedani ke cancer wala tika|garbhpat ki goli|abortion pill|tb ki dawai 6 mahine ki hoti hai ya 9|रेबीज|రాబీస్|కుక్క కరి|ரேபிஸ்|நாய் கடி|ರೇಬೀಸ್|ನಾಯಿ ಕಚ್ಚಿ|റാബിസ്|നായ മാന്തിയ)", RegexOption.IGNORE_CASE),
             Pair("SCP-1.2", "This is outside my protocol book. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
+        ),
+        Pair(
+            Regex("(?:\\b(?:ear|ears|kaan|chevu|chevi|chevulu|cevu|cevi|kaadhu|kevi|kivi)\\b.*(?:pain|ble{1,3}d|ble{1,3}ding|blood|noppi|dard|peep|discharge|pus|ostundhi|karadam|raktham|khoon)|(?:pain|ble{1,3}d|ble{1,3}ding|blood|noppi|dard|peep|discharge|pus|raktham|khoon).*?\\b(?:ear|ears|kaan|chevu|chevi|chevulu|cevu|cevi|kaadhu|kevi|kivi)\\b|chevu nunchi|kaan se khoon|kaan me dard|chevi noppi|చెవు|చెవి)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
+        ),
+        Pair(
+            Regex("(?:\\b(?:tooth|teeth|daant|dant|pal|pallu|hallu|gum)\\b.*(?:pain|noppi|dard|ble{1,3}d|ble{1,3}ding|blood|raktham)|(?:pain|noppi|dard).*?\\b(?:tooth|teeth|daant|dant|pal|pallu|hallu)\\b|daant me dard|pallu noppi|দাঁত|பல்|పన్ను|పళ్ళు)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
+        ),
+        Pair(
+            Regex("(?:\\b(?:nose|naak|mookku|mukku|mooku)\\b.*(?:ble{1,3}d|ble{1,3}ding|blood|raktham|khoon)|(?:ble{1,3}d|ble{1,3}ding|blood|raktham|khoon).*?\\b(?:nose|naak|mookku|mukku|mooku)\\b|naak se khoon|mooku nunchi|mukku nunchi|nosebleed|epistaxis|ముక్కు నుంచి)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
+        ),
+        Pair(
+            Regex("(?:\\b(?:fracture|bone|haddi|elumbu|yemuka|emuka)\\b.*(?:break|broken|toot|virigindi)|(?:break|broken|toot|virigindi).*?\\b(?:bone|haddi|yemuka|emuka)\\b|haddi toot gayi|kaalu virigindi|cheyyi virigindi|విరిగింది|முறிவு)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
+        ),
+        Pair(
+            Regex("(?:\\b(?:eye|aankh|kallu|kannu)\\b.*(?:pain|dard|noppi|red|laal|erraga|bleed|blood|raktham)|(?:pain|dard|noppi|bleed|blood|raktham).*?\\b(?:eye|aankh|kallu|kannu)\\b|aankh me dard|kalla noppi|kallu erraga|కళ్ళు)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
+        ),
+        Pair(
+            Regex("(?:\\b(?:throat|gala|gontu|gonthu|thonda|tonsil)\\b.*(?:pain|dard|noppi|kharash|infection)|(?:pain|dard|noppi).*?\\b(?:throat|gala|gontu|gonthu|thonda)\\b|gale me dard|gontu noppi|గొంతు)", RegexOption.IGNORE_CASE),
+            Pair("SCP-1.2", "This condition is outside frontline community protocols. Please refer the beneficiary to the Medical Officer at the PHC (SCP-1.2).")
         )
     )
 
