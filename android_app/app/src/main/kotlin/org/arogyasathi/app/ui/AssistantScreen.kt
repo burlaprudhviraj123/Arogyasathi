@@ -159,6 +159,7 @@ fun AssistantScreen(
     repository: ArogyasathiRepository,
     initialQuery: String? = null,
     initialPatient: Member? = null,
+    bottomBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onClearInitialContext: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -795,6 +796,9 @@ fun AssistantScreen(
             }
         }
 
+        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+        val extraImePadding = maxOf(0.dp, imeBottom - bottomBarPadding)
+
         // Bottom Chat Input Bar (Rich Floating Capsule with Tactile Action Twins)
         Surface(
             shape = RoundedCornerShape(28.dp),
@@ -803,7 +807,7 @@ fun AssistantScreen(
             shadowElevation = 3.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .imePadding()
+                .padding(bottom = extraImePadding)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Row(

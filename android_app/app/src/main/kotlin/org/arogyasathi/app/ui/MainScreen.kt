@@ -143,13 +143,11 @@ fun MainScreen() {
                     )
                 },
                 bottomBar = {
-                    if (!WindowInsets.isImeVisible) {
-                        FloatingGlassBottomBar(
-                            selectedIndex = selectedTab,
-                            onTabSelected = { selectedTab = it },
-                            modifier = Modifier.navigationBarsPadding()
-                        )
-                    }
+                    FloatingGlassBottomBar(
+                        selectedIndex = selectedTab,
+                        onTabSelected = { selectedTab = it },
+                        modifier = Modifier.navigationBarsPadding()
+                    )
                 }
             ) { paddingValues ->
                 Box(
@@ -185,6 +183,7 @@ fun MainScreen() {
                             repository = repository,
                             initialQuery = assistantQuery,
                             initialPatient = assistantPatient,
+                            bottomBarPadding = paddingValues.calculateBottomPadding(),
                             onClearInitialContext = {
                                 assistantQuery = null
                                 assistantPatient = null
