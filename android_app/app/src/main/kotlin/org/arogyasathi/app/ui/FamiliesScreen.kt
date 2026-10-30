@@ -170,7 +170,7 @@ fun FamiliesScreen(
 
                                 val members = membersMap[hh.householdId] ?: emptyList()
                                 if (members.isEmpty()) {
-                                    Text("Loading family members...", fontSize = 13.sp, color = TextSecondary)
+                                    Text(strings.loadingFamilyMembers, fontSize = 13.sp, color = TextSecondary)
                                 } else {
                                     members.forEach { m ->
                                         MemberRowItem(
@@ -217,6 +217,7 @@ fun RecordHouseholdVisitDialog(
     onDismiss: () -> Unit,
     onSave: (dueItem: String, status: String, notes: String) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val defaultItem = when {
         member.isPregnant -> "ANC Follow-up"
         member.lastMuacCm != null -> "MUAC / Malnutrition"
@@ -241,7 +242,7 @@ fun RecordHouseholdVisitDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Record Member Visit",
+                text = strings.logVisit,
                 fontWeight = FontWeight.Bold,
                 fontSize = 17.sp,
                 color = TextPrimary
@@ -259,7 +260,7 @@ fun RecordHouseholdVisitDialog(
                     color = PrimaryTeal
                 )
 
-                Text("Select Visit Activity:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
+                Text(strings.selectVisitActivity, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -275,7 +276,7 @@ fun RecordHouseholdVisitDialog(
                     }
                 }
 
-                Text("Outcome Status:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
+                Text(strings.outcomeStatusLabel, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -292,7 +293,7 @@ fun RecordHouseholdVisitDialog(
                 OutlinedTextField(
                     value = notesText,
                     onValueChange = { notesText = it },
-                    label = { Text("Clinical observation / notes (optional)", fontSize = 12.sp) },
+                    label = { Text(strings.clinicalNotesOptional, fontSize = 12.sp) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3,
                     shape = RoundedCornerShape(8.dp)
@@ -304,12 +305,12 @@ fun RecordHouseholdVisitDialog(
                 onClick = { onSave(selectedItem, selectedStatus, notesText.trim()) },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal)
             ) {
-                Text("Save Record", fontWeight = FontWeight.Bold)
+                Text(strings.saveRecord, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text(strings.cancel, color = TextSecondary)
             }
         }
     )
@@ -321,6 +322,7 @@ fun MemberRowItem(
     onConsult: () -> Unit,
     onRecordVisit: () -> Unit = {}
 ) {
+    val strings = LocalAppStrings.current
     Surface(
         shape = RoundedCornerShape(10.dp),
         color = Color(0xFFF9FBFA),
@@ -354,13 +356,13 @@ fun MemberRowItem(
                         onClick = onRecordVisit,
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text("Log Visit", fontSize = 12.sp, color = RoutineGreen, fontWeight = FontWeight.SemiBold)
+                        Text(strings.logVisit, fontSize = 12.sp, color = RoutineGreen, fontWeight = FontWeight.SemiBold)
                     }
                     TextButton(
                         onClick = onConsult,
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text("Check", fontSize = 12.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
+                        Text(strings.checkButton, fontSize = 12.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

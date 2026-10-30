@@ -857,7 +857,7 @@ fun AssistantScreen(
                         Box(contentAlignment = Alignment.CenterStart) {
                             if (queryText.isEmpty()) {
                                 Text(
-                                    text = if (activePatient != null) "Ask question for ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
+                                    text = if (activePatient != null) "${strings.askQuestionForPrefix} ${activePatient!!.name}..." else selectedLanguage.inputPlaceholder,
                                     fontSize = 13.sp,
                                     color = Color(0xFF94A3B8),
                                     maxLines = 1,
@@ -1425,6 +1425,7 @@ fun ChatBubble(
     onCall108: () -> Unit,
     onOpenReferralSlip: (ReferralSlip) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val isUser = message.sender == MessageSender.USER
     val res = message.result
     val context = LocalContext.current
@@ -1523,9 +1524,9 @@ fun ChatBubble(
                                         )
                                         Text(
                                             text = when {
-                                                isEscalation -> "DANGER SIGN — CALL 108"
-                                                isRefusal -> "DOCTOR REFERRAL (PHC)"
-                                                else -> "CLINICAL PROTOCOL"
+                                                isEscalation -> strings.dangerSignAlert
+                                                isRefusal -> strings.doctorReferralAlert
+                                                else -> strings.clinicalProtocolAlert
                                             },
                                             color = priorityColor,
                                             fontWeight = FontWeight.ExtraBold,
@@ -1606,7 +1607,7 @@ fun ChatBubble(
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("Call MO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.profileCallMo, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
 
@@ -1644,7 +1645,7 @@ fun ChatBubble(
                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                         modifier = Modifier.weight(1.2f).height(30.dp)
                                     ) {
-                                        Text("Slip", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text(strings.referralSlipButton, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             } else if (isRefusal) {
@@ -1662,7 +1663,7 @@ fun ChatBubble(
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("Call MO", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.profileCallMo, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
 
@@ -1675,7 +1676,7 @@ fun ChatBubble(
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                             Icon(painterResource(R.drawable.ic_call), null, tint = Color.White, modifier = Modifier.size(11.dp))
-                                            Text("Call ANM", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.profileCallAnm, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -1695,7 +1696,7 @@ fun ChatBubble(
                                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                                         modifier = Modifier.height(24.dp)
                                     ) {
-                                        Text("Copy Guidance", fontSize = 10.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
+                                        Text(strings.copyGuidance, fontSize = 10.sp, color = PrimaryTeal, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
                             }
@@ -1716,6 +1717,7 @@ fun EmergencyContactsDialog(
     onCall102: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -1739,13 +1741,13 @@ fun EmergencyContactsDialog(
                 }
                 Column {
                     Text(
-                        text = "Clinical Escalation & SOS",
+                        text = strings.emergencyDialogTitle,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = TextPrimary
                     )
                     Text(
-                        text = "Direct emergency contact line",
+                        text = strings.emergencyDialogSubtitle,
                         fontSize = 11.sp,
                         color = TextSecondary
                     )
@@ -1770,7 +1772,7 @@ fun EmergencyContactsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Medical Officer In-Charge", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PrimaryTeal)
+                            Text(strings.moInChargeTitle, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PrimaryTeal)
                             Text(activeProfile.medicalOfficerName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                             Text(activeProfile.parentPhc, fontSize = 11.sp, color = TextSecondary)
                         }
@@ -1781,7 +1783,7 @@ fun EmergencyContactsDialog(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Text("CALL MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.profileCallMo, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1799,7 +1801,7 @@ fun EmergencyContactsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Designated Sector ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = RoutineGreen)
+                            Text(strings.anmTitle, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = RoutineGreen)
                             Text(activeProfile.anmName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                             Text(activeProfile.subCentre, fontSize = 11.sp, color = TextSecondary)
                         }
@@ -1810,7 +1812,7 @@ fun EmergencyContactsDialog(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Text("CALL ANM", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.profileCallAnm, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1828,9 +1830,9 @@ fun EmergencyContactsDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("National Ambulances", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = EmergencyRed)
+                            Text(strings.nationalAmbulancesTitle, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = EmergencyRed)
                             Text("108 (Emergency) • 102 (JSSK)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                            Text("Toll-free 24x7 government helpline", fontSize = 11.sp, color = TextSecondary)
+                            Text(strings.tollFreeHelplineDesc, fontSize = 11.sp, color = TextSecondary)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Button(
@@ -1858,7 +1860,7 @@ fun EmergencyContactsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = TextSecondary)
+                Text(strings.close, color = TextSecondary)
             }
         }
     )
@@ -1870,6 +1872,7 @@ fun PatientPickerDialog(
     onSelectPatient: (Member) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var searchQuery by remember { mutableStateOf("") }
     val allMembers = remember { repository.getAllMembers() }
 
@@ -1891,12 +1894,12 @@ fun PatientPickerDialog(
         title = {
             Column {
                 Text(
-                    text = "Select Patient for Clinical Chat",
+                    text = strings.selectPatientTitle,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
                 Text(
-                    text = "Links chat history and tailors protocol answers to this person",
+                    text = strings.selectPatientSubtitle,
                     fontSize = 11.sp,
                     color = TextSecondary
                 )
@@ -1912,7 +1915,7 @@ fun PatientPickerDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search name, village or ID...", fontSize = 12.sp) },
+                    placeholder = { Text(strings.searchPatientPlaceholder, fontSize = 12.sp) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true
@@ -1979,7 +1982,7 @@ fun PatientPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text(strings.cancel, color = TextSecondary)
             }
         }
     )
@@ -1994,6 +1997,7 @@ fun ReferralSlipDialog(
     onSaveToOutbox: () -> Unit
 ) {
     val context = LocalContext.current
+    val strings = LocalAppStrings.current
 
     val formattedSms = """
 AROGYASATHI EMERGENCY REFERRAL SLIP
@@ -2032,12 +2036,12 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                 }
                 Column {
                     Text(
-                        text = "Clinical Referral Slip",
+                        text = strings.referralSlipTitle,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     Text(
-                        text = "Grounded in GoI Leaf Protocols",
+                        text = strings.referralSlipSubtitle,
                         fontSize = 11.sp,
                         color = TextSecondary
                     )
@@ -2064,40 +2068,40 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Village: ${slip.village} • Household: ${slip.householdId}",
+                            text = "${strings.village}: ${slip.village} • Household: ${slip.householdId}",
                             fontSize = 11.sp,
                             color = TextPrimary
                         )
                         Text(
-                            text = "Identified Danger Sign: ${slip.suspectedCondition}",
+                            text = "${strings.dangerSignLabel} ${slip.suspectedCondition}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = EmergencyRed
                         )
                         Text(
-                            text = "Protocol Citation: ${slip.protocolCitation}",
+                            text = "${strings.protocolCitationLabel} ${slip.protocolCitation}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarkTeal
                         )
                         Text(
-                            text = "Vitals / Observations: ${slip.vitalSigns}",
+                            text = "${strings.vitalsObservationsLabel} ${slip.vitalSigns}",
                             fontSize = 11.sp,
                             color = TextSecondary
                         )
                         Text(
-                            text = "Referred Facility: ${slip.referredFacility}",
+                            text = "${strings.referredFacilityLabel} ${slip.referredFacility}",
                             fontSize = 11.sp,
                             color = TextPrimary
                         )
                         Text(
-                            text = "Attending MO: ${slip.medicalOfficerName} (${maskPhoneNumber(slip.medicalOfficerPhone)})",
+                            text = "${strings.attendingMoLabel} ${slip.medicalOfficerName} (${maskPhoneNumber(slip.medicalOfficerPhone)})",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryTeal
                         )
                         Text(
-                            text = "Attending ASHA: ${slip.ashaName} (${slip.ashaPhone})",
+                            text = "${strings.attendingAshaLabel} ${slip.ashaName} (${slip.ashaPhone})",
                             fontSize = 10.sp,
                             color = TextSecondary
                         )
@@ -2114,7 +2118,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Call MO", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(strings.profileCallMo, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -2124,7 +2128,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Call 108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("108", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -2139,7 +2143,7 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Copy", fontSize = 10.sp)
+                    Text(strings.copyButton, fontSize = 10.sp)
                 }
 
                 Button(
@@ -2149,13 +2153,13 @@ Date/Time: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                     modifier = Modifier.height(28.dp)
                 ) {
-                    Text("Outbox", fontSize = 10.sp)
+                    Text(strings.outboxButton, fontSize = 10.sp)
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = TextSecondary)
+                Text(strings.close, color = TextSecondary)
             }
         }
     )

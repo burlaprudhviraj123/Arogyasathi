@@ -77,7 +77,7 @@ fun RecordsScreen(repository: ArogyasathiRepository) {
             FilterChip(
                 selected = selectedSubTab == 0,
                 onClick = { selectedSubTab = 0 },
-                label = { Text("Visits (${completedVisits.size})", fontSize = 12.sp) },
+                label = { Text("${strings.visitsTabTitle} (${completedVisits.size})", fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = PrimaryTeal,
                     selectedLabelColor = Color.White
@@ -86,7 +86,7 @@ fun RecordsScreen(repository: ArogyasathiRepository) {
             FilterChip(
                 selected = selectedSubTab == 1,
                 onClick = { selectedSubTab = 1 },
-                label = { Text("Sync Outbox ($pendingCount)", fontSize = 12.sp) },
+                label = { Text("${strings.syncOutboxTabTitle} ($pendingCount)", fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = PrimaryTeal,
                     selectedLabelColor = Color.White
@@ -95,7 +95,7 @@ fun RecordsScreen(repository: ArogyasathiRepository) {
             FilterChip(
                 selected = selectedSubTab == 2,
                 onClick = { selectedSubTab = 2 },
-                label = { Text("Protocols (${protocols.size})", fontSize = 12.sp) },
+                label = { Text("${strings.protocolsTabTitle} (${protocols.size})", fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = PrimaryTeal,
                     selectedLabelColor = Color.White
@@ -250,6 +250,7 @@ fun SyncOutboxView(
     onSyncNow: () -> Unit,
     onSimulateSync: () -> Unit = {}
 ) {
+    val strings = LocalAppStrings.current
     val dateFormat = remember { SimpleDateFormat("hh:mm a, dd MMM", Locale.getDefault()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -343,9 +344,9 @@ fun SyncOutboxView(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Syncing...", fontSize = 13.sp, color = Color.White)
+                        Text(strings.syncingText, fontSize = 13.sp, color = Color.White)
                     } else {
-                        Text("Sync Now", fontSize = 13.sp, color = Color.White)
+                        Text(strings.syncNowButton, fontSize = 13.sp, color = Color.White)
                     }
                 }
             }
@@ -412,6 +413,7 @@ fun ProtocolCorpusView(
     expandedId: String?,
     onToggleExpand: (String) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val filtered = remember(searchQuery, protocols) {
         if (searchQuery.isBlank()) protocols
         else protocols.filter {
@@ -425,7 +427,7 @@ fun ProtocolCorpusView(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
-            placeholder = { Text("Filter 107 leaf protocols (ESC, ANC, IMM...)...") },
+            placeholder = { Text(strings.filterProtocolsPlaceholder) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(

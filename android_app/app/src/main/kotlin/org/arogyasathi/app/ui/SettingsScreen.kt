@@ -228,7 +228,7 @@ fun SettingsScreen(
                                 color = RoutineGreen
                             ) {
                                 Text(
-                                    text = "ACTIVE",
+                                    text = strings.profileActiveBadge,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
@@ -305,13 +305,13 @@ fun SettingsScreen(
                             }
                             Column {
                                 Text(
-                                    text = "Offline Voice Packs",
+                                    text = strings.voicePacksTitle,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary
                                 )
                                 Text(
-                                    text = "On-demand local STT (sherpa-onnx, zero network)",
+                                    text = strings.voicePacksSubtitle,
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -320,7 +320,7 @@ fun SettingsScreen(
                     }
 
                     Text(
-                        text = "Voice consultation transcribes purely on-device using local INT8 models. Frontline workers can download packs via Wi-Fi or import them offline via OTG / SD card.",
+                        text = strings.voicePacksDesc,
                         fontSize = 12.sp,
                         color = TextSecondary,
                         lineHeight = 16.sp
@@ -376,7 +376,7 @@ fun SettingsScreen(
                                                 color = RoutineGreen.copy(alpha = 0.15f)
                                             ) {
                                                 Text(
-                                                    text = if (state.isBundled) "BUNDLED READY" else "OFFLINE READY (v${state.version})",
+                                                    text = if (state.isBundled) strings.bundledReadyBadge else "${strings.offlineReady} (v${state.version})",
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = RoutineGreen,
@@ -390,7 +390,7 @@ fun SettingsScreen(
                                                 color = PrimaryTeal.copy(alpha = 0.15f)
                                             ) {
                                                 Text(
-                                                    text = "DOWNLOADING",
+                                                    text = strings.downloadingBadge,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = PrimaryTeal,
@@ -404,7 +404,7 @@ fun SettingsScreen(
                                                 color = Color(0xFFFEF3C7)
                                             ) {
                                                 Text(
-                                                    text = "VERIFYING MODEL",
+                                                    text = strings.verifyingBadge,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = Color(0xFFB45309),
@@ -418,7 +418,7 @@ fun SettingsScreen(
                                                 color = Color(0xFFDBEAFE)
                                             ) {
                                                 Text(
-                                                    text = "PREPARING OFFLINE VOICE",
+                                                    text = strings.preparingBadge,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = Color(0xFF1D4ED8),
@@ -432,7 +432,7 @@ fun SettingsScreen(
                                                 color = Color(0xFFF3E8FF)
                                             ) {
                                                 Text(
-                                                    text = "UPDATE AVAILABLE",
+                                                    text = strings.updateAvailableBadge,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = Color(0xFF7E22CE),
@@ -446,7 +446,7 @@ fun SettingsScreen(
                                                 color = Color(0xFFFEE2E2)
                                             ) {
                                                 Text(
-                                                    text = "FAILED",
+                                                    text = strings.failedBadge,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = EmergencyRed,
@@ -460,7 +460,7 @@ fun SettingsScreen(
                                                 color = Color(0xFFF1F5F9)
                                             ) {
                                                 Text(
-                                                    text = "NOT INSTALLED",
+                                                    text = strings.downloadPackButton,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = Color(0xFF64748B),
@@ -474,7 +474,7 @@ fun SettingsScreen(
                                                 color = Color(0xFFFEF3C7)
                                             ) {
                                                 Text(
-                                                    text = "QUEUED",
+                                                    text = strings.downloadingBadge,
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = Color(0xFFB45309),
@@ -558,7 +558,7 @@ fun SettingsScreen(
                                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                             modifier = Modifier.weight(1f)
                                         ) {
-                                            Text("Download (${entry.bytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text("${strings.downloadPackButton} (${entry.bytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
                                     } else if (state is VoicePackState.Failed && entry != null) {
                                         Button(
@@ -572,7 +572,7 @@ fun SettingsScreen(
                                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                             modifier = Modifier.weight(1f)
                                         ) {
-                                            Text("Retry Download", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.retryDownloadButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
                                     } else if (state is VoicePackState.UpdateAvailable && entry != null) {
                                         Button(
@@ -586,7 +586,7 @@ fun SettingsScreen(
                                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                             modifier = Modifier.weight(1f)
                                         ) {
-                                            Text("Update (${state.newPackBytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text("${strings.updatePackButton} (${state.newPackBytes / (1024 * 1024)} MB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
 
@@ -600,7 +600,7 @@ fun SettingsScreen(
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("Import .zip", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                        Text(strings.importZipButton, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                     }
 
                                     // Delete pack (if installed and not bundled)
@@ -614,7 +614,7 @@ fun SettingsScreen(
                                             shape = RoundedCornerShape(8.dp),
                                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                         ) {
-                                            Text("Delete", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            Text(strings.deletePackButton, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -769,7 +769,7 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("108 Ambulance", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.ambulance108, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                         Button(
                             onClick = { dial("102") },
@@ -777,7 +777,7 @@ fun SettingsScreen(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("102 JSSK Drop", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(strings.ambulance102, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -801,7 +801,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "SQLite / Room: 500 households, 2,234 registered villagers • 107 leaf protocols indexed in BM25.",
+                        text = strings.sqliteInfoDesc,
                         fontSize = 11.sp,
                         color = TextSecondary
                     )

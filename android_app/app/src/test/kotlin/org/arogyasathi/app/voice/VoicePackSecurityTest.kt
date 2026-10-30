@@ -234,5 +234,26 @@ class VoicePackSecurityTest {
         val langs = (0 until packs.length()).map { packs.getJSONObject(it).getString("languageTag") }.toSet()
         assertEquals(setOf("en-IN", "te-IN", "hi-IN", "ta-IN", "kn-IN", "ml-IN"), langs)
     }
+
+    @Test
+    fun testCatalogueDownloadUrlsPointToGitHubReleasesAndAreWellFormed() {
+        val catalogueFile = File("src/main/assets/voice-packs/catalogue.signed.json")
+        val envelope = catalogueFile.readText(Charsets.UTF_8)
+        val verified = VoicePackCrypto.verifyCatalogueEnvelope(envelope)
+        assertTrue(verified.isSuccess)
+        val payload = JSONObject(verified.getOrThrow())
+        val packs = payload.getJSONArray("packs")
+        for (i in 0 until packs.length()) {
+            val pack = packs.getJSONObject(i)
+            val url = pack.getString("downloadUrl")
+            assertTrue("URL must be HTTPS", url.startsWith("https://"))
+            assertTrue("URL must point to GitHub Release", url.contains("github.com/burlaprudhviraj123/Arogyasathi/releases/download/v1.0.0-voice-packs/"))
+            assertTrue("URL must end with .zip", url.endsWith(".zip"))
+            val bytes = pack.getLong("bytes")
+            assertTrue("Byte count must be positive", bytes > 10_000_000L)
+            val sha256 = pack.getString("sha256")
+            assertEquals("SHA256 must be 64 hex characters", 64, sha256.length)
+        }
+    }
 }
 
