@@ -2,13 +2,17 @@ package org.arogyasathi.app.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -156,52 +160,77 @@ fun MainScreen() {
                         .background(CanvasBackground)
                         .padding(paddingValues)
                 ) {
-                    when (selectedTab) {
-                        0 -> TodayScreen(
-                            repository = repository,
-                            activeProfile = activeProfile,
-                            onNavigateToAssistant = { prompt, memberId ->
-                                assistantPatient = memberId?.let { repository.getMemberById(it) }
-                                assistantQuery = prompt
-                                selectedTab = 2 // Switch to Assistant tab
-                            }
-                        )
-                        1 -> FamiliesScreen(
-                            repository = repository,
-                            onConsultMember = { member ->
-                                val prompt = when {
-                                    member.isPregnant -> "High risk pregnancy follow-up for ${member.name} EDD ${member.edd ?: "unknown"}"
-                                    member.ncdCondition != null -> "NCD management protocol for ${member.ncdCondition}"
-                                    else -> "Clinical protocol guidance for ${member.name}"
+                    AnimatedContent(
+                        targetState = selectedTab,
+                        transitionSpec = {
+                            val direction = if (targetState > initialState) 1 else -1
+                            (slideInHorizontally(
+                                initialOffsetX = { fullWidth -> direction * (fullWidth / 6) },
+                                animationSpec = spring(
+                                    dampingRatio = 0.85f,
+                                    stiffness = Spring.StiffnessMediumLow
+                                )
+                            ) + fadeIn(
+                                animationSpec = tween(220, easing = FastOutSlowInEasing)
+                            )).togetherWith(
+                                slideOutHorizontally(
+                                    targetOffsetX = { fullWidth -> -direction * (fullWidth / 8) },
+                                    animationSpec = tween(180, easing = FastOutSlowInEasing)
+                                ) + fadeOut(
+                                    animationSpec = tween(150, easing = FastOutSlowInEasing)
+                                )
+                            )
+                        },
+                        label = "tabContentMotion",
+                        modifier = Modifier.fillMaxSize()
+                    ) { tabIndex ->
+                        when (tabIndex) {
+                            0 -> TodayScreen(
+                                repository = repository,
+                                activeProfile = activeProfile,
+                                onNavigateToAssistant = { prompt, memberId ->
+                                    assistantPatient = memberId?.let { repository.getMemberById(it) }
+                                    assistantQuery = prompt
+                                    selectedTab = 2 // Switch to Assistant tab
                                 }
-                                assistantPatient = member
-                                assistantQuery = prompt
-                                selectedTab = 2 // Switch to Assistant tab
-                            }
-                        )
-                        2 -> AssistantScreen(
-                            repository = repository,
-                            initialQuery = assistantQuery,
-                            initialPatient = assistantPatient,
-                            bottomBarPadding = paddingValues.calculateBottomPadding(),
-                            onClearInitialContext = {
-                                assistantQuery = null
-                                assistantPatient = null
-                            }
-                        )
-                        3 -> RecordsScreen(
-                            repository = repository
-                        )
-                        4 -> SettingsScreen(
-                            repository = repository,
-                            activeProfile = activeProfile,
-                            currentLanguage = currentLanguage,
-                            onLanguageChanged = { newLang ->
-                                repository.setAppLanguage(newLang)
-                                currentLanguage = newLang
-                            },
-                            onSwitchProfile = { showProfileScreen = true }
-                        )
+                            )
+                            1 -> FamiliesScreen(
+                                repository = repository,
+                                onConsultMember = { member ->
+                                    val prompt = when {
+                                        member.isPregnant -> "High risk pregnancy follow-up for ${member.name} EDD ${member.edd ?: "unknown"}"
+                                        member.ncdCondition != null -> "NCD management protocol for ${member.ncdCondition}"
+                                        else -> "Clinical protocol guidance for ${member.name}"
+                                    }
+                                    assistantPatient = member
+                                    assistantQuery = prompt
+                                    selectedTab = 2 // Switch to Assistant tab
+                                }
+                            )
+                            2 -> AssistantScreen(
+                                repository = repository,
+                                initialQuery = assistantQuery,
+                                initialPatient = assistantPatient,
+                                bottomBarPadding = paddingValues.calculateBottomPadding(),
+                                onClearInitialContext = {
+                                    assistantQuery = null
+                                    assistantPatient = null
+                                }
+                            )
+                            3 -> RecordsScreen(
+                                repository = repository
+                            )
+                            4 -> SettingsScreen(
+                                repository = repository,
+                                activeProfile = activeProfile,
+                                currentLanguage = currentLanguage,
+                                onLanguageChanged = { newLang ->
+                                    repository.setAppLanguage(newLang)
+                                    currentLanguage = newLang
+                                },
+                                onSwitchProfile = { showProfileScreen = true }
+                            )
+                        }
                     }
                 }
             }
