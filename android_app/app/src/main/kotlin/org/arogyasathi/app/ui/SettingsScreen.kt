@@ -87,51 +87,6 @@ fun SettingsScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Top Header
-        item(key = "settings_header") {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCrisp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = PrimaryTeal.copy(alpha = 0.12f),
-                            modifier = Modifier.size(42.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_settings),
-                                    contentDescription = null,
-                                    tint = PrimaryTeal,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                        Column {
-                            Text(
-                                text = strings.settingsTitle,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = strings.settingsSubtitle,
-                                fontSize = 12.sp,
-                                color = TextSecondary
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
         // Section 1: Dynamic Language Selection
         item(key = "language_card") {
             Card(
