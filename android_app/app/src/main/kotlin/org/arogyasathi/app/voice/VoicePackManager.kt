@@ -420,30 +420,54 @@ class VoicePackManager(private val context: Context) {
             return
         }
 
-        val url = URL(urlStr)
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            connectTimeout = 15000
-            readTimeout = 30000
-            instanceFollowRedirects = true
-            if (existingBytes > 0) {
-                setRequestProperty("Range", "bytes=$existingBytes-")
+        var currentUrl = urlStr
+        var connection: HttpURLConnection? = null
+        var responseCode = -1
+        var redirects = 0
+
+        while (redirects < 5) {
+            val url = URL(currentUrl)
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                connectTimeout = 15000
+                readTimeout = 30000
+                instanceFollowRedirects = true
+                setRequestProperty("User-Agent", "Arogyasathi/1.0")
+                if (existingBytes > 0) {
+                    setRequestProperty("Range", "bytes=$existingBytes-")
+                }
             }
+            conn.connect()
+            responseCode = conn.responseCode
+            if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                responseCode == 307 || responseCode == 308) {
+                val redirectLoc = conn.getHeaderField("Location")
+                conn.disconnect()
+                if (redirectLoc != null) {
+                    currentUrl = redirectLoc
+                    redirects++
+                    continue
+                }
+            }
+            connection = conn
+            break
         }
 
-        connection.connect()
-        val responseCode = connection.responseCode
+        val activeConnection = connection ?: throw IllegalStateException("Too many redirects ($redirects) fetching $urlStr")
         val isRangeResponse = responseCode == HttpURLConnection.HTTP_PARTIAL
         val isFullResponse = responseCode == HttpURLConnection.HTTP_OK
 
         if (!isRangeResponse && !isFullResponse) {
-            throw IllegalStateException("Server returned HTTP error: $responseCode ${connection.responseMessage}")
+            activeConnection.disconnect()
+            throw IllegalStateException("Server returned HTTP error: $responseCode ${activeConnection.responseMessage}")
         }
 
         val appendMode = isRangeResponse && existingBytes > 0
         val actualTotalBytes = if (isRangeResponse) {
-            existingBytes + connection.contentLengthLong
+            existingBytes + activeConnection.contentLengthLong
         } else {
-            connection.contentLengthLong.takeIf { it > 0 } ?: expectedTotalBytes
+            activeConnection.contentLengthLong.takeIf { it > 0 } ?: expectedTotalBytes
         }
 
         val raf = RandomAccessFile(targetFile, "rw")
@@ -455,7 +479,7 @@ class VoicePackManager(private val context: Context) {
 
         var downloaded = if (appendMode) existingBytes else 0L
         val buffer = ByteArray(32768)
-        connection.inputStream.use { input ->
+        activeConnection.inputStream.use { input ->
             raf.use { output ->
                 var read: Int
                 while (input.read(buffer).also { read = it } != -1) {
@@ -467,7 +491,7 @@ class VoicePackManager(private val context: Context) {
                 }
             }
         }
-        connection.disconnect()
+        activeConnection.disconnect()
     }
 
     private fun runLocalHealthCheck(stagingDir: File) {

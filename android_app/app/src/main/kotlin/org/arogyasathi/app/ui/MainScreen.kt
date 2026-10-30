@@ -33,7 +33,7 @@ import org.arogyasathi.app.R
 import org.arogyasathi.app.core.AshaProfile
 import org.arogyasathi.app.data.ArogyasathiRepository
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MainScreen() {
     val context = LocalContext.current
@@ -54,6 +54,7 @@ fun MainScreen() {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
+                contentWindowInsets = WindowInsets.statusBars,
                 topBar = {
                     TopAppBar(
                         title = {
@@ -142,10 +143,13 @@ fun MainScreen() {
                     )
                 },
                 bottomBar = {
-                    FloatingGlassBottomBar(
-                        selectedIndex = selectedTab,
-                        onTabSelected = { selectedTab = it }
-                    )
+                    if (!WindowInsets.isImeVisible) {
+                        FloatingGlassBottomBar(
+                            selectedIndex = selectedTab,
+                            onTabSelected = { selectedTab = it },
+                            modifier = Modifier.navigationBarsPadding()
+                        )
+                    }
                 }
             ) { paddingValues ->
                 Box(
