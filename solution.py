@@ -2316,6 +2316,45 @@ def evaluate_submission_pure_python(
     return res
 
 
+def run_voice_demo() -> int:
+    """Demonstrates offline Telugu speech consultation with deterministic JEV safety."""
+    print("=" * 64)
+    print(" Arogyasathi — Telugu Offline Voice Consultation Demo")
+    print(" Model: IndicConformer STT INT8 (~118 MB ONNX) | RAM Budget: ~120 MB")
+    print("=" * 64)
+
+    test_queries = [
+        ("గర్భధారణలో రక్తస్రావం అవుతోంది", "Spoken Telugu Danger Sign (Bleeding in pregnancy)"),
+        ("విరేచనాలకు ఓఆర్ఎస్ మరియు జింక్ మోతాదు ఎంత", "Spoken Telugu Routine Protocol (ORS & Zinc dosage)"),
+        ("సిజేరియన్ సర్జరీ ఆపరేషన్ ఖర్చు ఎంత?", "Spoken Out-of-Scope Procedure (Caesarean surgery)"),
+    ]
+
+    import sys
+    sys.path.insert(0, str(REPO_ROOT / "FULL_CODE"))
+    from arogyasathi.voice_engine import VoiceConsultationEngine
+    from arogyasathi.conversational_assistant import ConversationalAssistant
+
+    assistant = ConversationalAssistant()
+    engine = VoiceConsultationEngine(assistant=assistant)
+
+    for query, desc in test_queries:
+        print(f"\n[ASHA Voice Input] : \"{query}\"")
+        print(f"Scenario           : {desc}")
+        res = engine.consult_from_voice(query, language="te")
+        print(f"Transcription      : {res['transcription']}")
+        print(f"Triage Level       : {res['triage_level']}")
+        print(f"Cited Section      : {res['cited_section_ids']}")
+        print(f"Clinical Guidance  : {res['answer_text']}")
+        print(f"Spoken TTS Audio   : \"{res['tts_audio_text']}\"")
+        print(f"Doctor Call Button : {'[CALL DOCTOR]' if res['call_doctor_required'] else '[NOT NEEDED]'}")
+        print(f"Engine Footprint   : Model: {res['voice_engine_footprint']['model_size_mb']} MB, Latency: {res['voice_engine_footprint']['latency_ms']} ms")
+
+    print("\n" + "=" * 64)
+    print(" Offline Voice Consultation Demonstration Completed Successfully!")
+    print("=" * 64)
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Arogyasathi Single-File Clinical Engine (solution.py)"
@@ -2331,6 +2370,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Generate submission files and run the official evaluation scorer",
     )
     parser.add_argument(
+        "--voice-demo",
+        action="store_true",
+        help="Demonstrates Telugu offline voice consultation and STT INT8 footprint",
+    )
+    parser.add_argument(
         "--split",
         choices=["dev", "test"],
         default="dev",
@@ -2342,6 +2386,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Output folder for submission files",
     )
     args = parser.parse_args(argv)
+
+    if args.voice_demo:
+        return run_voice_demo()
 
     if args.generate_submission or args.evaluate:
         fp = generate_submission_bundle(split=args.split, out_dir=Path(args.out))

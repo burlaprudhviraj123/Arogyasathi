@@ -33,6 +33,7 @@ import java.util.Locale
 
 @Composable
 fun RecordsScreen(repository: ArogyasathiRepository) {
+    val strings = LocalAppStrings.current
     var selectedSubTab by remember { mutableIntStateOf(0) } // 0: Visit History, 1: Sync Outbox, 2: Protocol Corpus
     var completedVisits by remember { mutableStateOf<List<VisitOutcome>>(emptyList()) }
     var syncQueue by remember { mutableStateOf<List<SyncItem>>(emptyList()) }

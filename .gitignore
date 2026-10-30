@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 venv/
 models/
+FULL_CODE/models/
 H5_Frontline_Health_Worker_Companion/models/
 *.tmp
 
