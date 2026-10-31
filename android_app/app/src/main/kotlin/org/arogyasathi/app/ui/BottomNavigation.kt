@@ -2,12 +2,11 @@ package org.arogyasathi.app.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -43,11 +42,6 @@ data class NavigationTabItem(
     val badgeCount: Int? = null
 )
 
-/**
- * Floating stadium navigation bar inspired by Radix UI & Framer Motion tabs.
- * Features a gliding spring selection capsule pill, tactile icon bounce,
- * dark notification count badges, and seamless transitions across all tabs.
- */
 @Composable
 fun FloatingGlassBottomBar(
     selectedIndex: Int,
@@ -57,88 +51,130 @@ fun FloatingGlassBottomBar(
 ) {
     val strings = LocalAppStrings.current
     val items = listOf(
-        NavigationTabItem(strings.tabToday, R.drawable.ic_today, 0, badgeCount = if (todayBadgeCount > 0) todayBadgeCount else null),
-        NavigationTabItem(strings.tabFamilies, R.drawable.ic_families, 1),
+        NavigationTabItem(strings.tabToday,     R.drawable.ic_today,     0, badgeCount = if (todayBadgeCount > 0) todayBadgeCount else null),
+        NavigationTabItem(strings.tabFamilies,  R.drawable.ic_families,  1),
         NavigationTabItem(strings.tabAssistant, R.drawable.ic_assistant, 2),
-        NavigationTabItem(strings.tabRecords, R.drawable.ic_records, 3),
-        NavigationTabItem(strings.tabSettings, R.drawable.ic_settings, 4)
+        NavigationTabItem(strings.tabRecords,   R.drawable.ic_records,   3),
+        NavigationTabItem(strings.tabSettings,  R.drawable.ic_settings,  4)
     )
 
     val isDark = isSystemInDarkTheme()
-    val barBackground = if (isDark) Color(0xFF1E293B) else Color.White
-    val barBorder = if (isDark) Color(0xFF334155) else Color(0xFFE2E8F0)
-    val pillBackground = if (isDark) Color(0xFF334155) else Color(0xFFEFEFEF)
-    val activeTint = if (isDark) Color.White else Color(0xFF0F172A)
-    val inactiveTint = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
+    val barBg  = if (isDark) Color(0xFF1E293B) else Color.White
+    val barBrd = if (isDark) Color(0xFF334155) else Color(0xFFE2E8F0)
+    val activeContainer = if (isDark) Color(0xFF133E3A) else Color(0xFFE6F4F1)
+    val activeTint      = if (isDark) Color(0xFF14B8A6) else PrimaryTeal
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(68.dp)
-                .shadow(
-                    elevation = 12.dp,
-                    shape = RoundedCornerShape(percent = 50),
-                    spotColor = Color(0x22000000),
-                    ambientColor = Color(0x10000000)
-                ),
-            shape = RoundedCornerShape(percent = 50),
-            color = barBackground,
-            border = BorderStroke(1.dp, barBorder)
+                .height(64.dp)
+                .shadow(12.dp, shape = RoundedCornerShape(32.dp))
+                .clip(RoundedCornerShape(32.dp))
+                .border(1.dp, barBrd, RoundedCornerShape(32.dp)),
+            color = barBg
         ) {
-            BoxWithConstraints(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 6.dp, vertical = 6.dp)
+                    .padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val totalWidth = maxWidth
-                val tabCount = items.size
-                val tabWidth = totalWidth / tabCount
-                val pillHeight = maxHeight
-                val pillWidth = (tabWidth - 4.dp).coerceAtLeast(44.dp)
-
-                // Spring animation physics matching Framer Motion's spring.morph
-                val targetOffset = tabWidth * selectedIndex.coerceIn(0, tabCount - 1) + (tabWidth - pillWidth) / 2
-                val animatedPillOffset by animateDpAsState(
-                    targetValue = targetOffset,
-                    animationSpec = spring(
-                        dampingRatio = 0.78f,
-                        stiffness = 380f
-                    ),
-                    label = "pillSpringOffset"
-                )
-
-                // The sliding selection capsule pill indicator
-                Box(
-                    modifier = Modifier
-                        .offset(x = animatedPillOffset, y = 0.dp)
-                        .width(pillWidth)
-                        .height(pillHeight)
-                        .clip(RoundedCornerShape(percent = 50))
-                        .background(pillBackground)
-                )
-
-                // The tabs row
+                // Left wing: Today + Families
                 Row(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items.forEachIndexed { index, item ->
-                        val isSelected = selectedIndex == index
-                        FloatingNavTabItem(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            item = item,
-                            isSelected = isSelected,
-                            activeTint = activeTint,
-                            inactiveTint = inactiveTint,
-                            onClick = { onTabSelected(index) }
+                    SideNavTab(items[0], selectedIndex == 0, onTabSelected, activeContainer, activeTint)
+                    SideNavTab(items[1], selectedIndex == 1, onTabSelected, activeContainer, activeTint)
+                }
+
+                // Centre: Assistant — always locked at 50%
+                CentralAssistantButton(
+                    item     = items[2],
+                    isSelected = selectedIndex == 2,
+                    onSelect = { onTabSelected(2) },
+                    isDark   = isDark
+                )
+
+                // Right wing: Records + Settings
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SideNavTab(items[3], selectedIndex == 3, onTabSelected, activeContainer, activeTint)
+                    SideNavTab(items[4], selectedIndex == 4, onTabSelected, activeContainer, activeTint)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SideNavTab(
+    item: NavigationTabItem,
+    isSelected: Boolean,
+    onTabSelected: (Int) -> Unit,
+    activeContainer: Color,
+    activeTint: Color
+) {
+    val animBg   by animateColorAsState(if (isSelected) activeContainer else Color.Transparent, label = "sideTabBg")
+    val animTint by animateColorAsState(if (isSelected) activeTint else TextSecondary, label = "sideTabTint")
+    val iconScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.10f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.65f, stiffness = Spring.StiffnessMediumLow),
+        label = "sideTabScale"
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(width = 52.dp, height = 40.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(animBg)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onTabSelected(item.index) }
+            .semantics {
+                role = Role.Tab
+                contentDescription = "${item.title} tab"
+                stateDescription = if (isSelected) "Selected" else "Not selected"
+            }
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(id = item.iconRes),
+                contentDescription = item.title,
+                modifier = Modifier
+                    .size(20.dp)
+                    .graphicsLayer { scaleX = iconScale; scaleY = iconScale },
+                tint = animTint
+            )
+            // Badge
+            if (item.badgeCount != null && item.badgeCount > 0) {
+                Surface(
+                    color = Color(0xFF262626),
+                    shape = CircleShape,
+                    border = BorderStroke(1.2.dp, Color.White),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 10.dp, y = (-4).dp)
+                        .size(16.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (item.badgeCount > 9) "9+" else item.badgeCount.toString(),
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
                 }
@@ -148,95 +184,68 @@ fun FloatingGlassBottomBar(
 }
 
 @Composable
-private fun FloatingNavTabItem(
-    modifier: Modifier = Modifier,
+private fun CentralAssistantButton(
     item: NavigationTabItem,
     isSelected: Boolean,
-    activeTint: Color,
-    inactiveTint: Color,
-    onClick: () -> Unit
+    onSelect: () -> Unit,
+    isDark: Boolean
 ) {
-    val animTint by animateColorAsState(
-        targetValue = if (isSelected) activeTint else inactiveTint,
-        animationSpec = tween(durationMillis = 200),
-        label = "tabTint"
+    val centerBg by animateColorAsState(
+        targetValue = if (isSelected) PrimaryTeal else if (isDark) Color(0xFF133E3A) else Color(0xFFE6F4F1),
+        label = "centerBg"
     )
-
-    val iconScale by animateFloatAsState(
-        targetValue = if (isSelected) 1.08f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = 0.65f,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "iconScale"
+    val centerIconTint by animateColorAsState(
+        targetValue = if (isSelected) Color.White else PrimaryTeal,
+        label = "centerIconTint"
     )
 
     Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(percent = 50))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
             .semantics {
                 role = Role.Tab
                 contentDescription = "${item.title} tab"
                 stateDescription = if (isSelected) "Selected" else "Not selected"
-            },
-        contentAlignment = Alignment.Center
+            }
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(horizontal = 2.dp)
+        Surface(
+            modifier = Modifier
+                .size(52.dp)
+                .shadow(if (isSelected) 10.dp else 3.dp, CircleShape)
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onSelect() },
+            shape = CircleShape,
+            color = centerBg,
+            border = BorderStroke(
+                width = if (isSelected) 2.dp else 1.5.dp,
+                color = if (isSelected) Color(0xFF2DD4BF) else PrimaryTeal.copy(alpha = 0.45f)
+            )
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.graphicsLayer {
-                    scaleX = iconScale
-                    scaleY = iconScale
-                }
-            ) {
+            Box(contentAlignment = Alignment.Center) {
                 Icon(
                     painter = painterResource(id = item.iconRes),
                     contentDescription = item.title,
-                    modifier = Modifier.size(22.dp),
-                    tint = animTint
+                    modifier = Modifier.size(26.dp),
+                    tint = centerIconTint
                 )
-
-                // Dark circular notification badge at top-right of icon (matching user reference UI)
-                if (item.badgeCount != null && item.badgeCount > 0) {
-                    Surface(
-                        color = Color(0xFF262626),
-                        shape = CircleShape,
-                        border = BorderStroke(1.2.dp, Color.White),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 10.dp, y = (-4).dp)
-                            .size(16.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = if (item.badgeCount > 9) "9+" else item.badgeCount.toString(),
-                                fontSize = 8.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
             }
+        }
 
-            Spacer(modifier = Modifier.height(3.dp))
-
-            Text(
-                text = item.title,
-                fontSize = 11.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                color = animTint,
-                maxLines = 1
-            )
+        // Active dot below the circle
+        if (isSelected) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = 3.dp)
+                    .size(6.dp),
+                shape = CircleShape,
+                color = Color(0xFF2DD4BF),
+                border = BorderStroke(1.dp, Color.White)
+            ) {}
         }
     }
 }
